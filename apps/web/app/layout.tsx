@@ -18,9 +18,11 @@ const mono = IBM_Plex_Mono({
 });
 
 export const metadata = {
-  title: "Adwarp · LinkedIn Ads Manager",
+  title: "Adwarp",
   description:
-    "The LinkedIn Ads Manager you talk to. Describe the campaign and Adwarp drafts the audience, ad groups, and ads, from Claude over MCP or a CLI. Nothing spends until you activate it.",
+    "Adwarp is a free, open-source ad agent that runs in your terminal. Size audiences, draft campaigns and pull reports on LinkedIn Ads and Google Ads.",
+  // adwarp.dev is the site to index. The pages left here go away when they move there.
+  robots: { index: false, follow: true },
 };
 
 export const viewport = {
