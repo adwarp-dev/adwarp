@@ -1,18 +1,18 @@
 {
-  "name": "@liads/web",
+  "name": "@adwarp/web",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "pnpm --filter \"@liads/web^...\" build && next build",
+    "build": "pnpm --filter \"@adwarp/web^...\" build && next build",
     "start": "next start",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@liads/core": "workspace:*",
-    "@liads/mcp": "workspace:*",
-    "@liads/shared": "workspace:*",
+    "@adwarp/core": "workspace:*",
+    "@adwarp/mcp": "workspace:*",
+    "@adwarp/shared": "workspace:*",
     "@vercel/analytics": "^2.0.1",
     "mcp-handler": "^1.0.1",
     "next": "^15.1.6",

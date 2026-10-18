@@ -3,10 +3,12 @@
 # stage installs that tarball, so the image runs exactly what npm ships.
 #
 #   docker build -t adwarp .
-#   docker run -i --rm -v ~/.liads:/home/node/.liads adwarp
+#   docker run -i --rm -v ~/.adwarp:/home/node/.adwarp adwarp
 #
-# Credentials come from a mounted ~/.liads (after `adwarp auth login` on the host) or from
-# LIADS_CLIENT_ID, LIADS_CLIENT_SECRET, LIADS_REFRESH_TOKEN and LIADS_DEFAULT_ACCOUNT_ID.
+# Credentials come from a mounted ~/.adwarp (after `adwarp auth login` on the host) or from
+# ADWARP_LINKEDIN_CLIENT_ID, ADWARP_LINKEDIN_CLIENT_SECRET, ADWARP_LINKEDIN_REFRESH_TOKEN and
+# ADWARP_LINKEDIN_DEFAULT_ACCOUNT_ID. A ~/.liads folder or LIADS_* names from before the rename
+# work too.
 # Without them the server still starts and lists its tools.
 
 FROM node:22-slim AS build

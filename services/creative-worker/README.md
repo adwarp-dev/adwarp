@@ -25,7 +25,7 @@ host configuration problems.
 
 1. Check out this branch on the cloud host. From the repository root, create an ignored
    `services/creative-worker/.env` file with a randomly generated token of at least 32
-   characters: `LIADS_CREATIVE_WORKER_TOKEN=...`. Restrict its permissions to 0600.
+   characters: `ADWARP_CREATIVE_WORKER_TOKEN=...` (the older `LIADS_CREATIVE_WORKER_TOKEN` name still works). Restrict its permissions to 0600.
 2. Build and start exactly one instance:
 
    ```sh
@@ -39,8 +39,8 @@ host configuration problems.
 4. Configure the CLI shell and/or hosted MCP deployment:
 
    ```sh
-   export LIADS_CREATIVE_WORKER_URL=https://your-worker-hostname
-   export LIADS_CREATIVE_WORKER_TOKEN=...  # same secret, supplied through secret storage
+   export ADWARP_CREATIVE_WORKER_URL=https://your-worker-hostname
+   export ADWARP_CREATIVE_WORKER_TOKEN=...  # same secret, supplied through secret storage
    ```
 
 5. Perform read-only status/authentication checks first. A GET for an unknown ad ID must
@@ -119,7 +119,7 @@ continue after a block.
 Node 22.13+ is required by the worker's built-in SQLite module. From the repo root:
 
 ```sh
-pnpm --filter @liads/core build
+pnpm --filter @adwarp/core build
 node --test services/creative-worker/test/*.test.mjs
 ```
 

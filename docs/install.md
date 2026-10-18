@@ -9,18 +9,18 @@ There are 2 ways to run Adwarp:
 1. As an MCP server, registered with Claude Code, Claude Desktop, Cursor, or any MCP client, so you create campaigns by talking to your assistant. Run it locally (this page), or skip the always-on install and [connect to the hosted endpoint](./hosted.md) with your own credentials.
 2. As a terminal CLI, a global `adwarp` command for your terminal, scripts, or cron. See [CLI](./cli.md).
 
-Both come from the same npm package, `adwarp`, and both start the same way: [create a LinkedIn app](./linkedin-app.md), then authenticate as below. They read the same `~/.liads` credentials, so you can do both.
+Both come from the same npm package, `adwarp`, and both start the same way: [create a LinkedIn app](./linkedin-app.md), then authenticate as below. They read the same `~/.adwarp` credentials, so you can do both.
 
 ## Authenticate
 
 Requires Node.js 20 or newer.
 
 ```bash
-# App credentials (alternatively set LIADS_CLIENT_ID / LIADS_CLIENT_SECRET env vars)
-mkdir -p ~/.liads
-echo '{ "clientId": "...", "clientSecret": "...", "linkedinVersion": "202605" }' > ~/.liads/config.json
+# App credentials (alternatively set ADWARP_LINKEDIN_CLIENT_ID / ADWARP_LINKEDIN_CLIENT_SECRET env vars)
+mkdir -p ~/.adwarp
+echo '{ "clientId": "...", "clientSecret": "...", "linkedinVersion": "202605" }' > ~/.adwarp/config.json
 
-npx -y adwarp auth login      # opens the browser; tokens land in ~/.liads
+npx -y adwarp auth login      # opens the browser; tokens land in ~/.adwarp
 npx -y adwarp accounts list   # verify, then set defaultAccountId in config.json
 ```
 
@@ -28,7 +28,7 @@ See [Configuration](./config.md) for every field in `config.json`.
 
 ## Register the local MCP server
 
-Register the server with your MCP client. It reads the `~/.liads` credentials from the previous step.
+Register the server with your MCP client. It reads the `~/.adwarp` credentials from the previous step.
 
 Claude Code:
 
@@ -58,11 +58,11 @@ The Dockerfile at the root of the repo builds an image that runs the same MCP se
 
 ```bash
 docker build -t adwarp https://github.com/adwarp-dev/adwarp.git
-npx -y adwarp auth export > ~/.liads/docker.env   # LIADS_* values from your login; treat as a secret
-docker run -i --rm --env-file ~/.liads/docker.env -e LIADS_DEFAULT_ACCOUNT_ID=<id> adwarp
+mkdir -p ~/.adwarp && npx -y adwarp auth export > ~/.adwarp/docker.env   # your login as ADWARP_LINKEDIN_* values; treat as a secret
+docker run -i --rm --env-file ~/.adwarp/docker.env -e ADWARP_LINKEDIN_DEFAULT_ACCOUNT_ID=<id> adwarp
 ```
 
-To register it with an MCP client, use `docker` as the command and the `run` arguments above as its args. On macOS you can mount `-v ~/.liads:/home/node/.liads` instead of the env file, which also keeps the change journal on your machine.
+To register it with an MCP client, use `docker` as the command and the `run` arguments above as its args. On macOS you can mount `-v ~/.adwarp:/home/node/.adwarp` (or `-v ~/.liads:/home/node/.liads` on an install from before the rename) instead of the env file, which also keeps the change journal on your machine.
 
 ## From source
 

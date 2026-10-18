@@ -9,7 +9,7 @@ import {
   topBy,
   bottomBy,
   type Period,
-} from "@liads/shared";
+} from "@adwarp/shared";
 import type { LinkedInClient } from "./http.js";
 import {
   fetchAnalytics,

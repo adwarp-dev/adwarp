@@ -17,7 +17,7 @@ adwarp accounts list
 
 To run a single command without installing, use `npx -y adwarp <command>`.
 
-Coming from Liam? `liam` still works as an alias for `adwarp`. The package installs both names, so existing scripts and cron jobs keep running.
+Coming from Liam? `liam` still works as an alias for `adwarp`. The package installs both names, so existing scripts and cron jobs keep running. Every other name from before the rename still works too; see [Configuration](./config.md#names-from-before-the-rename).
 
 A sensible first session:
 
@@ -32,7 +32,7 @@ adwarp launch --brief examples/brief.json            # creates DRAFTS only
 All commands also work as `npx -y adwarp <command>`.
 
 ```
-adwarp auth login                         # OAuth, stores tokens in ~/.liads
+adwarp auth login                         # OAuth, stores tokens in ~/.adwarp
 adwarp auth export                        # print env vars for a self-hosted (Vercel) server
 adwarp auth export --mcp [url]            # print the hosted MCP connect command with your headers
 adwarp accounts list                      # list accessible ad accounts
@@ -89,7 +89,7 @@ Run `adwarp <command> --help` for every option of a command, for example the bud
 Google Ads lives under `adwarp google`. See [Google Ads](./google-ads.md) for setup.
 
 ```
-adwarp google auth login                  # OAuth, stores tokens in ~/.liads/google-credentials.json
+adwarp google auth login                  # OAuth, stores tokens in ~/.adwarp/google-credentials.json
 adwarp google accounts list               # every customer this login can reach
 adwarp google accounts clients <managerId>   # client accounts under a manager account
 adwarp google keywords <seeds...> [-u <url>] [-l <codes>] [--language <code>] [-n <limit>]   # keyword ideas
@@ -101,4 +101,4 @@ adwarp google report perf <level> [-p <period>] [--campaign <id>]   # campaign|a
 adwarp google query "<GAQL>"              # raw read-only GAQL query
 ```
 
-Commands that read an account take `-c, --customer <id>`, which defaults to `defaultCustomerId` in `~/.liads/google.json`.
+Commands that read an account take `-c, --customer <id>`, which defaults to `defaultCustomerId` in `~/.adwarp/google.json`.

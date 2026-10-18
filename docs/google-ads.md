@@ -52,7 +52,7 @@ Internal is the better default for an internal tool. Choose External only if the
 
 ### Configure and log in
 
-Write `~/.liads/google.json`:
+Write `~/.adwarp/google.json`:
 
 ```json
 {

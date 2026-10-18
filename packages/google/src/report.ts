@@ -7,7 +7,7 @@ import {
   r2,
   type IsoDateRange,
   type Period,
-} from "@liads/shared";
+} from "@adwarp/shared";
 import type { GoogleAdsClient } from "./http.js";
 import { search, dateClause } from "./gaql.js";
 import { fromMicros } from "./mutate.js";

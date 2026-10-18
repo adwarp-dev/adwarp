@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import type { Command } from "commander";
 import {
   googleLogin,
-  createGads,
+  createGoogleAds,
   listAccessibleCustomers,
   listClientAccounts,
   listCampaigns as listGoogleCampaigns,
@@ -17,7 +17,7 @@ import {
   search as gaqlSearch,
   SearchCampaignBriefSchema,
   KeywordIdeasSchema,
-} from "@liads/google";
+} from "@adwarp/google";
 
 const pctf = (x: number) => `${(x * 100).toFixed(2)}%`;
 const money = (x: number) => x.toFixed(2);
@@ -35,7 +35,7 @@ export function registerGoogleCommands(program: Command): void {
   const auth = google.command("auth").description("Google Ads authentication");
   auth
     .command("login")
-    .description("Run the OAuth flow and store tokens in ~/.liads/google-credentials.json")
+    .description("Run the OAuth flow and store tokens in google-credentials.json in the Adwarp folder")
     .action(async () => {
       const creds = await googleLogin();
       console.log(`Authenticated. Scopes: ${creds.scope ?? "(unknown)"}`);
@@ -53,8 +53,8 @@ export function registerGoogleCommands(program: Command): void {
     .command("list")
     .description("Every customer this login can reach (proves the token and OAuth client work)")
     .action(async () => {
-      const gads = await createGads();
-      for (const c of await listAccessibleCustomers(gads.client)) {
+      const googleAds = await createGoogleAds();
+      for (const c of await listAccessibleCustomers(googleAds.client)) {
         const tags = [c.manager ? "manager" : null, c.testAccount ? "test" : null].filter(Boolean).join(",");
         console.log(
           `${c.id}\t${c.name ?? "(unreadable)"}\t${c.currencyCode ?? ""}${tags ? `\t[${tags}]` : ""}${c.note ? `\t${c.note}` : ""}`,
@@ -65,8 +65,8 @@ export function registerGoogleCommands(program: Command): void {
     .command("clients <managerId>")
     .description("Client accounts under a manager account")
     .action(async (managerId: string) => {
-      const gads = await createGads();
-      for (const c of await listClientAccounts(gads.client, managerId)) {
+      const googleAds = await createGoogleAds();
+      for (const c of await listClientAccounts(googleAds.client, managerId)) {
         console.log(`${c.id}\t${c.name ?? ""}\t${c.currencyCode ?? ""}${c.manager ? "\t[manager]" : ""}`);
       }
     });
@@ -82,7 +82,7 @@ export function registerGoogleCommands(program: Command): void {
     .option("--language <code>", "ISO language code", "en")
     .option("-n, --limit <n>", "Max ideas", "50")
     .action(async (seeds: string[], opts) => {
-      const gads = await createGads();
+      const googleAds = await createGoogleAds();
       const input = KeywordIdeasSchema.parse({
         seeds,
         pageUrl: opts.url,
@@ -91,7 +91,7 @@ export function registerGoogleCommands(program: Command): void {
         limit: Number(opts.limit),
       });
       const customerId = await requireCustomerId(opts.customer);
-      const ideas = await generateKeywordIdeas(gads.client, customerId, input);
+      const ideas = await generateKeywordIdeas(googleAds.client, customerId, input);
       console.log("volume\tcompetition\tbid range\tkeyword");
       for (const i of ideas) {
         console.log(
@@ -109,9 +109,9 @@ export function registerGoogleCommands(program: Command): void {
     .option("-c, --customer <id>", "Customer id (defaults to config)")
     .option("--all", "Include removed campaigns")
     .action(async (opts) => {
-      const gads = await createGads();
+      const googleAds = await createGoogleAds();
       const customerId = await requireCustomerId(opts.customer);
-      for (const c of await listGoogleCampaigns(gads.client, customerId, { includeRemoved: opts.all })) {
+      for (const c of await listGoogleCampaigns(googleAds.client, customerId, { includeRemoved: opts.all })) {
         console.log(`${c.id}\t${c.status}\t${c.channelType}\t${money(c.dailyBudget)}/day\t${c.name}`);
         for (const g of c.adGroups ?? []) console.log(`  ${g.id}\t${g.status}\t${g.name}`);
       }
@@ -122,9 +122,9 @@ export function registerGoogleCommands(program: Command): void {
     .description("Ads in an ad group, with their responsive-search copy")
     .option("-c, --customer <id>", "Customer id (defaults to config)")
     .action(async (adGroupId: string, opts) => {
-      const gads = await createGads();
+      const googleAds = await createGoogleAds();
       const customerId = await requireCustomerId(opts.customer);
-      for (const a of await listGoogleAds(gads.client, customerId, { adGroupId })) {
+      for (const a of await listGoogleAds(googleAds.client, customerId, { adGroupId })) {
         console.log(`${a.id}\t${a.status}\t${a.type}`);
         console.log(`  headlines: ${a.headlines.join(" | ")}`);
         console.log(`  descriptions: ${a.descriptions.join(" | ")}`);
@@ -137,9 +137,9 @@ export function registerGoogleCommands(program: Command): void {
     .description("Conversion actions on the account, to name one in a brief")
     .option("-c, --customer <id>", "Customer id (defaults to config)")
     .action(async (opts) => {
-      const gads = await createGads();
+      const googleAds = await createGoogleAds();
       const customerId = await requireCustomerId(opts.customer);
-      for (const c of await listConversionActions(gads.client, customerId)) {
+      for (const c of await listConversionActions(googleAds.client, customerId)) {
         console.log(`${c.id}\t${c.status}\t${c.primaryForGoal ? "primary" : "secondary"}\t${c.category}\t${c.name}`);
       }
     });
@@ -156,8 +156,8 @@ export function registerGoogleCommands(program: Command): void {
       // The schema defaults validateOnly to true, so a dry run is what you get
       // unless --apply is explicit.
       const brief = SearchCampaignBriefSchema.parse({ ...raw, validateOnly: !opts.apply });
-      const gads = await createGads();
-      const result = await launchSearchCampaign(gads.client, brief);
+      const googleAds = await createGoogleAds();
+      const result = await launchSearchCampaign(googleAds.client, brief);
 
       console.log(`Customer ${result.customerId} — ${result.operations} operations\n`);
       for (const p of result.plan) console.log(`  ${p.kind.padEnd(18)} ${p.name}${p.detail ? `  (${p.detail})` : ""}`);
@@ -188,9 +188,9 @@ export function registerGoogleCommands(program: Command): void {
     .option("-p, --period <period>", "last_7_days|last_30_days|last_90_days|month_to_date|last_month", "last_30_days")
     .option("--campaign <id>", "Restrict to one campaign")
     .action(async (level, opts) => {
-      const gads = await createGads();
+      const googleAds = await createGoogleAds();
       const customerId = await requireCustomerId(opts.customer);
-      const rows = await getGooglePerformance(gads.client, customerId, {
+      const rows = await getGooglePerformance(googleAds.client, customerId, {
         level,
         campaignId: opts.campaign,
         dateRange: resolveGoogleDateRange({ period: opts.period }),
@@ -211,8 +211,8 @@ export function registerGoogleCommands(program: Command): void {
     .description("Run a raw GAQL query (read-only escape hatch)")
     .option("-c, --customer <id>", "Customer id (defaults to config)")
     .action(async (query: string, opts) => {
-      const gads = await createGads();
+      const googleAds = await createGoogleAds();
       const customerId = await requireCustomerId(opts.customer);
-      console.log(JSON.stringify(await gaqlSearch(gads.client, customerId, query), null, 2));
+      console.log(JSON.stringify(await gaqlSearch(googleAds.client, customerId, query), null, 2));
     });
 }

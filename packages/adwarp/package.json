@@ -48,9 +48,9 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@liads/cli": "workspace:*",
-    "@liads/mcp": "workspace:*",
-    "@liads/shared": "workspace:*",
+    "@adwarp/cli": "workspace:*",
+    "@adwarp/mcp": "workspace:*",
+    "@adwarp/shared": "workspace:*",
     "esbuild": "^0.28.1"
   }
 }

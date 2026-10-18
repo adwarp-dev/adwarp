@@ -1,5 +1,5 @@
 {
-  "name": "@liads/cli",
+  "name": "@adwarp/cli",
   "version": "0.1.0",
   "description": "Adwarp CLI, the open-source ad agent for LinkedIn Ads and Google Ads",
   "private": true,
@@ -14,10 +14,10 @@
     "start": "tsx src/index.ts"
   },
   "dependencies": {
-    "@liads/core": "workspace:*",
-    "@liads/google": "workspace:*",
-    "@liads/mcp": "workspace:*",
-    "@liads/shared": "workspace:*",
+    "@adwarp/core": "workspace:*",
+    "@adwarp/google": "workspace:*",
+    "@adwarp/mcp": "workspace:*",
+    "@adwarp/shared": "workspace:*",
     "commander": "^13.0.0"
   }
 }

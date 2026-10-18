@@ -54,7 +54,7 @@ jobs:
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
       - run: pnpm install --frozen-lockfile
-      # Also checks that package.json, @liads/shared and server.json agree on the version.
+      # Also checks that package.json, @adwarp/shared and server.json agree on the version.
       - run: pnpm -r build
       - run: pnpm -r typecheck
       - name: Pack the npm package and test it from a clean install

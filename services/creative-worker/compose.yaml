@@ -12,7 +12,7 @@ services:
     ports:
       - "127.0.0.1:8080:8080"
     environment:
-      LIADS_CREATIVE_WORKER_TOKEN: ${LIADS_CREATIVE_WORKER_TOKEN:?Set the worker token}
+      ADWARP_CREATIVE_WORKER_TOKEN: ${ADWARP_CREATIVE_WORKER_TOKEN:-${LIADS_CREATIVE_WORKER_TOKEN:?Set the worker token}}
     volumes:
       - creative-data:/data
     # Exactly one replica. Put an HTTPS reverse proxy in front of localhost:8080.

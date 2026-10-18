@@ -7,7 +7,7 @@ import {
   type ChangeLift as SharedChangeLift,
   type LiftWindow as SharedLiftWindow,
   type LiftWindowSpec,
-} from "@liads/shared";
+} from "@adwarp/shared";
 import type { LinkedInClient, MutationEvent } from "./http.js";
 import {
   fetchAnalytics,
@@ -21,17 +21,17 @@ import { aggregate, normalize, type MetricRow } from "./report.js";
 /**
  * LinkedIn's half of the change journal. The journal model, its JSONL storage,
  * and the before/after windowing are platform-neutral and live in
- * @liads/shared; what stays here is LinkedIn-specific: turning a restli write
+ * @adwarp/shared; what stays here is LinkedIn-specific: turning a restli write
  * into a change event, and pulling LinkedIn analytics for a lift window.
  */
 
-// Re-exported so `import { ... } from "@liads/core"` keeps working unchanged.
+// Re-exported so `import { ... } from "@adwarp/core"` keeps working unchanged.
 export {
   changelogPath,
   recordChange,
   readChanges,
   eventPlatform,
-} from "@liads/shared";
+} from "@adwarp/shared";
 export type {
   AdEntityType,
   AdPlatform,
@@ -39,7 +39,7 @@ export type {
   ChangeEvent,
   ChangeInput,
   ChangeFilter,
-} from "@liads/shared";
+} from "@adwarp/shared";
 
 /** The three ad entities LinkedIn exposes, and the only ones it can report on. */
 export type LinkedInEntityType = "campaignGroup" | "campaign" | "creative";
@@ -85,7 +85,7 @@ export function interpretMutation(m: MutationEvent): ChangeInput | null {
     const fields = Object.entries(set).map(([field, after]) => ({ field, after }));
     return {
       platform: "linkedin",
-      source: "liam",
+      source: "adwarp",
       kind: "update",
       entity: { type, id: idSeg, accountId },
       fields,
@@ -100,7 +100,7 @@ export function interpretMutation(m: MutationEvent): ChangeInput | null {
     const name: string | undefined = body?.name ?? body?.creative?.name;
     return {
       platform: "linkedin",
-      source: "liam",
+      source: "adwarp",
       kind: "create",
       entity: { type, id, name, accountId },
       summary: `Created ${TYPE_LABEL[type]}${name ? ` “${name}”` : ""}`,

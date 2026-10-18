@@ -1,14 +1,15 @@
 import { randomUUID } from "node:crypto";
 import { appendFile, readFile, mkdir } from "node:fs/promises";
 import { dirname, join } from "node:path";
-import { LIADS_DIR } from "./paths.js";
+import { env } from "./env.js";
+import { ADWARP_DIR } from "./paths.js";
 import { liftWindows, type LiftWindowSpec } from "./period.js";
 import { pctChange } from "./metrics.js";
 
 /**
  * Change journal — an append-only, local record of every change made to an ad
  * entity, so a later "lift" report can compare performance before vs. after a
- * change. Stored as JSON Lines at ~/.liads/changelog.jsonl (one event per line):
+ * change. Stored as JSON Lines at changelog.jsonl in the Adwarp folder (one event per line):
  * append-only writes are safe across concurrent runs, the file is greppable and
  * diffable, and it needs no database.
  *
@@ -45,10 +46,10 @@ export interface ChangeEvent {
   /** Which ad platform the entity lives on. Absent on pre-multi-platform lines. */
   platform?: AdPlatform;
   /**
-   * Who/what made the change. "liam" marks a change this tool captured itself; the value
-   * predates the Adwarp rename and stays frozen so existing journals keep parsing.
+   * Who/what made the change. "adwarp" marks a change this tool captured itself.
+   * Journals written before the rename say "liam" for the same thing; read both.
    */
-  source: "liam" | "manual";
+  source: "adwarp" | "liam" | "manual";
   /** create = entity made; update = field(s) changed; note = freeform annotation. */
   kind: "create" | "update" | "note";
   entity: { type: AdEntityType; id: string; name?: string; accountId?: string };
@@ -69,9 +70,9 @@ export const eventPlatform = (e: ChangeEvent): AdPlatform => e.platform ?? "link
 
 /* --------------------------------- storage ---------------------------------- */
 
-/** Path to the JSONL journal. Override with LIADS_CHANGELOG_PATH (e.g. for tests). */
+/** Path to the JSONL journal. Override with ADWARP_CHANGELOG_PATH (e.g. for tests). */
 export function changelogPath(): string {
-  return process.env.LIADS_CHANGELOG_PATH ?? join(LIADS_DIR, "changelog.jsonl");
+  return env("ADWARP_CHANGELOG_PATH") ?? join(ADWARP_DIR, "changelog.jsonl");
 }
 
 /**

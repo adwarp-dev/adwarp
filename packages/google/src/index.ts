@@ -1,5 +1,5 @@
 /**
- * @liads/google — the Google Ads engine. Mirrors @liads/core's shape: config
+ * @adwarp/google — the Google Ads engine. Mirrors @adwarp/core's shape: config
  * and auth, one HTTP chokepoint, thin typed resource modules, zod schemas as
  * the single source of truth for CLI and MCP inputs.
  *
@@ -33,5 +33,5 @@ export * from "./resources/campaigns.js";
 export * from "./orchestrate.js";
 export * from "./report.js";
 
-// Change journal (shares ~/.liads/changelog.jsonl with LinkedIn)
+// Change journal (shares changelog.jsonl with LinkedIn)
 export * from "./changelog.js";

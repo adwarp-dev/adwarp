@@ -21,7 +21,7 @@ pnpm + TypeScript monorepo:
 - `packages/cli` — the `adwarp` CLI (commander), also installed as `liam` for existing users.
   LinkedIn at the top level, Google under `adwarp google ...` (`src/google.ts`).
 - `packages/adwarp`: the published npm package `adwarp`. `build.mjs` bundles the private
-  `@liads/*` packages with esbuild into `dist/cli.js` (`adwarp`, `liam`) and `dist/mcp.js`
+  `@adwarp/*` packages with esbuild into `dist/cli.js` (`adwarp`, `liam`) and `dist/mcp.js`
   (`adwarp-mcp`). Third-party imports stay npm dependencies, and the build fails on one its
   package.json does not declare. `scripts/smoke.mjs` tests the packed tarball and the root
   `Dockerfile`'s image. The release version lives in its package.json,
@@ -30,11 +30,11 @@ pnpm + TypeScript monorepo:
   Releases run from `.github/workflows/release.yml` on a `v*` tag; see CONTRIBUTING.md.
 - `apps/web` — Next.js app hosting the MCP over HTTP at `/api/mcp` (Vercel). Two tenants:
   the env-credential tenant gated by a `MCP_AUTH_TOKEN` bearer, and bring-your-own
-  credentials callers who send `X-Liads-*` headers (client id/secret + refresh token,
-  optional account id/version) that the route activates per request via
-  `withRequestCredentials` (core/config.ts, AsyncLocalStorage).
+  credentials callers who send `X-Adwarp-Linkedin-*` headers (client id/secret + refresh token,
+  optional account id/version), parsed by `requestCredentialsFromHeaders` and activated per
+  request via `withRequestCredentials` (core/config.ts, AsyncLocalStorage).
 
-Data flow: every tool/command builds a client via `createLiads()` (core/client.ts), which
+Data flow: every tool/command builds a client via `createLinkedInAds()` (core/client.ts), which
 loads config + an auto-refreshing token provider, then calls a resource module. Resource
 modules are thin typed wrappers over `LinkedInClient.request()`.
 
@@ -48,22 +48,26 @@ modules are thin typed wrappers over `LinkedInClient.request()`.
 - **zod schemas are the source of truth.** All tool/command inputs live as zod schemas in
   `core/src/schemas.ts` and are reused as MCP tool input schemas (`Schema.shape`). Add or
   change a field there first, then thread it through the resource module.
-- **Secrets never enter the repo.** Local credentials live in `~/.liads/` (LinkedIn:
+- **Secrets never enter the repo.** Local credentials live in `~/.adwarp/` (LinkedIn:
   `config.json` + `credentials.json`; Google: `google.json` + `google-credentials.json`,
-  all mode 0600). Hosted credentials are `LIADS_*` / `GADS_*` env vars, or per-request
-  `X-Liads-*` headers for bring-your-own-credentials callers. The config layer resolves
+  all mode 0600). Hosted credentials are `ADWARP_LINKEDIN_*` / `ADWARP_GOOGLE_*` env vars, or
+  per-request `X-Adwarp-Linkedin-*` headers for bring-your-own-credentials callers. The config layer resolves
   request context first, then env, then files. Never log header credentials.
 - **The hosted MCP does not expose the Google tools**, and must not start doing so. That
   endpoint is multi-tenant over per-request LinkedIn credentials while Google credentials
   would come from shared server env vars, so exposing them would let any caller operate the
   server's Google Ads account. `registerTools(server, { google: false })` in the web route.
-- **Internal names are frozen.** The package scope `@liads/*`, the `~/.liads` dir, the
-  `LIADS_*` env prefix, the `X-Liads-*` headers, and the change journal's `source: "liam"`
-  value are intentionally NOT renamed to "adwarp" (renaming breaks stored creds, existing
-  journals, and the deployed Vercel env). The brand "Adwarp" (formerly Liam) is
-  visible-surface only, and the `liam` and `liads-mcp` bins stay as aliases. Google
-  config shares `~/.liads` for the same reason, and because the change journal at its root
-  already spans both platforms.
+- **Every name says adwarp, and every pre-rename name keeps working.** Adwarp was Liam, and
+  its internal names used `liads` and `gads`. Read env vars through `env()` in
+  `@adwarp/shared`, whose `LEGACY_ENV_NAMES` table maps each `ADWARP_*` name to its
+  `LIADS_*` or `GADS_*` predecessor (the new name wins). `ADWARP_DIR` is `~/.adwarp`, or
+  `~/.liads` on installs that only have that. `CREDENTIAL_HEADERS` in core/config.ts lists
+  each `X-Adwarp-Linkedin-*` header with its `X-Liads-*` predecessor. The journal writes
+  `source: "adwarp"` and must keep reading `"liam"`. The `liam` and `liads-mcp` bins stay
+  as aliases. Never drop a fallback: existing installs, the deployed Vercel env and people's
+  hosted connections still use the old names. `packages/core/test/legacyNames.test.mjs` and
+  `packages/google/test/legacyNames.test.mjs` pin this. Google config shares the Adwarp
+  folder because the change journal at its root already spans both platforms.
 - Match the surrounding code style. Keep comments at the existing density. No em dashes in
   user-facing strings.
 

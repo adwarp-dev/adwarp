@@ -5,7 +5,7 @@ import {
   transportRetryDelayMs,
   DEFAULT_MAX_RETRIES,
   type TokenProvider,
-} from "@liads/shared";
+} from "@adwarp/shared";
 import { type AppConfig, linkedinVersion } from "./config.js";
 
 export const LINKEDIN_REST_BASE = "https://api.linkedin.com/rest";

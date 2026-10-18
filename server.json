@@ -28,25 +28,25 @@
       ],
       "environmentVariables": [
         {
-          "name": "LIADS_CLIENT_ID",
-          "description": "LinkedIn app Client ID. Leave unset to use ~/.liads from adwarp auth login",
+          "name": "ADWARP_LINKEDIN_CLIENT_ID",
+          "description": "LinkedIn app Client ID. Leave unset to use ~/.adwarp from adwarp auth login",
           "isRequired": false,
           "isSecret": false
         },
         {
-          "name": "LIADS_CLIENT_SECRET",
-          "description": "LinkedIn app Client Secret. Leave unset to use ~/.liads",
+          "name": "ADWARP_LINKEDIN_CLIENT_SECRET",
+          "description": "LinkedIn app Client Secret. Leave unset to use ~/.adwarp",
           "isRequired": false,
           "isSecret": true
         },
         {
-          "name": "LIADS_REFRESH_TOKEN",
-          "description": "Refresh token from adwarp auth login. Leave unset to use ~/.liads",
+          "name": "ADWARP_LINKEDIN_REFRESH_TOKEN",
+          "description": "Refresh token from adwarp auth login. Leave unset to use ~/.adwarp",
           "isRequired": false,
           "isSecret": true
         },
         {
-          "name": "LIADS_DEFAULT_ACCOUNT_ID",
+          "name": "ADWARP_LINKEDIN_DEFAULT_ACCOUNT_ID",
           "description": "LinkedIn ad account used when a call omits one",
           "isRequired": false,
           "isSecret": false
@@ -60,31 +60,31 @@
       "url": "https://mcp.adwarp.dev/api/mcp",
       "headers": [
         {
-          "name": "X-Liads-Client-Id",
+          "name": "X-Adwarp-Linkedin-Client-Id",
           "description": "Your LinkedIn app Client ID",
           "isRequired": true,
           "isSecret": false
         },
         {
-          "name": "X-Liads-Client-Secret",
+          "name": "X-Adwarp-Linkedin-Client-Secret",
           "description": "Your LinkedIn app Client Secret",
           "isRequired": true,
           "isSecret": true
         },
         {
-          "name": "X-Liads-Refresh-Token",
+          "name": "X-Adwarp-Linkedin-Refresh-Token",
           "description": "Refresh token from adwarp auth login",
           "isRequired": true,
           "isSecret": true
         },
         {
-          "name": "X-Liads-Account-Id",
+          "name": "X-Adwarp-Linkedin-Account-Id",
           "description": "LinkedIn ad account used when a call omits one",
           "isRequired": false,
           "isSecret": false
         },
         {
-          "name": "X-Liads-Linkedin-Version",
+          "name": "X-Adwarp-Linkedin-Version",
           "description": "LinkedIn API version pin (YYYYMM)",
           "isRequired": false,
           "isSecret": false

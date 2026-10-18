@@ -2,24 +2,26 @@ import { timingSafeEqual } from "node:crypto";
 import { createMcpHandler } from "mcp-handler";
 import { after } from "next/server";
 import { track } from "@vercel/analytics/server";
-import { withRequestCredentials, type RequestCredentials } from "@liads/core";
-import { VERSION } from "@liads/shared";
+import { requestCredentialsFromHeaders, withRequestCredentials } from "@adwarp/core";
+import { VERSION } from "@adwarp/shared";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-import { registerTools } from "@liads/mcp/tools";
+import { registerTools } from "@adwarp/mcp/tools";
 
 /**
  * Hosted MCP server at /api/mcp (Streamable HTTP). Two ways in:
  *
  * 1. Bring your own credentials (multi-tenant): send your LinkedIn developer
- *    app details as headers on every request — X-Liads-Client-Id,
- *    X-Liads-Client-Secret, X-Liads-Refresh-Token, plus optional
- *    X-Liads-Account-Id and X-Liads-Linkedin-Version. The request runs
+ *    app details as headers on every request: X-Adwarp-Linkedin-Client-Id,
+ *    X-Adwarp-Linkedin-Client-Secret, X-Adwarp-Linkedin-Refresh-Token, plus
+ *    optional X-Adwarp-Linkedin-Account-Id and X-Adwarp-Linkedin-Version. The
+ *    pre-rename X-Liads-* names still work. The request runs
  *    entirely against YOUR app and ad account; no shared secret needed, since
  *    the headers grant nothing beyond what the caller already owns.
  *    Credentials are used in-memory only and never logged or persisted.
  *
- * 2. Env tenant (the deploy owner): no X-Liads headers. Credentials come from
- *    LIADS_* env vars and access is gated by MCP_AUTH_TOKEN.
+ * 2. Env tenant (the deploy owner): no credential headers. Credentials come from
+ *    ADWARP_LINKEDIN_* env vars (or the older LIADS_* names) and access is gated
+ *    by MCP_AUTH_TOKEN.
  */
 const mcpHandler = createMcpHandler(
   // The adapter's server is the same MCP SDK type; cast across the version boundary.
@@ -31,21 +33,6 @@ const mcpHandler = createMcpHandler(
   { serverInfo: { name: "adwarp", version: VERSION } },
   { basePath: "/api" },
 );
-
-/** Caller-supplied credentials, when the request carries all three required headers. */
-function headerCredentials(req: Request): RequestCredentials | null {
-  const clientId = req.headers.get("x-liads-client-id");
-  const clientSecret = req.headers.get("x-liads-client-secret");
-  const refreshToken = req.headers.get("x-liads-refresh-token");
-  if (!clientId || !clientSecret || !refreshToken) return null;
-  return {
-    clientId,
-    clientSecret,
-    refreshToken,
-    defaultAccountId: req.headers.get("x-liads-account-id") ?? undefined,
-    linkedinVersion: req.headers.get("x-liads-linkedin-version") ?? undefined,
-  };
-}
 
 /** Constant-time string comparison; never leaks how much of the token matched. */
 function safeEqual(a: string, b: string): boolean {
@@ -84,7 +71,7 @@ async function trackMcpRequest(req: Request): Promise<void> {
       await track("mcp_request", {
         method,
         tool: tool ?? null,
-        tenant: req.headers.get("x-liads-client-id") ? "byo" : "env",
+        tenant: requestCredentialsFromHeaders(req.headers) ? "byo" : "env",
       });
     }
   } catch {
@@ -94,7 +81,7 @@ async function trackMcpRequest(req: Request): Promise<void> {
 
 async function guard(req: Request): Promise<Response> {
   after(() => trackMcpRequest(req));
-  const creds = headerCredentials(req);
+  const creds = requestCredentialsFromHeaders(req.headers);
   if (creds) {
     return withRequestCredentials(creds, () => mcpHandler(req));
   }
@@ -102,7 +89,7 @@ async function guard(req: Request): Promise<Response> {
     return new Response(
       JSON.stringify({
         error: "unauthorized",
-        hint: "Send Authorization: Bearer <MCP_AUTH_TOKEN>, or bring your own LinkedIn app via X-Liads-Client-Id / X-Liads-Client-Secret / X-Liads-Refresh-Token headers (see the README).",
+        hint: "Send Authorization: Bearer <MCP_AUTH_TOKEN>, or bring your own LinkedIn app via X-Adwarp-Linkedin-Client-Id / X-Adwarp-Linkedin-Client-Secret / X-Adwarp-Linkedin-Refresh-Token headers (see docs/hosted.md).",
       }),
       { status: 401, headers: { "content-type": "application/json" } },
     );

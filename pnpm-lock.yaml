@@ -20,13 +20,13 @@ importers:
 
   apps/web:
     dependencies:
-      '@liads/core':
+      '@adwarp/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@liads/mcp':
+      '@adwarp/mcp':
         specifier: workspace:*
         version: link:../../packages/mcp
-      '@liads/shared':
+      '@adwarp/shared':
         specifier: workspace:*
         version: link:../../packages/shared
       '@vercel/analytics':
@@ -70,13 +70,13 @@ importers:
         specifier: ^3.24.1
         version: 3.25.76
     devDependencies:
-      '@liads/cli':
+      '@adwarp/cli':
         specifier: workspace:*
         version: link:../cli
-      '@liads/mcp':
+      '@adwarp/mcp':
         specifier: workspace:*
         version: link:../mcp
-      '@liads/shared':
+      '@adwarp/shared':
         specifier: workspace:*
         version: link:../shared
       esbuild:
@@ -85,16 +85,16 @@ importers:
 
   packages/cli:
     dependencies:
-      '@liads/core':
+      '@adwarp/core':
         specifier: workspace:*
         version: link:../core
-      '@liads/google':
+      '@adwarp/google':
         specifier: workspace:*
         version: link:../google
-      '@liads/mcp':
+      '@adwarp/mcp':
         specifier: workspace:*
         version: link:../mcp
-      '@liads/shared':
+      '@adwarp/shared':
         specifier: workspace:*
         version: link:../shared
       commander:
@@ -103,7 +103,7 @@ importers:
 
   packages/core:
     dependencies:
-      '@liads/shared':
+      '@adwarp/shared':
         specifier: workspace:*
         version: link:../shared
       csv-parse:
@@ -121,7 +121,7 @@ importers:
 
   packages/google:
     dependencies:
-      '@liads/shared':
+      '@adwarp/shared':
         specifier: workspace:*
         version: link:../shared
       zod:
@@ -130,13 +130,13 @@ importers:
 
   packages/mcp:
     dependencies:
-      '@liads/core':
+      '@adwarp/core':
         specifier: workspace:*
         version: link:../core
-      '@liads/google':
+      '@adwarp/google':
         specifier: workspace:*
         version: link:../google
-      '@liads/shared':
+      '@adwarp/shared':
         specifier: workspace:*
         version: link:../shared
       '@modelcontextprotocol/sdk':

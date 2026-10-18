@@ -1,8 +1,8 @@
-import { getRemoteCreatives } from "@liads/core";
+import { getRemoteCreatives } from "@adwarp/core";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import {
-  createLiads,
+  createLinkedInAds,
   listAdAccounts,
   estimateAudience,
   searchTargeting,
@@ -44,7 +44,7 @@ import {
   listCampaigns,
   listCreatives,
   deleteAd,
-} from "@liads/core";
+} from "@adwarp/core";
 import { registerGoogleTools } from "./googleTools.js";
 
 const AD_ENTITY_TYPE = z
@@ -79,8 +79,8 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
   if (options.google ?? true) registerGoogleTools(server);
   server.tool("list_ad_accounts", "List LinkedIn ad accounts this app can access.", {}, async () => {
     try {
-      const liads = await createLiads();
-      return ok(await listAdAccounts(liads.client));
+      const linkedinAds = await createLinkedInAds();
+      return ok(await listAdAccounts(linkedinAds.client));
     } catch (e) {
       return fail(e);
     }
@@ -92,8 +92,8 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
     {},
     async () => {
       try {
-        const liads = await createLiads();
-        return ok(await listTargetingFacets(liads.client));
+        const linkedinAds = await createLinkedInAds();
+        return ok(await listTargetingFacets(linkedinAds.client));
       } catch (e) {
         return fail(e);
       }
@@ -106,8 +106,8 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
     { facet: z.string().describe("short facet name, e.g. titles, industries, skills, staffCountRanges, locations"), query: z.string() },
     async ({ facet, query }) => {
       try {
-        const liads = await createLiads();
-        return ok(await searchTargeting(liads.client, facet, query));
+        const linkedinAds = await createLinkedInAds();
+        return ok(await searchTargeting(linkedinAds.client, facet, query));
       } catch (e) {
         return fail(e);
       }
@@ -120,8 +120,8 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
     { facet: z.string().describe("short facet name, e.g. seniorities") },
     async ({ facet }) => {
       try {
-        const liads = await createLiads();
-        return ok(await listFacetEntities(liads.client, facet));
+        const linkedinAds = await createLinkedInAds();
+        return ok(await listFacetEntities(linkedinAds.client, facet));
       } catch (e) {
         return fail(e);
       }
@@ -134,8 +134,8 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
     TargetingSpecSchema.shape,
     async (args) => {
       try {
-        const liads = await createLiads();
-        return ok(await estimateAudience(liads.client, TargetingSpecSchema.parse(args)));
+        const linkedinAds = await createLinkedInAds();
+        return ok(await estimateAudience(linkedinAds.client, TargetingSpecSchema.parse(args)));
       } catch (e) {
         return fail(e);
       }
@@ -153,9 +153,9 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
     },
     async ({ accountId, name, csvPath, type }) => {
       try {
-        const liads = await createLiads();
+        const linkedinAds = await createLinkedInAds();
         const acct = accountId ?? (await requireDefaultAccountId());
-        return ok(await uploadAudienceFromFile(liads.client, liads.getToken, { accountId: acct, name, csvPath, type }));
+        return ok(await uploadAudienceFromFile(linkedinAds.client, linkedinAds.getToken, { accountId: acct, name, csvPath, type }));
       } catch (e) {
         return fail(e);
       }
@@ -168,8 +168,8 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
     SalesforceAudienceSchema.shape,
     async (args) => {
       try {
-        const liads = await createLiads();
-        return ok(await audienceFromSalesforce(liads.client, liads.getToken, SalesforceAudienceSchema.parse(args)));
+        const linkedinAds = await createLinkedInAds();
+        return ok(await audienceFromSalesforce(linkedinAds.client, linkedinAds.getToken, SalesforceAudienceSchema.parse(args)));
       } catch (e) {
         return fail(e);
       }
@@ -182,9 +182,9 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
     { accountId: z.string().optional() },
     async ({ accountId }) => {
       try {
-        const liads = await createLiads();
+        const linkedinAds = await createLinkedInAds();
         const acct = accountId ?? (await requireDefaultAccountId());
-        return ok(await listConversions(liads.client, acct));
+        return ok(await listConversions(linkedinAds.client, acct));
       } catch (e) {
         return fail(e);
       }
@@ -202,11 +202,11 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
     },
     async ({ accountId, level, groupId, includeArchived }) => {
       try {
-        const liads = await createLiads();
+        const linkedinAds = await createLinkedInAds();
         const acct = accountId ?? (await requireDefaultAccountId());
         const out: Record<string, unknown> = {};
-        if (level !== "campaigns") out.groups = await listCampaignGroups(liads.client, acct, { includeArchived });
-        if (level !== "groups") out.campaigns = await listCampaigns(liads.client, acct, { groupId, includeArchived });
+        if (level !== "campaigns") out.groups = await listCampaignGroups(linkedinAds.client, acct, { includeArchived });
+        if (level !== "groups") out.campaigns = await listCampaigns(linkedinAds.client, acct, { groupId, includeArchived });
         return ok(out);
       } catch (e) {
         return fail(e);
@@ -220,9 +220,9 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
     { accountId: z.string().optional(), campaignId: z.string() },
     async ({ accountId, campaignId }) => {
       try {
-        const liads = await createLiads();
+        const linkedinAds = await createLinkedInAds();
         const acct = accountId ?? (await requireDefaultAccountId());
-        return ok(await listCreatives(liads.client, acct, campaignId));
+        return ok(await listCreatives(linkedinAds.client, acct, campaignId));
       } catch (e) {
         return fail(e);
       }
@@ -235,9 +235,9 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
     { accountId: z.string().optional(), creativeId: z.string() },
     async ({ accountId, creativeId }) => {
       try {
-        const liads = await createLiads();
+        const linkedinAds = await createLinkedInAds();
         const acct = accountId ?? (await requireDefaultAccountId());
-        return ok(await deleteAd(liads.client, acct, creativeId));
+        return ok(await deleteAd(linkedinAds.client, acct, creativeId));
       } catch (e) {
         return fail(e);
       }
@@ -250,8 +250,8 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
     { segmentId: z.string() },
     async ({ segmentId }) => {
       try {
-        const liads = await createLiads();
-        return ok(await getDmpSegment(liads.client, segmentId));
+        const linkedinAds = await createLinkedInAds();
+        return ok(await getDmpSegment(linkedinAds.client, segmentId));
       } catch (e) {
         return fail(e);
       }
@@ -264,8 +264,8 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
     CampaignGroupInputSchema.shape,
     async (args) => {
       try {
-        const liads = await createLiads();
-        return ok(await createCampaignGroup(liads.client, CampaignGroupInputSchema.parse(args)));
+        const linkedinAds = await createLinkedInAds();
+        return ok(await createCampaignGroup(linkedinAds.client, CampaignGroupInputSchema.parse(args)));
       } catch (e) {
         return fail(e);
       }
@@ -278,8 +278,8 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
     CampaignInputSchema.shape,
     async (args) => {
       try {
-        const liads = await createLiads();
-        return ok(await createCampaign(liads.client, CampaignInputSchema.parse(args)));
+        const linkedinAds = await createLinkedInAds();
+        return ok(await createCampaign(linkedinAds.client, CampaignInputSchema.parse(args)));
       } catch (e) {
         return fail(e);
       }
@@ -292,8 +292,8 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
     CampaignUpdateSchema.shape,
     async (args) => {
       try {
-        const liads = await createLiads();
-        return ok(await updateCampaign(liads.client, CampaignUpdateSchema.parse(args)));
+        const linkedinAds = await createLinkedInAds();
+        return ok(await updateCampaign(linkedinAds.client, CampaignUpdateSchema.parse(args)));
       } catch (e) {
         return fail(e);
       }
@@ -306,8 +306,8 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
     TextAdCreativeSchema.shape,
     async (args) => {
       try {
-        const liads = await createLiads();
-        return ok(await createTextAdCreative(liads.client, TextAdCreativeSchema.parse(args)));
+        const linkedinAds = await createLinkedInAds();
+        return ok(await createTextAdCreative(linkedinAds.client, TextAdCreativeSchema.parse(args)));
       } catch (e) {
         return fail(e);
       }
@@ -320,9 +320,9 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
     SponsoredImageCreativeSchema.shape,
     async (args) => {
       try {
-        const liads = await createLiads();
+        const linkedinAds = await createLinkedInAds();
         const input = SponsoredImageCreativeSchema.parse(args);
-        return ok(await createSponsoredImageDraft(liads.client, liads.getToken, input));
+        return ok(await createSponsoredImageDraft(linkedinAds.client, linkedinAds.getToken, input));
       } catch (e) {
         return fail(e);
       }
@@ -335,10 +335,10 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
     SummaryQuerySchema.shape,
     async (args) => {
       try {
-        const liads = await createLiads();
+        const linkedinAds = await createLinkedInAds();
         const q = SummaryQuerySchema.parse(args);
         const accountId = q.accountId ?? (await requireDefaultAccountId());
-        return ok(await performanceSummary(liads.client, { accountId, dateRange: resolveDateRange(q) }));
+        return ok(await performanceSummary(linkedinAds.client, { accountId, dateRange: resolveDateRange(q) }));
       } catch (e) {
         return fail(e);
       }
@@ -351,11 +351,11 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
     PerformanceQuerySchema.shape,
     async (args) => {
       try {
-        const liads = await createLiads();
+        const linkedinAds = await createLinkedInAds();
         const q = PerformanceQuerySchema.parse(args);
         const accountId = q.accountId ?? (await requireDefaultAccountId());
         return ok(
-          await getPerformance(liads.client, { accountId, level: q.level, parentId: q.parentId, dateRange: resolveDateRange(q) }),
+          await getPerformance(linkedinAds.client, { accountId, level: q.level, parentId: q.parentId, dateRange: resolveDateRange(q) }),
         );
       } catch (e) {
         return fail(e);
@@ -369,10 +369,10 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
     TrendQuerySchema.shape,
     async (args) => {
       try {
-        const liads = await createLiads();
+        const linkedinAds = await createLinkedInAds();
         const q = TrendQuerySchema.parse(args);
         return ok(
-          await performanceTrend(liads.client, { level: q.level, entityId: q.entityId, bucket: q.bucket, dateRange: resolveDateRange(q) }),
+          await performanceTrend(linkedinAds.client, { level: q.level, entityId: q.entityId, bucket: q.bucket, dateRange: resolveDateRange(q) }),
         );
       } catch (e) {
         return fail(e);
@@ -386,8 +386,8 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
     LaunchFromBriefSchema.shape,
     async (args) => {
       try {
-        const liads = await createLiads();
-        return ok(await launchFromBrief(liads, LaunchFromBriefSchema.parse(args)));
+        const linkedinAds = await createLinkedInAds();
+        return ok(await launchFromBrief(linkedinAds, LaunchFromBriefSchema.parse(args)));
       } catch (e) {
         return fail(e);
       }
@@ -459,8 +459,8 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
     },
     async ({ entityType, entityId, windowDays }) => {
       try {
-        const liads = await createLiads();
-        return ok(await computeLift(liads.client, { type: entityType, entityId, windowDays }));
+        const linkedinAds = await createLinkedInAds();
+        return ok(await computeLift(linkedinAds.client, { type: entityType, entityId, windowDays }));
       } catch (e) {
         return fail(e);
       }

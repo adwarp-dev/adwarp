@@ -94,7 +94,7 @@ export async function launchSearchCampaign(
     }
   } else {
     warnings.push(
-      "No conversion actions named and none configured as a default. The campaign will inherit the account's conversion goals. Set defaultConversionActionNames in ~/.liads/google.json to make this explicit.",
+      "No conversion actions named and none configured as a default. The campaign will inherit the account's conversion goals. Set defaultConversionActionNames in google.json in the Adwarp folder to make this explicit.",
     );
   }
 

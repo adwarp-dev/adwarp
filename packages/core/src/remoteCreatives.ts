@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { env } from "@adwarp/shared";
 
 const CreativeSchema = z.object({
   id: z.string().regex(/^\d+$/),
@@ -17,12 +18,12 @@ const ResultSchema = z.object({
 export type RemoteCreativeResult = z.infer<typeof ResultSchema>;
 
 export function creativeWorkerConfig() {
-  const url = process.env.LIADS_CREATIVE_WORKER_URL;
-  const token = process.env.LIADS_CREATIVE_WORKER_TOKEN;
+  const url = env("ADWARP_CREATIVE_WORKER_URL");
+  const token = env("ADWARP_CREATIVE_WORKER_TOKEN");
   if (!url || !token) throw new Error("Remote creative worker is not configured; API metadata only. Local scraping is disabled.");
   const base = new URL(url);
   if (base.protocol !== "https:" || base.username || base.password || base.search || base.hash) {
-    throw new Error("LIADS_CREATIVE_WORKER_URL must be an HTTPS URL without credentials, query or fragment.");
+    throw new Error("ADWARP_CREATIVE_WORKER_URL must be an HTTPS URL without credentials, query or fragment.");
   }
   return { base: base.origin, token };
 }
