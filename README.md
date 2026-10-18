@@ -580,6 +580,22 @@ adwarp audience from-salesforce -n "Q3 target accounts" \
 - LinkedIn does not expose person-level ad-view data; cross-referencing is account/segment-level.
 - Secrets never enter the repo. Local: `~/.liads`. Hosted: Vercel env vars.
 
+## Docs
+
+The full documentation lives in [`docs/`](./docs) as plain Markdown, 1 file per topic, each
+with `title`, `description`, and `order` front matter. Edit those files when behavior changes.
+
+[`docs/tools.json`](./docs/tools.json) lists every MCP tool with its description, input
+schema, platform (`linkedin` or `google`), and whether the hosted endpoint registers it. It is
+generated from the real tool registration code, so never edit it by hand. After adding,
+removing, or changing a tool (including its zod input schema), run:
+
+```bash
+pnpm gen:tools   # builds @liads/mcp and its dependencies, then rewrites docs/tools.json
+```
+
+and commit the result. CI runs the same command and fails if `docs/tools.json` changes.
+
 ## License
 
 MIT

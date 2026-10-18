@@ -11,7 +11,8 @@
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r --if-present test && node --test services/creative-worker/test/*.test.mjs",
     "cli": "pnpm --filter @liads/cli start",
-    "mcp": "pnpm --filter @liads/mcp start"
+    "mcp": "pnpm --filter @liads/mcp start",
+    "gen:tools": "pnpm --filter \"@liads/mcp...\" build && node packages/mcp/scripts/gen-tools.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

@@ -1,0 +1,1906 @@
+[
+  {
+    "name": "audience_from_salesforce",
+    "platform": "linkedin",
+    "hosted": true,
+    "description": "Build a matched audience from a Salesforce SOQL query that selects an email column. Closes the loop: flagged accounts/contacts -> DMP segment. Requires the local `sf` CLI to be authenticated.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Audience/segment name"
+        },
+        "soql": {
+          "type": "string",
+          "description": "SOQL selecting an email column, e.g. SELECT Email FROM Contact WHERE ..."
+        },
+        "emailField": {
+          "type": "string",
+          "description": "Email column name if not 'Email'"
+        }
+      },
+      "required": [
+        "accountId",
+        "name",
+        "soql"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  },
+  {
+    "name": "compute_lift",
+    "platform": "linkedin",
+    "hosted": true,
+    "description": "For each recorded change to an entity, compare performance in the window before the change against the window after it (default 14 days each side). Returns before/after KPI windows and per-metric relative deltas (CTR, CPC, conversion rate, cost-per-conversion, etc.). This is a directional pre/post comparison, NOT a controlled experiment — confounded by seasonality, the LinkedIn learning phase after edits, and concurrent budget changes; present it as a signal and call out partial after-windows on recent changes.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "entityType": {
+          "type": "string",
+          "enum": [
+            "campaignGroup",
+            "campaign",
+            "creative"
+          ],
+          "description": "campaignGroup (the 'campaign'), campaign (the 'ad group'), or creative (the 'ad')"
+        },
+        "entityId": {
+          "type": "string"
+        },
+        "windowDays": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "description": "Days on each side of a change (default 14)"
+        }
+      },
+      "required": [
+        "entityType",
+        "entityId"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  },
+  {
+    "name": "create_campaign",
+    "platform": "linkedin",
+    "hosted": true,
+    "description": "Create a campaign (the 'ad group') with targeting, budget, bid or bidding strategy (optimizationTargetType MAX_CLICK = Maximum Delivery on landing page clicks), schedule, and optional ad rotation (creativeSelection: OPTIMIZED or ROUND_ROBIN = rotate ads evenly). Defaults to DRAFT.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "campaignGroupId": {
+          "type": "string",
+          "description": "Numeric campaign group id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "SPONSORED_UPDATES",
+            "TEXT_AD",
+            "SPONSORED_INMAILS"
+          ],
+          "default": "SPONSORED_UPDATES"
+        },
+        "objectiveType": {
+          "type": "string",
+          "enum": [
+            "BRAND_AWARENESS",
+            "ENGAGEMENT",
+            "JOB_APPLICANT",
+            "LEAD_GENERATION",
+            "VIDEO_VIEW",
+            "WEBSITE_CONVERSION",
+            "WEBSITE_VISIT"
+          ],
+          "description": "Campaign objective. Required to be ENGAGEMENT to sponsor another member's post (thought-leader ads)."
+        },
+        "costType": {
+          "type": "string",
+          "enum": [
+            "CPC",
+            "CPM",
+            "CPV"
+          ],
+          "default": "CPM"
+        },
+        "dailyBudget": {
+          "type": "object",
+          "properties": {
+            "amount": {
+              "type": "string",
+              "description": "Decimal string, e.g. '100.00'"
+            },
+            "currencyCode": {
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 3,
+              "default": "USD"
+            }
+          },
+          "required": [
+            "amount"
+          ],
+          "additionalProperties": false
+        },
+        "totalBudget": {
+          "$ref": "#/properties/dailyBudget"
+        },
+        "unitCost": {
+          "$ref": "#/properties/dailyBudget",
+          "description": "Bid amount"
+        },
+        "optimizationTargetType": {
+          "type": "string",
+          "enum": [
+            "NONE",
+            "MAX_CLICK",
+            "MAX_IMPRESSION",
+            "MAX_CONVERSION",
+            "MAX_LEAD",
+            "MAX_VIDEO_VIEW",
+            "MAX_REACH",
+            "TARGET_COST_PER_CLICK",
+            "TARGET_COST_PER_IMPRESSION",
+            "TARGET_COST_PER_VIDEO_VIEW",
+            "ENHANCED_CONVERSION"
+          ],
+          "description": "Bidding strategy. MAX_CLICK = Maximum Delivery optimized for landing page clicks (automated bid, charged CPM, unitCost ignored). Omit or NONE for a manual bid."
+        },
+        "locale": {
+          "type": "object",
+          "properties": {
+            "country": {
+              "type": "string"
+            },
+            "language": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "country",
+            "language"
+          ],
+          "additionalProperties": false,
+          "default": {
+            "country": "US",
+            "language": "en"
+          }
+        },
+        "runSchedule": {
+          "type": "object",
+          "properties": {
+            "start": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            "end": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            }
+          },
+          "required": [
+            "start"
+          ],
+          "additionalProperties": false
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "DRAFT",
+            "ACTIVE",
+            "PAUSED",
+            "ARCHIVED"
+          ],
+          "default": "DRAFT"
+        },
+        "creativeSelection": {
+          "type": "string",
+          "enum": [
+            "OPTIMIZED",
+            "ROUND_ROBIN"
+          ],
+          "description": "Ad rotation: OPTIMIZED (LinkedIn default, favors the predicted winner) or ROUND_ROBIN (rotate ads evenly)"
+        },
+        "targetingCriteria": {
+          "type": "object",
+          "additionalProperties": {}
+        },
+        "targeting": {
+          "type": "object",
+          "properties": {
+            "include": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "description": "facet short name -> entity URNs (ANDed across facets)"
+            },
+            "exclude": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "description": "facet short name -> entity URNs to exclude"
+            }
+          },
+          "required": [
+            "include"
+          ],
+          "additionalProperties": false
+        },
+        "audienceSegmentUrn": {
+          "type": "string",
+          "description": "urn:li:adSegment:... to target a matched audience"
+        },
+        "geoUrns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "urn:li:geo:... locations to include"
+        },
+        "politicalIntent": {
+          "type": "string",
+          "enum": [
+            "NOT_POLITICAL",
+            "POLITICAL",
+            "NOT_DECLARED"
+          ],
+          "default": "NOT_POLITICAL"
+        },
+        "conversionIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "applyDefaultExclusions": {
+          "type": "boolean",
+          "default": true
+        },
+        "applyDefaultConversion": {
+          "type": "boolean",
+          "default": true
+        }
+      },
+      "required": [
+        "accountId",
+        "campaignGroupId",
+        "name",
+        "runSchedule"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  },
+  {
+    "name": "create_campaign_group",
+    "platform": "linkedin",
+    "hosted": true,
+    "description": "Create a campaign group (the top-level 'campaign'). Defaults to DRAFT.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "accountId": {
+          "type": "string",
+          "description": "Numeric ad account id (no urn prefix)"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "DRAFT",
+            "ACTIVE",
+            "PAUSED",
+            "ARCHIVED"
+          ],
+          "default": "DRAFT"
+        },
+        "totalBudget": {
+          "type": "object",
+          "properties": {
+            "amount": {
+              "type": "string",
+              "description": "Decimal string, e.g. '100.00'"
+            },
+            "currencyCode": {
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 3,
+              "default": "USD"
+            }
+          },
+          "required": [
+            "amount"
+          ],
+          "additionalProperties": false
+        },
+        "runSchedule": {
+          "type": "object",
+          "properties": {
+            "start": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            "end": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            }
+          },
+          "required": [
+            "start"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "accountId",
+        "name"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  },
+  {
+    "name": "create_image_ad",
+    "platform": "linkedin",
+    "hosted": true,
+    "description": "Create a single-image Sponsored Content creative (DRAFT). Omit imagePath to leave the campaign ready for an image later.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "campaignId": {
+          "type": "string"
+        },
+        "organizationUrn": {
+          "type": "string",
+          "description": "urn:li:organization:... that owns the post"
+        },
+        "commentary": {
+          "type": "string",
+          "description": "The post body / ad intro text"
+        },
+        "clickUri": {
+          "type": "string",
+          "format": "uri"
+        },
+        "headline": {
+          "type": "string"
+        },
+        "callToAction": {
+          "type": "string",
+          "enum": [
+            "LEARN_MORE",
+            "APPLY",
+            "DOWNLOAD",
+            "VIEW_QUOTE",
+            "SIGN_UP",
+            "SUBSCRIBE",
+            "REGISTER",
+            "JOIN",
+            "ATTEND",
+            "REQUEST_DEMO",
+            "SEE_MORE"
+          ],
+          "default": "LEARN_MORE",
+          "description": "Call-to-action button label"
+        },
+        "imagePath": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string",
+          "description": "Ad name shown in Campaign Manager"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "DRAFT",
+            "ACTIVE",
+            "PAUSED"
+          ],
+          "default": "DRAFT"
+        }
+      },
+      "required": [
+        "accountId",
+        "campaignId",
+        "organizationUrn",
+        "commentary",
+        "clickUri",
+        "headline"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  },
+  {
+    "name": "create_text_ad",
+    "platform": "linkedin",
+    "hosted": true,
+    "description": "Create a Text Ad creative (DRAFT by default).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "campaignId": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 25
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 75
+        },
+        "clickUri": {
+          "type": "string",
+          "format": "uri"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "DRAFT",
+            "ACTIVE",
+            "PAUSED"
+          ],
+          "default": "DRAFT"
+        }
+      },
+      "required": [
+        "accountId",
+        "campaignId",
+        "title",
+        "text",
+        "clickUri"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  },
+  {
+    "name": "delete_ad",
+    "platform": "linkedin",
+    "hosted": true,
+    "description": "Delete an ad: removes the creative and (best-effort) the Direct Sponsored Content post behind it. Accepts a numeric creative id or a full urn:li:sponsoredCreative URN. Use for cleaning up drafts or replacing an ad whose copy must change (Campaign Manager's editor does not reflect post edits — recreate instead).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "creativeId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "creativeId"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  },
+  {
+    "name": "estimate_audience",
+    "platform": "linkedin",
+    "hosted": true,
+    "description": "Estimate audience size for a structured targeting spec (facet short name -> entity URNs). A campaign needs >=300 members to serve.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "include": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "description": "facet short name -> entity URNs (ANDed across facets)"
+        },
+        "exclude": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "description": "facet short name -> entity URNs to exclude"
+        }
+      },
+      "required": [
+        "include"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  },
+  {
+    "name": "gads_keyword_ideas",
+    "platform": "google",
+    "hosted": false,
+    "description": "Keyword research: search volume, competition, and top-of-page bid range for seed terms and/or a landing page. The sizing step before committing budget, equivalent to estimating audience reach on LinkedIn.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "customerId": {
+          "type": "string"
+        },
+        "seeds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "description": "Seed keywords or phrases"
+        },
+        "pageUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "locations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "US"
+          ]
+        },
+        "languages": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "en"
+          ]
+        },
+        "limit": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "maximum": 200,
+          "default": 50
+        }
+      },
+      "required": [
+        "seeds"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  },
+  {
+    "name": "gads_launch_search_campaign",
+    "platform": "google",
+    "hosted": false,
+    "description": "Create a PAUSED Search campaign from a brief: budget, campaign, geo/language targeting, ad groups, keywords, and responsive search ads, all in one atomic mutate. Defaults to validateOnly=true, which asks Google to validate the whole batch and persist nothing. Show the returned plan to the user and only re-call with validateOnly=false after they confirm. House rules are applied automatically and cannot be overridden: search network only (display expansion and search partners off), physical-presence-only location targeting, and Manual CPC. Nothing created here can serve. Activation is a human step in the Google Ads UI.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "customerId": {
+          "type": "string",
+          "description": "10-digit customer id; falls back to config default"
+        },
+        "campaignName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dailyBudget": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Amount in the ad account's currency, e.g. 150 for $150"
+        },
+        "budgetName": {
+          "type": "string",
+          "description": "Defaults to the campaign name"
+        },
+        "cpcBid": {
+          "$ref": "#/properties/dailyBudget",
+          "description": "Amount in the ad account's currency, e.g. 150 for $150"
+        },
+        "finalUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "Landing page for ads that do not override it"
+        },
+        "locations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "US"
+          ],
+          "description": "ISO country codes (US, GB) or raw geoTargetConstant ids"
+        },
+        "languages": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "en"
+          ],
+          "description": "ISO language codes"
+        },
+        "adGroups": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "cpcBid": {
+                "$ref": "#/properties/dailyBudget",
+                "description": "Amount in the ad account's currency, e.g. 150 for $150"
+              },
+              "keywords": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "text": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "matchType": {
+                      "type": "string",
+                      "enum": [
+                        "EXACT",
+                        "PHRASE",
+                        "BROAD"
+                      ],
+                      "description": "EXACT and PHRASE keep B2B spend tight; BROAD needs strong negatives",
+                      "default": "PHRASE"
+                    }
+                  },
+                  "required": [
+                    "text"
+                  ],
+                  "additionalProperties": false
+                },
+                "minItems": 1
+              },
+              "negativeKeywords": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/properties/adGroups/items/properties/keywords/items"
+                }
+              },
+              "ads": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "headlines": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 30
+                      },
+                      "minItems": 3,
+                      "maxItems": 15,
+                      "description": "3-15 headlines, 30 chars each"
+                    },
+                    "descriptions": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 90
+                      },
+                      "minItems": 2,
+                      "maxItems": 4,
+                      "description": "2-4 descriptions, 90 chars each"
+                    },
+                    "finalUrl": {
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    "path1": {
+                      "type": "string",
+                      "maxLength": 15,
+                      "description": "First display-URL path segment"
+                    },
+                    "path2": {
+                      "type": "string",
+                      "maxLength": 15,
+                      "description": "Second display-URL path segment. Requires path1: Google rejects path2 on its own."
+                    }
+                  },
+                  "required": [
+                    "headlines",
+                    "descriptions"
+                  ],
+                  "additionalProperties": false
+                },
+                "minItems": 1
+              }
+            },
+            "required": [
+              "name",
+              "keywords",
+              "ads"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
+        "negativeKeywords": {
+          "type": "array",
+          "items": {
+            "$ref": "#/properties/adGroups/items/properties/keywords/items"
+          }
+        },
+        "negativeKeywordListId": {
+          "type": "string"
+        },
+        "conversionActionNames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Conversion actions to set as this campaign's goals; falls back to the config default"
+        },
+        "startDateTime": {
+          "type": "string"
+        },
+        "endDateTime": {
+          "type": "string"
+        },
+        "validateOnly": {
+          "type": "boolean",
+          "default": true
+        }
+      },
+      "required": [
+        "campaignName",
+        "dailyBudget",
+        "finalUrl",
+        "adGroups"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  },
+  {
+    "name": "gads_list_accounts",
+    "platform": "google",
+    "hosted": false,
+    "description": "List every Google Ads customer this login can reach. Run this first: it proves the OAuth client, developer token, and account access all work.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  },
+  {
+    "name": "gads_list_ads",
+    "platform": "google",
+    "hosted": false,
+    "description": "Ads in an ad group, with their responsive-search headlines and descriptions.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "customerId": {
+          "type": "string"
+        },
+        "adGroupId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "adGroupId"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  },
+  {
+    "name": "gads_list_campaigns",
+    "platform": "google",
+    "hosted": false,
+    "description": "Account structure: campaigns with their ad groups nested. Paused campaigns are included.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "customerId": {
+          "type": "string"
+        },
+        "includeRemoved": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  },
+  {
+    "name": "gads_list_client_accounts",
+    "platform": "google",
+    "hosted": false,
+    "description": "List the client accounts under a Google Ads manager (MCC) account.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "managerId": {
+          "type": "string",
+          "description": "Manager customer id, digits only"
+        }
+      },
+      "required": [
+        "managerId"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  },
+  {
+    "name": "gads_list_conversion_actions",
+    "platform": "google",
+    "hosted": false,
+    "description": "Conversion actions on the account, so a launch can name one instead of guessing an id.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "customerId": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  },
+  {
+    "name": "gads_performance",
+    "platform": "google",
+    "hosted": false,
+    "description": "Performance rows at campaign, ad_group, ad, keyword, or search_term level, with totals and derived KPIs (CTR, CPC, CPM, conversion rate, cost per conversion).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "customerId": {
+          "type": "string"
+        },
+        "level": {
+          "type": "string",
+          "enum": [
+            "campaign",
+            "ad_group",
+            "ad",
+            "keyword",
+            "search_term"
+          ],
+          "default": "campaign"
+        },
+        "period": {
+          "type": "string",
+          "enum": [
+            "last_7_days",
+            "last_30_days",
+            "last_90_days",
+            "month_to_date",
+            "last_month"
+          ]
+        },
+        "startDate": {
+          "type": "string",
+          "description": "YYYY-MM-DD"
+        },
+        "endDate": {
+          "type": "string",
+          "description": "YYYY-MM-DD"
+        },
+        "campaignId": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  },
+  {
+    "name": "gads_search",
+    "platform": "google",
+    "hosted": false,
+    "description": "Run a raw GAQL query against the account. Read-only escape hatch for anything the other tools do not cover.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "customerId": {
+          "type": "string"
+        },
+        "query": {
+          "type": "string",
+          "minLength": 1,
+          "description": "A GAQL query. Read-only: SELECT ... FROM ..."
+        }
+      },
+      "required": [
+        "query"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  },
+  {
+    "name": "get_audience_status",
+    "platform": "linkedin",
+    "hosted": true,
+    "description": "Check a DMP segment's matching status and resolved size.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "segmentId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "segmentId"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  },
+  {
+    "name": "get_competitor_creatives",
+    "platform": "linkedin",
+    "hosted": true,
+    "description": "Read remote creative job status and cached copy by ad IDs. Read-only: does not enqueue work or visit LinkedIn. Screenshots are available through the authenticated worker endpoint.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^\\d{1,30}$"
+          },
+          "minItems": 1,
+          "maxItems": 10
+        }
+      },
+      "required": [
+        "ids"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  },
+  {
+    "name": "get_performance",
+    "platform": "linkedin",
+    "hosted": true,
+    "description": "Per-entity performance with derived KPIs (CTR, CPC, CPM, CPL, conversion rate). level: campaign_group (campaign), campaign (ad group), or creative (ad). Pass parentId to scope campaigns to a group or creatives to a campaign.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "level": {
+          "type": "string",
+          "enum": [
+            "account",
+            "campaign_group",
+            "campaign",
+            "creative"
+          ],
+          "default": "campaign_group",
+          "description": "campaign_group=campaign, campaign=ad group, creative=ad"
+        },
+        "parentId": {
+          "type": "string",
+          "description": "Parent group id (for level=campaign) or campaign id (for level=creative)"
+        },
+        "period": {
+          "type": "string",
+          "enum": [
+            "last_7_days",
+            "last_30_days",
+            "last_90_days",
+            "month_to_date",
+            "last_month"
+          ],
+          "default": "last_30_days"
+        },
+        "startDate": {
+          "type": "string",
+          "description": "YYYY-MM-DD; with endDate, overrides period"
+        },
+        "endDate": {
+          "type": "string",
+          "description": "YYYY-MM-DD"
+        }
+      },
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  },
+  {
+    "name": "inspect_competitor_ads",
+    "platform": "linkedin",
+    "hosted": true,
+    "description": "Discover competitor ads through the official API. auto optionally queues up to 10 creatives on the remote worker; api returns metadata only. Always provide advertiser plus companyId to filter unrelated name matches before collection. No local browser or scraper fallback. Read pending results with get_competitor_creatives. Cached screenshots require worker authentication. Report sample coverage and collection dates; never retry a blocked worker or use another browser/client. Synthesize findings rather than dumping rows.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "advertiser": {
+          "type": "string",
+          "description": "Competitor/advertiser display name (accountOwner)"
+        },
+        "companyId": {
+          "type": "string",
+          "description": "Numeric LinkedIn company id — more precise than name"
+        },
+        "keyword": {
+          "type": "string",
+          "description": "Free-text keyword search across ad copy"
+        },
+        "countries": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "ISO-3166 country codes to scope, e.g. ['US','GB']"
+        },
+        "max": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "maximum": 500,
+          "default": 50,
+          "description": "Max ads to collect"
+        },
+        "engine": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "api"
+          ],
+          "default": "auto",
+          "description": "auto = official API plus remote creative worker; api = metadata only. Local scraping is disabled."
+        },
+        "deep": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enqueue up to 10 verified company ads on the remote worker; reuse cached creatives."
+        },
+        "concurrency": {
+          "type": "number",
+          "const": 1,
+          "default": 1,
+          "description": "Remote worker concurrency is fixed at one."
+        },
+        "copyMax": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10,
+          "default": 10,
+          "description": "Creative sample size, capped at 10. Worker budgets cannot be overridden."
+        }
+      },
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  },
+  {
+    "name": "launch_from_brief",
+    "platform": "linkedin",
+    "hosted": true,
+    "description": "End-to-end: optional audience upload -> campaign group -> campaign -> draft creatives. Everything DRAFT. Returns Campaign Manager review links.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "campaignGroupName": {
+          "type": "string"
+        },
+        "campaignName": {
+          "type": "string"
+        },
+        "audience": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "csvPath": {
+              "type": "string"
+            },
+            "emailColumn": {
+              "type": "string",
+              "default": "email"
+            },
+            "description": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name",
+            "csvPath"
+          ],
+          "additionalProperties": false
+        },
+        "dailyBudget": {
+          "type": "object",
+          "properties": {
+            "amount": {
+              "type": "string",
+              "description": "Decimal string, e.g. '100.00'"
+            },
+            "currencyCode": {
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 3,
+              "default": "USD"
+            }
+          },
+          "required": [
+            "amount"
+          ],
+          "additionalProperties": false
+        },
+        "bid": {
+          "$ref": "#/properties/dailyBudget"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "SPONSORED_UPDATES",
+            "TEXT_AD",
+            "SPONSORED_INMAILS"
+          ],
+          "default": "SPONSORED_UPDATES"
+        },
+        "runSchedule": {
+          "type": "object",
+          "properties": {
+            "start": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            "end": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            }
+          },
+          "required": [
+            "start"
+          ],
+          "additionalProperties": false
+        },
+        "geoUrns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "urn:li:geo:103644278"
+          ],
+          "description": "Defaults to United States"
+        },
+        "targeting": {
+          "type": "object",
+          "properties": {
+            "include": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "description": "facet short name -> entity URNs (ANDed across facets)"
+            },
+            "exclude": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "description": "facet short name -> entity URNs to exclude"
+            }
+          },
+          "required": [
+            "include"
+          ],
+          "additionalProperties": false
+        },
+        "conversionIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "conversionName": {
+          "type": "string",
+          "description": "e.g. 'Demo Booked - Insight Tag'"
+        },
+        "creativeSelection": {
+          "type": "string",
+          "enum": [
+            "OPTIMIZED",
+            "ROUND_ROBIN"
+          ]
+        },
+        "creatives": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "maxLength": 25
+                  },
+                  "text": {
+                    "type": "string",
+                    "maxLength": 75
+                  },
+                  "clickUri": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "DRAFT",
+                      "ACTIVE",
+                      "PAUSED"
+                    ],
+                    "default": "DRAFT"
+                  }
+                },
+                "required": [
+                  "title",
+                  "text",
+                  "clickUri"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "organizationUrn": {
+                    "type": "string",
+                    "description": "urn:li:organization:... that owns the post"
+                  },
+                  "commentary": {
+                    "type": "string",
+                    "description": "The post body / ad intro text"
+                  },
+                  "clickUri": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "headline": {
+                    "type": "string"
+                  },
+                  "callToAction": {
+                    "type": "string",
+                    "enum": [
+                      "LEARN_MORE",
+                      "APPLY",
+                      "DOWNLOAD",
+                      "VIEW_QUOTE",
+                      "SIGN_UP",
+                      "SUBSCRIBE",
+                      "REGISTER",
+                      "JOIN",
+                      "ATTEND",
+                      "REQUEST_DEMO",
+                      "SEE_MORE"
+                    ],
+                    "default": "LEARN_MORE",
+                    "description": "Call-to-action button label"
+                  },
+                  "imagePath": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "Ad name shown in Campaign Manager"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "DRAFT",
+                      "ACTIVE",
+                      "PAUSED"
+                    ],
+                    "default": "DRAFT"
+                  }
+                },
+                "required": [
+                  "organizationUrn",
+                  "commentary",
+                  "clickUri",
+                  "headline"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "accountId",
+        "campaignGroupName",
+        "campaignName",
+        "dailyBudget",
+        "runSchedule"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  },
+  {
+    "name": "list_ad_accounts",
+    "platform": "linkedin",
+    "hosted": true,
+    "description": "List LinkedIn ad accounts this app can access.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  },
+  {
+    "name": "list_ad_changes",
+    "platform": "linkedin",
+    "hosted": true,
+    "description": "List recorded ad changes (newest first) from the local change journal. Filter by entity type/id or tag. Use this to see what's been changed before computing lift.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "entityType": {
+          "type": "string",
+          "enum": [
+            "campaignGroup",
+            "campaign",
+            "creative"
+          ],
+          "description": "campaignGroup (the 'campaign'), campaign (the 'ad group'), or creative (the 'ad')"
+        },
+        "entityId": {
+          "type": "string"
+        },
+        "tag": {
+          "type": "string"
+        },
+        "limit": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "description": "Max rows (default 50)"
+        }
+      },
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  },
+  {
+    "name": "list_ads",
+    "platform": "linkedin",
+    "hosted": true,
+    "description": "List the creatives (ads) in a campaign (ad group), drafts included: id, name, status, and backing post urn.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "campaignId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "campaignId"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  },
+  {
+    "name": "list_campaigns",
+    "platform": "linkedin",
+    "hosted": true,
+    "description": "List the account structure: campaign groups (campaigns) and/or their campaigns (ad groups), DRAFTS INCLUDED — unlike performance reports, which only show entities with spend. Pass level=groups for campaign groups only, level=campaigns for ad groups (optionally scoped by groupId), or level=both (default) for the full tree.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "level": {
+          "type": "string",
+          "enum": [
+            "groups",
+            "campaigns",
+            "both"
+          ],
+          "default": "both"
+        },
+        "groupId": {
+          "type": "string",
+          "description": "Scope campaigns to one campaign group id"
+        },
+        "includeArchived": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  },
+  {
+    "name": "list_conversions",
+    "platform": "linkedin",
+    "hosted": true,
+    "description": "List the account's existing conversions (insight tags) so you can select one to track on a campaign. Pass accountId or omit to use the default.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "accountId": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  },
+  {
+    "name": "list_facet_entities",
+    "platform": "linkedin",
+    "hosted": true,
+    "description": "List all entities of a small facet (e.g. seniorities, functions, degrees) to pick URNs from.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "facet": {
+          "type": "string",
+          "description": "short facet name, e.g. seniorities"
+        }
+      },
+      "required": [
+        "facet"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  },
+  {
+    "name": "list_targeting_facets",
+    "platform": "linkedin",
+    "hosted": true,
+    "description": "List LinkedIn targeting facets you can target on. Common short names: locations, profileLocations, seniorities, titles, functions, industries, staffCountRanges, skills, employers, employersPast, audienceMatchingSegments, dynamicSegments, interests, degrees, fieldsOfStudy, schools, groups.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  },
+  {
+    "name": "log_ad_change",
+    "platform": "linkedin",
+    "hosted": true,
+    "description": "Record a change to an ad entity in the local change journal, so a later lift report can compare performance before vs. after it. Adwarp logs its own changes automatically. Use this for changes made elsewhere (e.g. in Campaign Manager) or to attach a hypothesis/label. Provide field+after for a field change, or note for a freeform annotation.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "entityType": {
+          "type": "string",
+          "enum": [
+            "campaignGroup",
+            "campaign",
+            "creative"
+          ],
+          "description": "campaignGroup (the 'campaign'), campaign (the 'ad group'), or creative (the 'ad')"
+        },
+        "entityId": {
+          "type": "string",
+          "description": "Numeric id of the campaign group / campaign / creative"
+        },
+        "name": {
+          "type": "string",
+          "description": "Human name of the entity (for nicer listings)"
+        },
+        "field": {
+          "type": "string",
+          "description": "Field that changed, e.g. dailyBudget, headline, status"
+        },
+        "before": {
+          "type": "string",
+          "description": "Prior value, if known"
+        },
+        "after": {
+          "type": "string",
+          "description": "New value"
+        },
+        "note": {
+          "type": "string",
+          "description": "Freeform note (used when there is no specific field)"
+        },
+        "label": {
+          "type": "string",
+          "description": "Hypothesis/label, e.g. 'outcome-led headline test'"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "at": {
+          "type": "string",
+          "description": "ISO 8601 time the change took effect; defaults to now"
+        }
+      },
+      "required": [
+        "entityType",
+        "entityId"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  },
+  {
+    "name": "performance_summary",
+    "platform": "linkedin",
+    "hosted": true,
+    "description": "Account performance rollup over a period: totals + KPIs, top campaigns by spend/CTR, worst by cost-per-conversion, and flagged campaigns (spend with no conversions, high CPC, low CTR). Start here for 'how are my ads doing'.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "period": {
+          "type": "string",
+          "enum": [
+            "last_7_days",
+            "last_30_days",
+            "last_90_days",
+            "month_to_date",
+            "last_month"
+          ],
+          "default": "last_30_days"
+        },
+        "startDate": {
+          "type": "string",
+          "description": "YYYY-MM-DD; with endDate, overrides period"
+        },
+        "endDate": {
+          "type": "string",
+          "description": "YYYY-MM-DD"
+        }
+      },
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  },
+  {
+    "name": "performance_trend",
+    "platform": "linkedin",
+    "hosted": true,
+    "description": "Weekly or monthly trend for one entity, with period-over-period deltas on impressions, clicks, spend, conversions, and CTR. Use to spot momentum or creative fatigue.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "level": {
+          "type": "string",
+          "enum": [
+            "account",
+            "campaign_group",
+            "campaign",
+            "creative"
+          ],
+          "default": "campaign"
+        },
+        "entityId": {
+          "type": "string",
+          "description": "Numeric id of the account/group/campaign/creative to trend"
+        },
+        "bucket": {
+          "type": "string",
+          "enum": [
+            "weekly",
+            "monthly"
+          ],
+          "default": "weekly"
+        },
+        "period": {
+          "type": "string",
+          "enum": [
+            "last_7_days",
+            "last_30_days",
+            "last_90_days",
+            "month_to_date",
+            "last_month"
+          ],
+          "default": "last_90_days"
+        },
+        "startDate": {
+          "type": "string",
+          "description": "YYYY-MM-DD; with endDate, overrides period"
+        },
+        "endDate": {
+          "type": "string",
+          "description": "YYYY-MM-DD"
+        }
+      },
+      "required": [
+        "entityId"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  },
+  {
+    "name": "search_targeting",
+    "platform": "linkedin",
+    "hosted": true,
+    "description": "Typeahead-search entities within a facet to get their URNs (e.g. facet='titles', query='marketing' -> Marketing Manager urn). Use 'list_facet_entities' for small fixed sets like seniorities. These URNs go into a targeting spec.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "facet": {
+          "type": "string",
+          "description": "short facet name, e.g. titles, industries, skills, staffCountRanges, locations"
+        },
+        "query": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "facet",
+        "query"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  },
+  {
+    "name": "update_campaign",
+    "platform": "linkedin",
+    "hosted": true,
+    "description": "Update an existing campaign (the 'ad group') in place: change its targeting and/or name, status, budget, bid, bidding strategy (optimizationTargetType, costType), schedule, ad rotation (creativeSelection: OPTIMIZED or ROUND_ROBIN = rotate ads evenly). Only the fields you pass change. Targeting is REPLACED when you pass any targeting form — a structured `targeting` spec, the `audienceSegmentUrn` (+ optional `geoUrns`) shorthand, or a raw `targetingCriteria`; default exclusions are re-applied unless applyDefaultExclusions=false. Audience Expansion / Audience Network stay off. Pass dryRun=true first to preview the patch before touching a live campaign.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "campaignId": {
+          "type": "string",
+          "description": "Numeric campaign (ad group) id to update"
+        },
+        "targetingCriteria": {
+          "type": "object",
+          "additionalProperties": {}
+        },
+        "targeting": {
+          "type": "object",
+          "properties": {
+            "include": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "description": "facet short name -> entity URNs (ANDed across facets)"
+            },
+            "exclude": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "description": "facet short name -> entity URNs to exclude"
+            }
+          },
+          "required": [
+            "include"
+          ],
+          "additionalProperties": false
+        },
+        "audienceSegmentUrn": {
+          "type": "string",
+          "description": "urn:li:adSegment:... (or bare id) matched audience to target — replaces existing targeting"
+        },
+        "geoUrns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "urn:li:geo:... locations to include alongside the audience"
+        },
+        "applyDefaultExclusions": {
+          "type": "boolean",
+          "default": true
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "DRAFT",
+            "ACTIVE",
+            "PAUSED",
+            "ARCHIVED"
+          ]
+        },
+        "dailyBudget": {
+          "type": "object",
+          "properties": {
+            "amount": {
+              "type": "string",
+              "description": "Decimal string, e.g. '100.00'"
+            },
+            "currencyCode": {
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 3,
+              "default": "USD"
+            }
+          },
+          "required": [
+            "amount"
+          ],
+          "additionalProperties": false
+        },
+        "totalBudget": {
+          "$ref": "#/properties/dailyBudget"
+        },
+        "costType": {
+          "type": "string",
+          "enum": [
+            "CPC",
+            "CPM",
+            "CPV"
+          ],
+          "description": "Change the cost type (CPM for Maximum Delivery)"
+        },
+        "unitCost": {
+          "$ref": "#/properties/dailyBudget",
+          "description": "Bid amount"
+        },
+        "optimizationTargetType": {
+          "type": "string",
+          "enum": [
+            "NONE",
+            "MAX_CLICK",
+            "MAX_IMPRESSION",
+            "MAX_CONVERSION",
+            "MAX_LEAD",
+            "MAX_VIDEO_VIEW",
+            "MAX_REACH",
+            "TARGET_COST_PER_CLICK",
+            "TARGET_COST_PER_IMPRESSION",
+            "TARGET_COST_PER_VIDEO_VIEW",
+            "ENHANCED_CONVERSION"
+          ],
+          "description": "Bidding strategy. MAX_CLICK = Maximum Delivery optimized for landing page clicks (automated bid, charged CPM, unitCost ignored). Omit or NONE for a manual bid."
+        },
+        "runSchedule": {
+          "type": "object",
+          "properties": {
+            "start": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            "end": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            }
+          },
+          "required": [
+            "start"
+          ],
+          "additionalProperties": false
+        },
+        "creativeSelection": {
+          "type": "string",
+          "enum": [
+            "OPTIMIZED",
+            "ROUND_ROBIN"
+          ],
+          "description": "Ad rotation: OPTIMIZED (favors the predicted winner) or ROUND_ROBIN (rotate ads evenly)"
+        },
+        "dryRun": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "required": [
+        "accountId",
+        "campaignId"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  },
+  {
+    "name": "upload_audience_csv",
+    "platform": "linkedin",
+    "hosted": true,
+    "description": "Clean a CSV at csvPath and upload it as a matched-audience DMP segment. Auto-detects contact (email) vs company (account) lists, normalizes column names, drops non-matcher columns, hashes emails, and converts company domains to website URLs. Requires the Audiences product; matching takes up to 48h.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "csvPath": {
+          "type": "string",
+          "description": "Path to the CSV file on the server"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "contact",
+            "company"
+          ],
+          "description": "Force the list type; auto-detected if omitted"
+        }
+      },
+      "required": [
+        "name",
+        "csvPath"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  }
+]

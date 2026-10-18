@@ -19,4 +19,11 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm -r build
+      - name: Check docs/tools.json is up to date
+        run: |
+          pnpm gen:tools
+          if ! git diff --exit-code -- docs/tools.json; then
+            echo "::error file=docs/tools.json::docs/tools.json is out of date with the MCP tool registrations. Run 'pnpm gen:tools' and commit the result."
+            exit 1
+          fi
       - run: pnpm -r typecheck
