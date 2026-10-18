@@ -2,7 +2,7 @@
   "campaignName": "RevOps automation — Search",
   "dailyBudget": 150,
   "cpcBid": 12,
-  "finalUrl": "https://www.default.com/platform",
+  "finalUrl": "https://example.com/platform",
   "locations": [
     "US"
   ],
