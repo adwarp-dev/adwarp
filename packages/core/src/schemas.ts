@@ -143,7 +143,7 @@ export const CampaignUpdateSchema = z.object({
   audienceSegmentUrn: z
     .string()
     .optional()
-    .describe("urn:li:adSegment:... (or bare id) matched audience to target — replaces existing targeting"),
+    .describe("urn:li:adSegment:... (or bare id) matched audience to target, which replaces existing targeting"),
   geoUrns: z.array(z.string()).optional().describe("urn:li:geo:... locations to include alongside the audience"),
   /** When replacing targeting, merge the standing default exclusions in. Set false to skip. */
   applyDefaultExclusions: z.boolean().default(true),
@@ -273,7 +273,7 @@ export type SalesforceAudienceInput = z.infer<typeof SalesforceAudienceSchema>;
 
 export const AdLibraryScanSchema = z.object({
   advertiser: z.string().optional().describe("Competitor/advertiser display name (accountOwner)"),
-  companyId: z.string().optional().describe("Numeric LinkedIn company id — more precise than name"),
+  companyId: z.string().optional().describe("Numeric LinkedIn company id, more precise than name"),
   keyword: z.string().optional().describe("Free-text keyword search across ad copy"),
   countries: z.array(z.string()).optional().describe("ISO-3166 country codes to scope, e.g. ['US','GB']"),
   max: z.number().int().positive().max(500).default(50).describe("Max ads to collect"),

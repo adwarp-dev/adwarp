@@ -39,7 +39,7 @@ ads, and there is no campaign-group level.
 ## Step 1: gather the brief
 
 Required before anything is created: campaign name, daily budget, landing URL,
-the ad groups, and for each ad group its keywords and at least one responsive
+the ad groups, and for each ad group its keywords and at least 1 responsive
 search ad. Ask for what is missing rather than inventing it.
 
 Name ad groups so the angle is legible (theme, match type, persona), because

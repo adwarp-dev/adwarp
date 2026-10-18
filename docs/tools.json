@@ -2,7 +2,9 @@
   {
     "name": "audience_from_salesforce",
     "platform": "linkedin",
-    "hosted": true,
+    "hosted": false,
+    "hostedSupport": "none",
+    "hostedNote": "Needs your local `sf` CLI.",
     "description": "Build a matched audience from a Salesforce SOQL query that selects an email column. Closes the loop: flagged accounts/contacts -> DMP segment. Requires the local `sf` CLI to be authenticated.",
     "inputSchema": {
       "type": "object",
@@ -36,8 +38,10 @@
   {
     "name": "compute_lift",
     "platform": "linkedin",
-    "hosted": true,
-    "description": "For each recorded change to an entity, compare performance in the window before the change against the window after it (default 14 days each side). Returns before/after KPI windows and per-metric relative deltas (CTR, CPC, conversion rate, cost-per-conversion, etc.). This is a directional pre/post comparison, NOT a controlled experiment — confounded by seasonality, the LinkedIn learning phase after edits, and concurrent budget changes; present it as a signal and call out partial after-windows on recent changes.",
+    "hosted": false,
+    "hostedSupport": "none",
+    "hostedNote": "Needs the local change journal, ~/.adwarp/changelog.jsonl. Journaling is off on hosted deploys, which have a read-only filesystem.",
+    "description": "For each recorded change to an entity, compare performance in the window before the change against the window after it (default 14 days each side). Returns before/after KPI windows and per-metric relative deltas (CTR, CPC, conversion rate, cost-per-conversion, etc.). This is a directional pre/post comparison, NOT a controlled experiment. It is confounded by seasonality, the LinkedIn learning phase after edits, and concurrent budget changes; present it as a signal and call out partial after-windows on recent changes.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -71,6 +75,7 @@
     "name": "create_campaign",
     "platform": "linkedin",
     "hosted": true,
+    "hostedSupport": "full",
     "description": "Create a campaign (the 'ad group') with targeting, budget, bid or bidding strategy (optimizationTargetType MAX_CLICK = Maximum Delivery on landing page clicks), schedule, and optional ad rotation (creativeSelection: OPTIMIZED or ROUND_ROBIN = rotate ads evenly). Defaults to DRAFT.",
     "inputSchema": {
       "type": "object",
@@ -297,6 +302,7 @@
     "name": "create_campaign_group",
     "platform": "linkedin",
     "hosted": true,
+    "hostedSupport": "full",
     "description": "Create a campaign group (the top-level 'campaign'). Defaults to DRAFT.",
     "inputSchema": {
       "type": "object",
@@ -368,6 +374,7 @@
     "name": "create_image_ad",
     "platform": "linkedin",
     "hosted": true,
+    "hostedSupport": "full",
     "description": "Create a single-image Sponsored Content creative (DRAFT). Omit imagePath to leave the campaign ready for an image later.",
     "inputSchema": {
       "type": "object",
@@ -444,6 +451,7 @@
     "name": "create_text_ad",
     "platform": "linkedin",
     "hosted": true,
+    "hostedSupport": "full",
     "description": "Create a Text Ad creative (DRAFT by default).",
     "inputSchema": {
       "type": "object",
@@ -491,7 +499,8 @@
     "name": "delete_ad",
     "platform": "linkedin",
     "hosted": true,
-    "description": "Delete an ad: removes the creative and (best-effort) the Direct Sponsored Content post behind it. Accepts a numeric creative id or a full urn:li:sponsoredCreative URN. Use for cleaning up drafts or replacing an ad whose copy must change (Campaign Manager's editor does not reflect post edits — recreate instead).",
+    "hostedSupport": "full",
+    "description": "Delete an ad: removes the creative and (best-effort) the Direct Sponsored Content post behind it. Accepts a numeric creative id or a full urn:li:sponsoredCreative URN. Use for cleaning up drafts or replacing an ad whose copy must change (Campaign Manager's editor does not reflect post edits, so recreate instead).",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -513,6 +522,7 @@
     "name": "estimate_audience",
     "platform": "linkedin",
     "hosted": true,
+    "hostedSupport": "full",
     "description": "Estimate audience size for a structured targeting spec (facet short name -> entity URNs). A campaign needs >=300 members to serve.",
     "inputSchema": {
       "type": "object",
@@ -549,6 +559,8 @@
     "name": "gads_keyword_ideas",
     "platform": "google",
     "hosted": false,
+    "hostedSupport": "none",
+    "hostedNote": "Not registered on the hosted endpoint. Run it on the local MCP server or the CLI.",
     "description": "Keyword research: search volume, competition, and top-of-page bid range for seed terms and/or a landing page. The sizing step before committing budget, equivalent to estimating audience reach on LinkedIn.",
     "inputSchema": {
       "type": "object",
@@ -605,6 +617,8 @@
     "name": "gads_launch_search_campaign",
     "platform": "google",
     "hosted": false,
+    "hostedSupport": "none",
+    "hostedNote": "Not registered on the hosted endpoint. Run it on the local MCP server or the CLI.",
     "description": "Create a PAUSED Search campaign from a brief: budget, campaign, geo/language targeting, ad groups, keywords, and responsive search ads, all in one atomic mutate. Defaults to validateOnly=true, which asks Google to validate the whole batch and persist nothing. Show the returned plan to the user and only re-call with validateOnly=false after they confirm. House rules are applied automatically and cannot be overridden: search network only (display expansion and search partners off), physical-presence-only location targeting, and Manual CPC. Nothing created here can serve. Activation is a human step in the Google Ads UI.",
     "inputSchema": {
       "type": "object",
@@ -802,6 +816,8 @@
     "name": "gads_list_accounts",
     "platform": "google",
     "hosted": false,
+    "hostedSupport": "none",
+    "hostedNote": "Not registered on the hosted endpoint. Run it on the local MCP server or the CLI.",
     "description": "List every Google Ads customer this login can reach. Run this first: it proves the OAuth client, developer token, and account access all work.",
     "inputSchema": {
       "type": "object",
@@ -813,6 +829,8 @@
     "name": "gads_list_ads",
     "platform": "google",
     "hosted": false,
+    "hostedSupport": "none",
+    "hostedNote": "Not registered on the hosted endpoint. Run it on the local MCP server or the CLI.",
     "description": "Ads in an ad group, with their responsive-search headlines and descriptions.",
     "inputSchema": {
       "type": "object",
@@ -835,6 +853,8 @@
     "name": "gads_list_campaigns",
     "platform": "google",
     "hosted": false,
+    "hostedSupport": "none",
+    "hostedNote": "Not registered on the hosted endpoint. Run it on the local MCP server or the CLI.",
     "description": "Account structure: campaigns with their ad groups nested. Paused campaigns are included.",
     "inputSchema": {
       "type": "object",
@@ -855,6 +875,8 @@
     "name": "gads_list_client_accounts",
     "platform": "google",
     "hosted": false,
+    "hostedSupport": "none",
+    "hostedNote": "Not registered on the hosted endpoint. Run it on the local MCP server or the CLI.",
     "description": "List the client accounts under a Google Ads manager (MCC) account.",
     "inputSchema": {
       "type": "object",
@@ -875,6 +897,8 @@
     "name": "gads_list_conversion_actions",
     "platform": "google",
     "hosted": false,
+    "hostedSupport": "none",
+    "hostedNote": "Not registered on the hosted endpoint. Run it on the local MCP server or the CLI.",
     "description": "Conversion actions on the account, so a launch can name one instead of guessing an id.",
     "inputSchema": {
       "type": "object",
@@ -891,6 +915,8 @@
     "name": "gads_performance",
     "platform": "google",
     "hosted": false,
+    "hostedSupport": "none",
+    "hostedNote": "Not registered on the hosted endpoint. Run it on the local MCP server or the CLI.",
     "description": "Performance rows at campaign, ad_group, ad, keyword, or search_term level, with totals and derived KPIs (CTR, CPC, CPM, conversion rate, cost per conversion).",
     "inputSchema": {
       "type": "object",
@@ -939,6 +965,8 @@
     "name": "gads_search",
     "platform": "google",
     "hosted": false,
+    "hostedSupport": "none",
+    "hostedNote": "Not registered on the hosted endpoint. Run it on the local MCP server or the CLI.",
     "description": "Run a raw GAQL query against the account. Read-only escape hatch for anything the other tools do not cover.",
     "inputSchema": {
       "type": "object",
@@ -963,6 +991,7 @@
     "name": "get_audience_status",
     "platform": "linkedin",
     "hosted": true,
+    "hostedSupport": "full",
     "description": "Check a DMP segment's matching status and resolved size.",
     "inputSchema": {
       "type": "object",
@@ -982,6 +1011,7 @@
     "name": "get_competitor_creatives",
     "platform": "linkedin",
     "hosted": true,
+    "hostedSupport": "full",
     "description": "Read remote creative job status and cached copy by ad IDs. Read-only: does not enqueue work or visit LinkedIn. Screenshots are available through the authenticated worker endpoint.",
     "inputSchema": {
       "type": "object",
@@ -1007,6 +1037,7 @@
     "name": "get_performance",
     "platform": "linkedin",
     "hosted": true,
+    "hostedSupport": "full",
     "description": "Per-entity performance with derived KPIs (CTR, CPC, CPM, CPL, conversion rate). level: campaign_group (campaign), campaign (ad group), or creative (ad). Pass parentId to scope campaigns to a group or creatives to a campaign.",
     "inputSchema": {
       "type": "object",
@@ -1057,6 +1088,8 @@
     "name": "inspect_competitor_ads",
     "platform": "linkedin",
     "hosted": true,
+    "hostedSupport": "limited",
+    "hostedNote": "Returns Ad Library metadata only, unless the server is configured with the remote creative worker.",
     "description": "Discover competitor ads through the official API. auto optionally queues up to 10 creatives on the remote worker; api returns metadata only. Always provide advertiser plus companyId to filter unrelated name matches before collection. No local browser or scraper fallback. Read pending results with get_competitor_creatives. Cached screenshots require worker authentication. Report sample coverage and collection dates; never retry a blocked worker or use another browser/client. Synthesize findings rather than dumping rows.",
     "inputSchema": {
       "type": "object",
@@ -1067,7 +1100,7 @@
         },
         "companyId": {
           "type": "string",
-          "description": "Numeric LinkedIn company id — more precise than name"
+          "description": "Numeric LinkedIn company id, more precise than name"
         },
         "keyword": {
           "type": "string",
@@ -1123,6 +1156,7 @@
     "name": "launch_from_brief",
     "platform": "linkedin",
     "hosted": true,
+    "hostedSupport": "full",
     "description": "End-to-end: optional audience upload -> campaign group -> campaign -> draft creatives. Everything DRAFT. Returns Campaign Manager review links.",
     "inputSchema": {
       "type": "object",
@@ -1380,6 +1414,7 @@
     "name": "list_ad_accounts",
     "platform": "linkedin",
     "hosted": true,
+    "hostedSupport": "full",
     "description": "List LinkedIn ad accounts this app can access.",
     "inputSchema": {
       "type": "object",
@@ -1390,7 +1425,9 @@
   {
     "name": "list_ad_changes",
     "platform": "linkedin",
-    "hosted": true,
+    "hosted": false,
+    "hostedSupport": "none",
+    "hostedNote": "Needs the local change journal, ~/.adwarp/changelog.jsonl. Journaling is off on hosted deploys, which have a read-only filesystem.",
     "description": "List recorded ad changes (newest first) from the local change journal. Filter by entity type/id or tag. Use this to see what's been changed before computing lift.",
     "inputSchema": {
       "type": "object",
@@ -1424,6 +1461,7 @@
     "name": "list_ads",
     "platform": "linkedin",
     "hosted": true,
+    "hostedSupport": "full",
     "description": "List the creatives (ads) in a campaign (ad group), drafts included: id, name, status, and backing post urn.",
     "inputSchema": {
       "type": "object",
@@ -1446,7 +1484,8 @@
     "name": "list_campaigns",
     "platform": "linkedin",
     "hosted": true,
-    "description": "List the account structure: campaign groups (campaigns) and/or their campaigns (ad groups), DRAFTS INCLUDED — unlike performance reports, which only show entities with spend. Pass level=groups for campaign groups only, level=campaigns for ad groups (optionally scoped by groupId), or level=both (default) for the full tree.",
+    "hostedSupport": "full",
+    "description": "List the account structure: campaign groups (campaigns) and/or their campaigns (ad groups), DRAFTS INCLUDED, unlike performance reports, which only show entities with spend. Pass level=groups for campaign groups only, level=campaigns for ad groups (optionally scoped by groupId), or level=both (default) for the full tree.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -1479,6 +1518,7 @@
     "name": "list_conversions",
     "platform": "linkedin",
     "hosted": true,
+    "hostedSupport": "full",
     "description": "List the account's existing conversions (insight tags) so you can select one to track on a campaign. Pass accountId or omit to use the default.",
     "inputSchema": {
       "type": "object",
@@ -1495,6 +1535,7 @@
     "name": "list_facet_entities",
     "platform": "linkedin",
     "hosted": true,
+    "hostedSupport": "full",
     "description": "List all entities of a small facet (e.g. seniorities, functions, degrees) to pick URNs from.",
     "inputSchema": {
       "type": "object",
@@ -1515,6 +1556,7 @@
     "name": "list_targeting_facets",
     "platform": "linkedin",
     "hosted": true,
+    "hostedSupport": "full",
     "description": "List LinkedIn targeting facets you can target on. Common short names: locations, profileLocations, seniorities, titles, functions, industries, staffCountRanges, skills, employers, employersPast, audienceMatchingSegments, dynamicSegments, interests, degrees, fieldsOfStudy, schools, groups.",
     "inputSchema": {
       "type": "object",
@@ -1525,7 +1567,9 @@
   {
     "name": "log_ad_change",
     "platform": "linkedin",
-    "hosted": true,
+    "hosted": false,
+    "hostedSupport": "none",
+    "hostedNote": "Needs the local change journal, ~/.adwarp/changelog.jsonl. Journaling is off on hosted deploys, which have a read-only filesystem.",
     "description": "Record a change to an ad entity in the local change journal, so a later lift report can compare performance before vs. after it. Adwarp logs its own changes automatically. Use this for changes made elsewhere (e.g. in Campaign Manager) or to attach a hypothesis/label. Provide field+after for a field change, or note for a freeform annotation.",
     "inputSchema": {
       "type": "object",
@@ -1590,6 +1634,7 @@
     "name": "performance_summary",
     "platform": "linkedin",
     "hosted": true,
+    "hostedSupport": "full",
     "description": "Account performance rollup over a period: totals + KPIs, top campaigns by spend/CTR, worst by cost-per-conversion, and flagged campaigns (spend with no conversions, high CPC, low CTR). Start here for 'how are my ads doing'.",
     "inputSchema": {
       "type": "object",
@@ -1625,6 +1670,7 @@
     "name": "performance_trend",
     "platform": "linkedin",
     "hosted": true,
+    "hostedSupport": "full",
     "description": "Weekly or monthly trend for one entity, with period-over-period deltas on impressions, clicks, spend, conversions, and CTR. Use to spot momentum or creative fatigue.",
     "inputSchema": {
       "type": "object",
@@ -1682,6 +1728,7 @@
     "name": "search_targeting",
     "platform": "linkedin",
     "hosted": true,
+    "hostedSupport": "full",
     "description": "Typeahead-search entities within a facet to get their URNs (e.g. facet='titles', query='marketing' -> Marketing Manager urn). Use 'list_facet_entities' for small fixed sets like seniorities. These URNs go into a targeting spec.",
     "inputSchema": {
       "type": "object",
@@ -1706,6 +1753,7 @@
     "name": "update_ad",
     "platform": "linkedin",
     "hosted": true,
+    "hostedSupport": "full",
     "description": "Change a single ad's (creative's) status in place: PAUSED stops it serving, ACTIVE starts it serving, ARCHIVED retires it. Use PAUSED to stop an ad without touching the rest of its ad group. Accepts a numeric creative id or a full urn:li:sponsoredCreative URN. Setting ACTIVE starts spend, so set it only when the user explicitly asks to turn the ad on, never as a side effect of another request. An ACTIVE ad still only serves while its campaign (ad group) is ACTIVE. LinkedIn refuses to pause an ad that is still in review. Pass dryRun=true to preview the patch without sending it.",
     "inputSchema": {
       "type": "object",
@@ -1745,7 +1793,8 @@
     "name": "update_campaign",
     "platform": "linkedin",
     "hosted": true,
-    "description": "Update an existing campaign (the 'ad group') in place: change its targeting and/or name, status, budget, bid, bidding strategy (optimizationTargetType, costType), schedule, ad rotation (creativeSelection: OPTIMIZED or ROUND_ROBIN = rotate ads evenly). Only the fields you pass change. Targeting is REPLACED when you pass any targeting form — a structured `targeting` spec, the `audienceSegmentUrn` (+ optional `geoUrns`) shorthand, or a raw `targetingCriteria`; default exclusions are re-applied unless applyDefaultExclusions=false. Audience Expansion / Audience Network stay off. Pass dryRun=true first to preview the patch before touching a live campaign.",
+    "hostedSupport": "full",
+    "description": "Update an existing campaign (the 'ad group') in place: change its targeting and/or name, status, budget, bid, bidding strategy (optimizationTargetType, costType), schedule, ad rotation (creativeSelection: OPTIMIZED or ROUND_ROBIN = rotate ads evenly). Only the fields you pass change. Targeting is REPLACED when you pass any targeting form: a structured `targeting` spec, the `audienceSegmentUrn` (+ optional `geoUrns`) shorthand, or a raw `targetingCriteria`. Default exclusions are re-applied unless applyDefaultExclusions=false. Audience Expansion / Audience Network stay off. Pass dryRun=true first to preview the patch before touching a live campaign.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -1791,7 +1840,7 @@
         },
         "audienceSegmentUrn": {
           "type": "string",
-          "description": "urn:li:adSegment:... (or bare id) matched audience to target — replaces existing targeting"
+          "description": "urn:li:adSegment:... (or bare id) matched audience to target, which replaces existing targeting"
         },
         "geoUrns": {
           "type": "array",
@@ -1910,7 +1959,9 @@
   {
     "name": "upload_audience_csv",
     "platform": "linkedin",
-    "hosted": true,
+    "hosted": false,
+    "hostedSupport": "none",
+    "hostedNote": "Reads a CSV path on the server, not on your machine.",
     "description": "Clean a CSV at csvPath and upload it as a matched-audience DMP segment. Auto-detects contact (email) vs company (account) lists, normalizes column names, drops non-matcher columns, hashes emails, and converts company domains to website URLs. Requires the Audiences product; matching takes up to 48h.",
     "inputSchema": {
       "type": "object",

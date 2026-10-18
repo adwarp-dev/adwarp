@@ -1,11 +1,11 @@
 ---
 name: adwarp-health
-description: Daily LinkedIn ads guardrail check via Adwarp that stays silent unless something is wrong. Catches active campaigns with zero delivery, daily spend spikes, cost-per-lead blowouts, spend with nothing back, stuck audiences, and CTR collapses. One line when all clear. Use for "health check", "anything on fire", "daily ads check", or on a morning schedule.
+description: Daily LinkedIn ads guardrail check via Adwarp that stays silent unless something is wrong. Catches active campaigns with zero delivery, daily spend spikes, cost-per-lead blowouts, spend with nothing back, stuck audiences, and CTR collapses. 1 line when all clear. Use for "health check", "anything on fire", "daily ads check", or on a morning schedule.
 ---
 
 # Adwarp: daily health check
 
-An alarm, not a report. If nothing trips, the entire output is one line. The weekly
+An alarm, not a report. If nothing trips, the entire output is 1 line. The weekly
 digest is adwarp-weekly; deep dives are adwarp-performance and adwarp-spend. Never pad an
 all-clear into a report.
 
@@ -41,7 +41,7 @@ All clear, exactly:
 LinkedIn ads: all clear (spend $X yesterday, N leads).
 ```
 
-Fires: a numbered list, one line each: what tripped, the entity, the number vs its
+Fires: a numbered list, 1 line each: what tripped, the entity, the number vs its
 baseline, and the suggested action. Order by dollars at stake. No sections, no
 narrative. If conversions for yesterday may still settle (they lag 2-3 days), append
 that caveat once at the bottom.
@@ -50,4 +50,4 @@ that caveat once at the bottom.
 
 Built to run unattended every morning: a Claude Code scheduled agent ("run the
 adwarp-health skill and send only its output"), a /loop in a long-lived session, or
-cron feeding the CLI. Pair with adwarp-weekly on Mondays; the two do not overlap.
+cron feeding the CLI. Pair with adwarp-weekly on Mondays; the 2 do not overlap.

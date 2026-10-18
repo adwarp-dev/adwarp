@@ -27,7 +27,7 @@ switches it on in Campaign Manager. Google campaigns can only be switched on in 
 | Skill | Ask it | What you get |
 | --- | --- | --- |
 | `adwarp-weekly` | "Weekly snapshot" | Fixed-format week-over-week snapshot, movers, flags, 3 actions; schedule-friendly |
-| `adwarp-health` | "Anything on fire?" | Silent-unless-fire daily guardrails; one line when all clear; built for a morning schedule |
+| `adwarp-health` | "Anything on fire?" | Silent-unless-fire daily guardrails; 1 line when all clear; built for a morning schedule |
 
 **Operate**
 

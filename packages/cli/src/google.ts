@@ -159,7 +159,7 @@ export function registerGoogleCommands(program: Command): void {
       const googleAds = await createGoogleAds();
       const result = await launchSearchCampaign(googleAds.client, brief);
 
-      console.log(`Customer ${result.customerId} — ${result.operations} operations\n`);
+      console.log(`Customer ${result.customerId}: ${result.operations} operations\n`);
       for (const p of result.plan) console.log(`  ${p.kind.padEnd(18)} ${p.name}${p.detail ? `  (${p.detail})` : ""}`);
 
       if (result.warnings.length) {

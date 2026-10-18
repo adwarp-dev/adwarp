@@ -5,7 +5,7 @@ description: Analyze LinkedIn ad spend with Adwarp. Where the budget actually go
 
 # Adwarp: spend analysis
 
-Answer one question: is the money going where the results are? Produce a verdict and
+Answer 1 question: is the money going where the results are? Produce a verdict and
 moves, never a raw table dump.
 
 ## How to reach Adwarp
@@ -34,13 +34,13 @@ Compute the account average cost per conversion first; it is the yardstick for w
 
 1. **Total and direction.** Total spend for the period and the delta vs the prior
    equivalent period (from the trend, or a second `get_performance` window).
-2. **Concentration.** Share of spend per campaign group. Flag when one group takes
+2. **Concentration.** Share of spend per campaign group. Flag when 1 group takes
    more than ~60% of spend; say whether its share of conversions justifies it.
 3. **Efficiency map.** For each group and campaign: spend, conversions, cost per
    conversion, and share-of-spend vs share-of-conversions. The interesting rows are
-   the ones where those two shares diverge.
+   the ones where those 2 shares diverge.
 4. **Wasted spend.** Entities with zero conversions whose spend exceeds ~2x the
-   account average cost per conversion. Sum this into one "wasted this period" dollar
+   account average cost per conversion. Sum this into 1 "wasted this period" dollar
    figure; it is usually the headline. Also flag CPC outliers above ~1.5x the account
    average and CTR below ~0.3% on meaningful volume.
 5. **Pacing.** From the weekly trend: is daily spend accelerating or decaying? Note
@@ -57,7 +57,7 @@ Compute the account average cost per conversion first; it is the yardstick for w
 
 ## Report format
 
-- **Headline:** total spend, period delta, and a one-line verdict.
+- **Headline:** total spend, period delta, and a 1-line verdict.
 - **Where it goes:** top spend lines with cost per conversion, worst divergences called out.
 - **What is wasted:** ranked list with dollar amounts, and the summed waste figure.
 - **Moves:** 2-4 reallocations, each "shift $X/day from A to B because...". If the user

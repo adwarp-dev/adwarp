@@ -28,7 +28,7 @@ See [Configuration](./config.md) for every field in `config.json`.
 
 ## Register the local MCP server
 
-Register the server with your MCP client. It reads the `~/.adwarp` credentials from the previous step.
+Register the server with your MCP client. It reads the `~/.adwarp` credentials from the previous step. Each client also has its own page: [Claude Code](./clients-claude-code.md), [Claude Desktop](./clients-claude-desktop.md), [Codex](./clients-codex.md) and [Cursor](./clients-cursor.md).
 
 Claude Code:
 
@@ -50,7 +50,7 @@ Claude Desktop, Cursor, or any other MCP client, in its MCP config JSON:
 
 Ask for something read-only to confirm it works: "List my ad accounts" or "How did my account do in the last 30 days?"
 
-The local server registers every tool, including the Google Ads `gads_*` tools. Those need their own credentials, covered in [Google Ads](./google-ads.md).
+The local server registers every tool, including the Google Ads `gads_*` tools. Those need their own credentials, covered in [Google Ads setup](./google-ads.md#setup).
 
 ## Run it in Docker
 

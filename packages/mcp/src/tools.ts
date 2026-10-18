@@ -73,6 +73,28 @@ export interface RegisterToolsOptions {
   google?: boolean;
 }
 
+const JOURNAL_NOTE =
+  "Needs the local change journal, ~/.adwarp/changelog.jsonl. Journaling is off on hosted deploys, which have a read-only filesystem.";
+
+/**
+ * LinkedIn tools the hosted endpoint registers but cannot fully run, because they
+ * need resources only a local install has. "none": no useful result when hosted.
+ * "limited": works, with less. scripts/gen-tools.mjs writes this into
+ * docs/tools.json as `hosted`, `hostedSupport` and `hostedNote`, and fails on a
+ * name that is not a registered tool. docs/hosted.md explains each one.
+ */
+export const HOSTED_LIMITS: Record<string, { support: "limited" | "none"; note: string }> = {
+  upload_audience_csv: { support: "none", note: "Reads a CSV path on the server, not on your machine." },
+  audience_from_salesforce: { support: "none", note: "Needs your local `sf` CLI." },
+  inspect_competitor_ads: {
+    support: "limited",
+    note: "Returns Ad Library metadata only, unless the server is configured with the remote creative worker.",
+  },
+  log_ad_change: { support: "none", note: JOURNAL_NOTE },
+  list_ad_changes: { support: "none", note: JOURNAL_NOTE },
+  compute_lift: { support: "none", note: JOURNAL_NOTE },
+};
+
 /**
  * Registers the ad tools on an MCP server. Shared by the local stdio entry
  * point and the hosted (Vercel) HTTP handler.
@@ -195,7 +217,7 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
 
   server.tool(
     "list_campaigns",
-    "List the account structure: campaign groups (campaigns) and/or their campaigns (ad groups), DRAFTS INCLUDED — unlike performance reports, which only show entities with spend. Pass level=groups for campaign groups only, level=campaigns for ad groups (optionally scoped by groupId), or level=both (default) for the full tree.",
+    "List the account structure: campaign groups (campaigns) and/or their campaigns (ad groups), DRAFTS INCLUDED, unlike performance reports, which only show entities with spend. Pass level=groups for campaign groups only, level=campaigns for ad groups (optionally scoped by groupId), or level=both (default) for the full tree.",
     {
       accountId: z.string().optional(),
       level: z.enum(["groups", "campaigns", "both"]).default("both"),
@@ -233,7 +255,7 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
 
   server.tool(
     "delete_ad",
-    "Delete an ad: removes the creative and (best-effort) the Direct Sponsored Content post behind it. Accepts a numeric creative id or a full urn:li:sponsoredCreative URN. Use for cleaning up drafts or replacing an ad whose copy must change (Campaign Manager's editor does not reflect post edits — recreate instead).",
+    "Delete an ad: removes the creative and (best-effort) the Direct Sponsored Content post behind it. Accepts a numeric creative id or a full urn:li:sponsoredCreative URN. Use for cleaning up drafts or replacing an ad whose copy must change (Campaign Manager's editor does not reflect post edits, so recreate instead).",
     { accountId: z.string().optional(), creativeId: z.string() },
     async ({ accountId, creativeId }) => {
       try {
@@ -306,7 +328,7 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
 
   server.tool(
     "update_campaign",
-    "Update an existing campaign (the 'ad group') in place: change its targeting and/or name, status, budget, bid, bidding strategy (optimizationTargetType, costType), schedule, ad rotation (creativeSelection: OPTIMIZED or ROUND_ROBIN = rotate ads evenly). Only the fields you pass change. Targeting is REPLACED when you pass any targeting form — a structured `targeting` spec, the `audienceSegmentUrn` (+ optional `geoUrns`) shorthand, or a raw `targetingCriteria`; default exclusions are re-applied unless applyDefaultExclusions=false. Audience Expansion / Audience Network stay off. Pass dryRun=true first to preview the patch before touching a live campaign.",
+    "Update an existing campaign (the 'ad group') in place: change its targeting and/or name, status, budget, bid, bidding strategy (optimizationTargetType, costType), schedule, ad rotation (creativeSelection: OPTIMIZED or ROUND_ROBIN = rotate ads evenly). Only the fields you pass change. Targeting is REPLACED when you pass any targeting form: a structured `targeting` spec, the `audienceSegmentUrn` (+ optional `geoUrns`) shorthand, or a raw `targetingCriteria`. Default exclusions are re-applied unless applyDefaultExclusions=false. Audience Expansion / Audience Network stay off. Pass dryRun=true first to preview the patch before touching a live campaign.",
     CampaignUpdateSchema.shape,
     async (args) => {
       try {
@@ -469,7 +491,7 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
 
   server.tool(
     "compute_lift",
-    "For each recorded change to an entity, compare performance in the window before the change against the window after it (default 14 days each side). Returns before/after KPI windows and per-metric relative deltas (CTR, CPC, conversion rate, cost-per-conversion, etc.). This is a directional pre/post comparison, NOT a controlled experiment — confounded by seasonality, the LinkedIn learning phase after edits, and concurrent budget changes; present it as a signal and call out partial after-windows on recent changes.",
+    "For each recorded change to an entity, compare performance in the window before the change against the window after it (default 14 days each side). Returns before/after KPI windows and per-metric relative deltas (CTR, CPC, conversion rate, cost-per-conversion, etc.). This is a directional pre/post comparison, NOT a controlled experiment. It is confounded by seasonality, the LinkedIn learning phase after edits, and concurrent budget changes; present it as a signal and call out partial after-windows on recent changes.",
     {
       entityType: AD_ENTITY_TYPE,
       entityId: z.string(),

@@ -28,7 +28,7 @@ handles today, roughly in the order a campaign comes together:
   (SOQL straight to a matched audience)
 - "Launch a draft campaign for that audience, $100/day, tracking the demo-booked
   conversion." (campaign group + campaign + draft ads in one call)
-- "What ads is HubSpot running right now, and what offers are they pushing?" (reads the
+- "What ads is our biggest competitor running right now, and what offers are they pushing?" (reads the
   public Ad Library: copy, formats, and EU targeting metadata for any company)
 - "How did retargeting do last month vs the month before?" (trend report with deltas)
 - "Which ads should I pause this week?" (account rollup with top/bottom performers and
@@ -61,9 +61,9 @@ most common source of confusion when working across both:
 
 | Common term | LinkedIn entity    | Google Ads entity | Holds                                    |
 | ----------- | ------------------ | ----------------- | ---------------------------------------- |
-| Campaign    | **Campaign Group** | —                 | status, total/shared budget              |
+| Campaign    | **Campaign Group** | (none)            | status, total/shared budget              |
 | Ad group    | **Campaign**       | **Campaign**      | targeting, budget, bid, schedule, format |
-| —           | —                  | **Ad group**      | keywords and the ads that answer them    |
+| (none)      | (none)             | **Ad group**      | keywords and the ads that answer them    |
 | Ad          | **Creative**       | **Ad group ad**   | the rendered ad                          |
 | Audience    | **DMP Segment**    | **User list**     | attached to targeting                    |
 
@@ -117,7 +117,7 @@ Google Ads needs two things LinkedIn does not:
 2. **An OAuth client**, from a Google Cloud project with the Google Ads API
    enabled. Use the "Desktop app" type, which accepts any `localhost` redirect.
 
-   For the consent screen, **do not leave it in "Testing"** — that status issues
+   For the consent screen, **do not leave it in "Testing"**. That status issues
    refresh tokens that stop working after 7 days. Beyond that it is a trade:
 
    - **Internal** (Workspace orgs only) is what Google's OAuth docs recommend for
@@ -125,7 +125,7 @@ Google Ads needs two things LinkedIn does not:
    - **External + In production** is the precondition for *brand verification*,
      the pilot that cuts Basic Access review from days to hours. The cost is that
      `auth/adwords` is a **sensitive** scope, so a published external app can
-     require full OAuth app verification — potentially slower than the wait it
+     require full OAuth app verification, potentially slower than the wait it
      saves.
 
    Internal is the better default for an internal tool. Choose External only if
@@ -149,7 +149,7 @@ target account through one. Run `adwarp google auth login` and you are set.
 
 ## Packages
 
-- `@adwarp/shared`: the platform-neutral layer — OAuth, credential stores, retry policy, the change journal, period and KPI math.
+- `@adwarp/shared`: the platform-neutral layer: OAuth, credential stores, retry policy, the change journal, period and KPI math.
 - `@adwarp/core`: LinkedIn REST client, resource modules, CSV + SHA256 hashing, Salesforce reader.
 - `@adwarp/google`: Google Ads REST client, GAQL reads, atomic mutate builder, Search campaign creation.
 - `@adwarp/mcp`: MCP server (stdio for local; reused by the hosted app). **Primary interface.**
@@ -608,7 +608,8 @@ The full documentation lives in [`docs/`](./docs) as plain Markdown, 1 file per 
 with `title`, `description`, and `order` front matter. Edit those files when behavior changes.
 
 [`docs/tools.json`](./docs/tools.json) lists every MCP tool with its description, input
-schema, platform (`linkedin` or `google`), and whether the hosted endpoint registers it. It is
+schema, platform (`linkedin` or `google`), and whether it works on the hosted endpoint
+(`hosted`, `hostedSupport` and `hostedNote`). It is
 generated from the real tool registration code, so never edit it by hand. After adding,
 removing, or changing a tool (including its zod input schema), run:
 

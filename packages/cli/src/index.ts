@@ -147,7 +147,7 @@ audience
       csvPath: opts.csv,
       type: opts.type,
     });
-    console.log(`Segment ${res.segmentId} (${res.audienceType}) — status ${res.status}`);
+    console.log(`Segment ${res.segmentId} (${res.audienceType}), status ${res.status}`);
     console.log(`Uploaded ${res.uploaded} (${res.skipped} skipped of ${res.totalRows} rows).`);
     res.warnings.forEach((w: string) => console.warn(`! ${w}`));
   });
@@ -168,7 +168,7 @@ audience
       emailField: opts.emailField,
     });
     console.log(`Fetched ${res.fetchedFromSalesforce} emails from Salesforce.`);
-    console.log(`Segment ${res.segmentId} — status ${res.status} (${res.uploaded} uploaded).`);
+    console.log(`Segment ${res.segmentId}, status ${res.status} (${res.uploaded} uploaded).`);
     res.warnings.forEach((w: string) => console.warn(`! ${w}`));
   });
 
@@ -287,7 +287,7 @@ changelog
       tags,
       ts: opts.at,
     });
-    console.log(`Logged ${event.id} — ${event.entity.type} ${event.entity.id}: ${event.summary ?? "(no summary)"}`);
+    console.log(`Logged ${event.id}, ${event.entity.type} ${event.entity.id}: ${event.summary ?? "(no summary)"}`);
     console.log(`Journal: ${changelogPath()}`);
   });
 changelog
@@ -336,7 +336,7 @@ program
       console.log(`No recorded changes for ${type} ${entityId}. Log one with \`adwarp changelog add\`, or let Adwarp capture changes automatically.`);
       return;
     }
-    console.log(`Lift for ${type} ${entityId} — ${opts.window}d before vs. after each change`);
+    console.log(`Lift for ${type} ${entityId}: ${opts.window}d before vs. after each change`);
     console.log(`(directional pre/post comparison; confounded by seasonality, learning phase, and budget changes)\n`);
     for (const l of lifts) {
       const when = l.change.ts.slice(0, 10);
@@ -384,7 +384,7 @@ competitor
       return;
     }
     const q = scan.query.advertiser ?? scan.query.companyId ?? scan.query.keyword;
-    console.log(`\n${q} — ${scan.fetched} ads via ${scan.engine}${scan.totalReported ? ` (library reports ${scan.totalReported} total)` : ""}`);
+    console.log(`\n${q}: ${scan.fetched} ads via ${scan.engine}${scan.totalReported ? ` (library reports ${scan.totalReported} total)` : ""}`);
     if (scan.note) console.log(scan.note);
     console.log("");
     scan.ads.forEach((a, i) => {
@@ -470,7 +470,7 @@ campaigns
   .command("update <campaignId>")
   .description("Update a campaign (ad group) in place. Previews by default; add --apply to send.")
   .option("--account <accountId>", "ad account id (defaults to config)")
-  .option("--audience <urnOrId>", "matched audience to target (adSegment urn or bare id) — replaces targeting")
+  .option("--audience <urnOrId>", "matched audience to target (adSegment urn or bare id), replaces targeting")
   .option("--geo <urns...>", "geo urns to include alongside the audience")
   .option("--targeting <json>", "structured targeting spec as JSON, e.g. '{\"include\":{...}}'")
   .option("--no-default-exclusions", "do not merge the standing default exclusions into new targeting")
@@ -523,7 +523,7 @@ campaigns
     if (spec) {
       try {
         const est = await estimateAudience(linkedinAds.client, spec);
-        const flag = est.total < MIN_AUDIENCE_TO_SERVE ? `  [WARNING] below ${MIN_AUDIENCE_TO_SERVE}, will NOT serve (note: forecast reads 0 for dynamicSegments/retargeting audiences — verify real size in CM)` : "";
+        const flag = est.total < MIN_AUDIENCE_TO_SERVE ? `  [WARNING] below ${MIN_AUDIENCE_TO_SERVE}, will NOT serve (note: forecast reads 0 for dynamicSegments/retargeting audiences, so verify real size in CM)` : "";
         console.log(`Estimated audience: ${est.total} total (${est.active} active)${flag}`);
       } catch (e) {
         console.log(`(could not estimate audience: ${e instanceof Error ? e.message : e})`);
@@ -532,7 +532,7 @@ campaigns
 
     const res = await updateCampaign(linkedinAds.client, input as Parameters<typeof updateCampaign>[1]);
     if (res.dryRun) {
-      console.log(`\nDRY RUN — nothing sent. Patch for campaign ${campaignId} (fields: ${res.updated.join(", ")}):`);
+      console.log(`\nDRY RUN, nothing sent. Patch for campaign ${campaignId} (fields: ${res.updated.join(", ")}):`);
       console.log(JSON.stringify(res.patch, null, 2));
       console.log("\nRe-run with --apply to send this update.");
     } else {

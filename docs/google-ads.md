@@ -67,4 +67,19 @@ Write `~/.adwarp/google.json`:
 
 `loginCustomerId` is the manager account, and is only needed when you reach the target account through one. Run `adwarp google auth login` and you are set.
 
+### Environment variables
+
+For CI or a server, set these instead of writing `google.json`. When `ADWARP_GOOGLE_CLIENT_ID` and `ADWARP_GOOGLE_CLIENT_SECRET` are both set, Adwarp reads its Google settings from the environment only and ignores `google.json`.
+
+| Variable | Replaces |
+| --- | --- |
+| `ADWARP_GOOGLE_CLIENT_ID`, `ADWARP_GOOGLE_CLIENT_SECRET` | `clientId`, `clientSecret` |
+| `ADWARP_GOOGLE_DEVELOPER_TOKEN` | `developerToken` |
+| `ADWARP_GOOGLE_LOGIN_CUSTOMER_ID` | `loginCustomerId` |
+| `ADWARP_GOOGLE_DEFAULT_CUSTOMER_ID` | `defaultCustomerId` |
+| `ADWARP_GOOGLE_API_VERSION` | `apiVersion`, the pinned Google Ads API version (default `v25`) |
+| `ADWARP_GOOGLE_REFRESH_TOKEN` | the login in `~/.adwarp/google-credentials.json` |
+
+`ADWARP_GOOGLE_REFRESH_TOKEN` works on its own too, next to a `google.json`. Setting it also turns off change journaling for Google writes. `defaultConversionActionNames` has no variable, so with environment settings a brief names its own conversion actions. The `GADS_*` names from before the rename still work; see [Configuration](./config.md#names-from-before-the-rename).
+
 See the [CLI reference](./cli.md#google-ads-commands) for every Google command and [MCP tools](./tools.md#google-ads) for the `gads_*` tools.

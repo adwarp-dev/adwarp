@@ -19,15 +19,15 @@ common reason a lift read comes back empty.
 
 ## Starting a test
 
-1. **Hypothesis first**, one sentence: "outcome-led headline will beat feature-led on
+1. **Hypothesis first**, 1 sentence: "outcome-led headline will beat feature-led on
    cost per conversion."
 2. **Make the change.** Copy changes on LinkedIn are recreate, not edit
    (`delete_ad` + `create_image_ad`, drafts, user confirms deletes); Adwarp journals
    these automatically. Changes made in Campaign Manager get `log_ad_change` with the
    entity, field, and after-value.
 3. **Label it** (`-l "outcome-led headline test"`) and tag related changes so the
-   test reads as one unit.
-4. **One change per entity at a time** where possible. Two simultaneous changes on
+   test reads as 1 unit.
+4. **1 change per entity at a time** where possible. 2 simultaneous changes on
    the same entity cannot be separated afterwards; if it happened anyway, say so in
    the read-out.
 
@@ -45,7 +45,7 @@ Rules for an honest read:
 - **State the confounds every time:** seasonality, LinkedIn's learning phase
   restarting after an edit (early post-change days usually dip), concurrent budget or
   audience changes. This is a directional pre/post comparison, never proof.
-- Verdicts are exactly one of: better, worse, inconclusive.
+- Verdicts are exactly 1 of: better, worse, inconclusive.
 
 ## The test registry
 
@@ -55,6 +55,6 @@ and unlabeled changes worth labeling before they are forgotten.
 
 ## Report format
 
-Per change: label, date, entity, before vs after on the four or five KPIs that
-matter, verdict, confounds. Close with one portfolio line: what the wins suggest
+Per change: label, date, entity, before vs after on the 4 or 5 KPIs that
+matter, verdict, confounds. Close with 1 portfolio line: what the wins suggest
 testing next.
