@@ -6,7 +6,7 @@ const REPO = "https://github.com/adwarp-dev/adwarp";
 const FAQ: Array<{ q: string; a: string }> = [
   {
     q: "Can it spend money without me?",
-    a: "No. Everything Adwarp creates is written to LinkedIn as a draft, and there is deliberately no activate command or tool anywhere in the codebase. A campaign starts spending only when you switch it on yourself in Campaign Manager.",
+    a: "No. Everything Adwarp creates starts as a draft on LinkedIn or paused on Google. A LinkedIn campaign starts spending only when you explicitly ask Adwarp to turn it on or switch it on yourself in Campaign Manager, and Google campaigns can only be switched on in Google Ads.",
   },
   {
     q: "What permissions does it need?",

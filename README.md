@@ -3,9 +3,10 @@
 **Adwarp** (formerly Liam) is the open-source ad agent for LinkedIn Ads and Google Ads.
 Create campaigns by talking to Claude (MCP) or from a CLI. Built for go-to-market teams
 who want to spin up many campaigns from a contact list and a brief, then add creative
-images themselves. Nothing is ever created live: LinkedIn entities are **drafts**, Google
-entities are **paused**, and there is no activate tool on either platform, so nothing
-spends until you turn it on yourself.
+images themselves. Everything starts switched off: LinkedIn entities are created as **drafts** and
+Google entities as **paused**. A LinkedIn campaign goes live only when you explicitly
+ask Adwarp to turn it on or switch it on yourself in Campaign Manager, and Google
+campaigns can only be switched on in the Google Ads UI.
 
 > Unofficial and not affiliated with or endorsed by LinkedIn or Google.
 
@@ -165,9 +166,10 @@ auto-refreshing OAuth token provider, then calls a typed resource module
 `core/src/schemas.ts` and are reused verbatim as the MCP tool input schemas, so the CLI and
 MCP can never drift apart.
 
-The draft-only safety rule is enforced at creation: campaign groups, campaigns, and
-creatives are all written with `DRAFT` status, and there is deliberately no "activate"
-tool or command. Every write also passes through one HTTP chokepoint that appends to a
+The drafts-first safety rule is enforced at creation: campaign groups, campaigns, and
+creatives default to `DRAFT` status, and going live is always an explicit request (a
+`status` of `ACTIVE`, or `campaigns update --status ACTIVE --apply`). On Google, no
+create schema can express an enabled status at all. Every write also passes through one HTTP chokepoint that appends to a
 local change journal (`~/.liads/changelog.jsonl`) for later lift analysis.
 
 [AGENTS.md](./AGENTS.md) has the full architecture notes and the LinkedIn API gotchas
@@ -295,8 +297,8 @@ just a URL plus headers, usable from machines that never cloned this repo.
 
 Know the trade-off: your client secret and refresh token travel with every request to
 that server, so only point them at a deployment you trust, or self-host the identical
-endpoint (next section). The scopes they carry can manage ads but never activate them;
-the draft-only rule is enforced in the tool layer itself.
+endpoint (next section). The same scopes that manage ads can also switch them on,
+so treat these credentials like an ad account password.
 
 Hosted limitations (all by design, they need local resources): `upload_audience_csv`
 reads a CSV path on the server, `audience_from_salesforce` needs your local `sf` CLI,
@@ -368,8 +370,8 @@ will walk you through everything above, one step at a time:
 ```text
 You are helping me set up Adwarp, an open-source LinkedIn Ad Manager from
 https://github.com/adwarp-dev/adwarp. It runs locally as an MCP server and a CLI.
-Everything it creates on LinkedIn is a draft, so nothing spends money until I
-activate it myself in Campaign Manager.
+Everything it creates on LinkedIn starts as a draft, so nothing spends money until I
+explicitly turn it on.
 
 Walk me through the setup one step at a time. Run commands for me where you can,
 show me exactly what to click where you cannot, and wait for my confirmation

@@ -5,8 +5,8 @@
  */
 const INTRO = `You are helping me set up Adwarp, an open-source LinkedIn Ads Manager from
 https://github.com/adwarp-dev/adwarp. It runs locally as a CLI and an MCP server.
-Everything it creates on LinkedIn is a draft, so nothing spends money until I
-activate it myself in Campaign Manager.
+Everything it creates on LinkedIn starts as a draft, so nothing spends money until I
+explicitly turn it on.
 
 Walk me through the setup one step at a time. Run commands for me where you can,
 show me exactly what to click where you cannot, and wait for my confirmation
@@ -50,8 +50,8 @@ export const HOSTED_MCP_SETUP_PROMPT = `You are helping me connect to the hosted
 open-source LinkedIn Ads Manager (https://github.com/adwarp-dev/adwarp), at
 https://mcp.adwarp.dev/api/mcp. I bring my own
 LinkedIn developer app credentials as request headers, so every call runs
-against my own LinkedIn ad account, and everything Adwarp creates is a draft
-that spends nothing until I activate it myself in Campaign Manager.
+against my own LinkedIn ad account, and everything Adwarp creates starts as a draft
+that spends nothing until I explicitly turn it on.
 
 Work one step at a time, run commands for me where you can, and wait for my
 confirmation before moving on.
@@ -81,8 +81,8 @@ If a step fails, show me the exact error and fix it with me before moving on.`;
 
 export const MCP_SETUP_PROMPT = `You are helping me connect Adwarp, an open-source LinkedIn Ads Manager
 (https://github.com/adwarp-dev/adwarp), to Claude as an MCP server. Everything
-it creates on LinkedIn is a draft, so nothing spends money until I activate it
-myself in Campaign Manager.
+it creates on LinkedIn starts as a draft, so nothing spends money until I
+explicitly turn it on.
 
 Work one step at a time, run commands for me where you can, and wait for my
 confirmation before moving on.

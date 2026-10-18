@@ -81,9 +81,8 @@ export default function Docs() {
             and a change journal with before and after lift.
           </p>
           <p>
-            Everything Adwarp creates is a <b>draft</b>. There is deliberately no activate tool or
-            command anywhere in the codebase, so nothing spends until you switch a campaign on
-            yourself in Campaign Manager.
+            Everything Adwarp creates starts as a <b>draft</b>. Nothing spends until you explicitly
+            ask for a campaign to go live or switch it on yourself in Campaign Manager.
           </p>
           <h3>Hierarchy mapping</h3>
           <p>LinkedIn names its levels differently than Google or Meta.</p>
@@ -308,8 +307,8 @@ claude mcp add adwarp -- node /abs/path/adwarp/packages/mcp/dist/index.js
           <p>
             Know the trade-off: your client secret and refresh token travel with every request to
             that server, so only point them at a deployment you trust, or self-host the identical
-            endpoint (next section). The scopes they carry can manage ads but never activate
-            them; the draft-only rule is enforced in the tool layer itself.
+            endpoint (next section). The same scopes that manage ads can also switch them on,
+            so treat these credentials like an ad account password.
           </p>
           <h3>Hosted limitations</h3>
           <p>
