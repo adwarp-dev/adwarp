@@ -77,7 +77,7 @@ Search campaigns only, creation-first. What is there today:
 ```bash
 adwarp google auth login
 adwarp google accounts list                       # proves the token and OAuth client work
-adwarp google keywords "revops automation" --url https://www.default.com/platform
+adwarp google keywords "revops automation" --url https://example.com/product
 adwarp google conversions list
 adwarp google launch --brief examples/google-brief.json           # dry run
 adwarp google launch --brief examples/google-brief.json --apply   # create it, paused

@@ -160,7 +160,7 @@ modules are thin typed wrappers over `LinkedInClient.request()`.
   groups only. The launch test asserts this split.
 - **`path2` requires `path1`** on a responsive search ad, or Google returns
   `fieldError.VALUE_MUST_BE_UNSET`. The brief schema refuses `path2` alone.
-- **Verified live with `validateOnly` on 2026-09-13** against the Default account (6022535221):
+- **Verified live with `validateOnly` on 2026-09-13** against a live Google Ads account:
   the full example brief passes Google's validators end to end. Both `startDateTime` formats,
   `"YYYY-MM-DD HH:MM:SS"` (documented) and `"YYYYMMDD HH:MM:SS"` (Google's samples), were
   accepted by the dry run, so Adwarp passes the field through as given. A real `--apply` has not

@@ -1,6 +1,6 @@
 # Roadmap
 
-Where Adwarp is and where it could go. Maintained by Stan (Head of Growth at Default).
+Where Adwarp is and where it could go. Maintained by @stan-rym.
 Adwarp is an MCP server and CLI for creating and optimizing LinkedIn ads. This is a living
 list of ideas, not a committed schedule. Everything Adwarp does keeps the safety rule: it
 creates drafts, and nothing spends until you activate it.
