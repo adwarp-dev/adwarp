@@ -11,3 +11,4 @@ export * from "./oauth.js";
 export * from "./period.js";
 export * from "./metrics.js";
 export * from "./changelog.js";
+export * from "./version.js";

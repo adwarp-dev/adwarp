@@ -38,17 +38,27 @@ import {
   OptimizationTargetSchema,
   type OptimizationTarget,
 } from "@liads/core";
+import { VERSION } from "@liads/shared";
 import { registerGoogleCommands } from "./google.js";
 
 const program = new Command();
 program
   .name("adwarp")
   .description("Adwarp, the open-source ad agent for LinkedIn and Google Ads (CLI)")
-  .version("0.1.0");
+  .version(VERSION);
 
 // Google Ads lives under `adwarp google ...`; LinkedIn keeps the top level it has
 // always had, so no existing command or script changes.
 registerGoogleCommands(program);
+
+// Same server as the adwarp-mcp command, so an MCP client config can be `npx -y adwarp mcp`.
+program
+  .command("mcp")
+  .description("Start the MCP server on stdio, for Claude Code, Claude Desktop, Cursor, or any MCP client")
+  .action(async () => {
+    const { startStdioServer } = await import("@liads/mcp/server");
+    await startStdioServer();
+  });
 
 /** The public hosted MCP endpoint (see README "Hosted MCP" section). */
 const HOSTED_MCP_URL = "https://mcp.adwarp.dev/api/mcp";

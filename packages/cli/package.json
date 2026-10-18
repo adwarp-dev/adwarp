@@ -16,6 +16,8 @@
   "dependencies": {
     "@liads/core": "workspace:*",
     "@liads/google": "workspace:*",
+    "@liads/mcp": "workspace:*",
+    "@liads/shared": "workspace:*",
     "commander": "^13.0.0"
   }
 }
