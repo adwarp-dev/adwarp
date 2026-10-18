@@ -1,5 +1,5 @@
 {
-  "name": "@liads/core",
+  "name": "@adwarp/core",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -17,7 +17,7 @@
     "test": "node --test \"test/*.test.mjs\""
   },
   "dependencies": {
-    "@liads/shared": "workspace:*",
+    "@adwarp/shared": "workspace:*",
     "csv-parse": "^5.6.0",
     "open": "^10.1.0",
     "playwright": "^1.61.0",

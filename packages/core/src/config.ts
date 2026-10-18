@@ -2,20 +2,22 @@ import { join } from "node:path";
 import { readFile } from "node:fs/promises";
 import { AsyncLocalStorage } from "node:async_hooks";
 import {
-  LIADS_DIR,
+  ADWARP_DIR,
+  displayPath,
+  env,
   EnvCredentialStore,
   FileCredentialStore as SharedFileCredentialStore,
   type CredentialStore,
   type StoredCredentials,
-} from "@liads/shared";
+} from "@adwarp/shared";
 
-// Re-exported so every existing `import { ... } from "@liads/core"` keeps working
+// Re-exported so every existing `import { ... } from "@adwarp/core"` keeps working
 // now that the credential layer lives in the shared package.
-export { LIADS_DIR, EnvCredentialStore };
+export { ADWARP_DIR, EnvCredentialStore };
 export type { CredentialStore, StoredCredentials };
 
-const CONFIG_PATH = join(LIADS_DIR, "config.json");
-const CREDENTIALS_PATH = join(LIADS_DIR, "credentials.json");
+const CONFIG_PATH = join(ADWARP_DIR, "config.json");
+const CREDENTIALS_PATH = join(ADWARP_DIR, "credentials.json");
 
 /** Default LinkedIn API version (YYYYMM). Pinned; bump deliberately. */
 export const DEFAULT_LINKEDIN_VERSION = "202605";
@@ -77,9 +79,38 @@ export function activeRequestCredentials(): RequestCredentials | undefined {
 }
 
 /**
+ * Request headers that carry a caller's own LinkedIn credentials on the hosted
+ * endpoint. Each field lists its current name first, then the X-Liads-* name it
+ * had before the Adwarp rename, which keeps working for existing connections.
+ */
+export const CREDENTIAL_HEADERS = {
+  clientId: ["x-adwarp-linkedin-client-id", "x-liads-client-id"],
+  clientSecret: ["x-adwarp-linkedin-client-secret", "x-liads-client-secret"],
+  refreshToken: ["x-adwarp-linkedin-refresh-token", "x-liads-refresh-token"],
+  defaultAccountId: ["x-adwarp-linkedin-account-id", "x-liads-account-id"],
+  linkedinVersion: ["x-adwarp-linkedin-version", "x-liads-linkedin-version"],
+} as const;
+
+/** Caller credentials from request headers, when the 3 required ones are all present. */
+export function requestCredentialsFromHeaders(headers: { get(name: string): string | null }): RequestCredentials | null {
+  const read = (names: readonly string[]) => names.map((name) => headers.get(name)).find((value) => value) ?? undefined;
+  const clientId = read(CREDENTIAL_HEADERS.clientId);
+  const clientSecret = read(CREDENTIAL_HEADERS.clientSecret);
+  const refreshToken = read(CREDENTIAL_HEADERS.refreshToken);
+  if (!clientId || !clientSecret || !refreshToken) return null;
+  return {
+    clientId,
+    clientSecret,
+    refreshToken,
+    defaultAccountId: read(CREDENTIAL_HEADERS.defaultAccountId),
+    linkedinVersion: read(CREDENTIAL_HEADERS.linkedinVersion),
+  };
+}
+
+/**
  * Loads app config. Prefers per-request credentials (hosted multi-tenant),
  * then environment variables (hosted / Vercel single tenant), then
- * ~/.liads/config.json (local CLI and self-host).
+ * config.json in the Adwarp folder (local CLI and self-host).
  */
 export async function loadConfig(): Promise<AppConfig> {
   const reqCreds = activeRequestCredentials();
@@ -91,12 +122,14 @@ export async function loadConfig(): Promise<AppConfig> {
       defaultAccountId: reqCreds.defaultAccountId,
     };
   }
-  if (process.env.LIADS_CLIENT_ID && process.env.LIADS_CLIENT_SECRET) {
+  const clientId = env("ADWARP_LINKEDIN_CLIENT_ID");
+  const clientSecret = env("ADWARP_LINKEDIN_CLIENT_SECRET");
+  if (clientId && clientSecret) {
     return {
-      clientId: process.env.LIADS_CLIENT_ID,
-      clientSecret: process.env.LIADS_CLIENT_SECRET,
-      linkedinVersion: process.env.LIADS_LINKEDIN_VERSION,
-      defaultAccountId: process.env.LIADS_DEFAULT_ACCOUNT_ID,
+      clientId,
+      clientSecret,
+      linkedinVersion: env("ADWARP_LINKEDIN_VERSION"),
+      defaultAccountId: env("ADWARP_LINKEDIN_DEFAULT_ACCOUNT_ID"),
     };
   }
   let raw: string;
@@ -104,12 +137,12 @@ export async function loadConfig(): Promise<AppConfig> {
     raw = await readFile(CONFIG_PATH, "utf8");
   } catch {
     throw new Error(
-      `No credentials. Set LIADS_CLIENT_ID/LIADS_CLIENT_SECRET env vars, or create ${CONFIG_PATH} with { "clientId", "clientSecret", "linkedinVersion" }.`,
+      `No credentials. Set ADWARP_LINKEDIN_CLIENT_ID/ADWARP_LINKEDIN_CLIENT_SECRET env vars, or create ${displayPath(CONFIG_PATH)} with { "clientId", "clientSecret", "linkedinVersion" }.`,
     );
   }
   const parsed = JSON.parse(raw) as AppConfig;
   if (!parsed.clientId || !parsed.clientSecret) {
-    throw new Error(`${CONFIG_PATH} must include clientId and clientSecret.`);
+    throw new Error(`${displayPath(CONFIG_PATH)} must include clientId and clientSecret.`);
   }
   return parsed;
 }
@@ -127,7 +160,7 @@ export async function requireDefaultAccountId(): Promise<string> {
   return defaultAccountId;
 }
 
-/** LinkedIn's local token file at ~/.liads/credentials.json (mode 0600). */
+/** LinkedIn's local token file, credentials.json in the Adwarp folder (mode 0600). */
 export class FileCredentialStore extends SharedFileCredentialStore {
   constructor() {
     super(CREDENTIALS_PATH);
@@ -172,8 +205,9 @@ export function resolveCredentialStore(): CredentialStore {
   if (reqCreds) {
     return new RequestCredentialStore(reqCreds.refreshToken);
   }
-  if (process.env.LIADS_REFRESH_TOKEN) {
-    return new EnvCredentialStore(process.env.LIADS_REFRESH_TOKEN);
+  const refreshToken = env("ADWARP_LINKEDIN_REFRESH_TOKEN");
+  if (refreshToken) {
+    return new EnvCredentialStore(refreshToken);
   }
   return new FileCredentialStore();
 }

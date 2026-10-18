@@ -30,7 +30,7 @@ const expectedTools = JSON.parse(await readFile(join(ROOT, "docs", "tools.json")
 /** The caller's environment minus any Adwarp credentials, with HOME pointed at an empty folder. */
 function cleanEnv(home, extra = {}) {
   const env = Object.fromEntries(
-    Object.entries(process.env).filter(([k]) => !k.startsWith("LIADS_") && !k.startsWith("GADS_")),
+    Object.entries(process.env).filter(([k]) => !/^(ADWARP|LIADS|GADS)_/.test(k)),
   );
   return { ...env, HOME: home, USERPROFILE: home, ...extra };
 }

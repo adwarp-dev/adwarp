@@ -7,4 +7,5 @@
 **/.env.*
 **/*.log
 **/.DS_Store
+.adwarp
 .liads

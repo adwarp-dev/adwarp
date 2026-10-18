@@ -1,20 +1,20 @@
 #!/usr/bin/env node
 /**
- * Builds the published `adwarp` npm package. Bundles the private @liads/*
+ * Builds the published `adwarp` npm package. Bundles the private @adwarp/*
  * workspace packages into dist/cli.js (the adwarp and liam commands) and
  * dist/mcp.js (adwarp-mcp), and leaves every third-party import as a real npm
  * dependency. Fails on an import that package.json does not declare, and when
- * the release version in package.json, @liads/shared and server.json disagree.
+ * the release version in package.json, @adwarp/shared and server.json disagree.
  *
  * Runs after the workspace build: `pnpm -r build` orders it after its
- * @liads/* devDependencies.
+ * @adwarp/* devDependencies.
  */
 import { copyFile, readFile, rm, writeFile } from "node:fs/promises";
 import { builtinModules } from "node:module";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
-import { VERSION } from "@liads/shared";
+import { VERSION } from "@adwarp/shared";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, "..", "..");
@@ -45,13 +45,13 @@ function packageName(specifier) {
   return specifier.startsWith("@") ? parts.slice(0, 2).join("/") : parts[0];
 }
 
-/** Bundles @liads/*, keeps declared dependencies external, and refuses anything undeclared. */
+/** Bundles @adwarp/*, keeps declared dependencies external, and refuses anything undeclared. */
 const dependencyGuard = {
   name: "dependency-guard",
   setup(b) {
     b.onResolve({ filter: /^[^./]/ }, (args) => {
       if (args.path.startsWith("node:") || builtins.has(args.path)) return { external: true };
-      if (args.path.startsWith("@liads/")) return undefined;
+      if (args.path.startsWith("@adwarp/")) return undefined;
       if (dependencies.has(packageName(args.path))) return { external: true };
       return {
         errors: [

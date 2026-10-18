@@ -1,7 +1,7 @@
 /**
  * Guards the promises this package makes about what it sends to Google.
  *
- * Runs against dist (`pnpm --filter @liads/google build` first) with a stubbed
+ * Runs against dist (`pnpm --filter @adwarp/google build` first) with a stubbed
  * transport, so it needs no credentials and never touches an ad account. The
  * assertions here are the safety rule made executable: if any of them fail, the
  * tool can create something that spends money without a human turning it on.
@@ -9,9 +9,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-process.env.GADS_CLIENT_ID = "test-client";
-process.env.GADS_CLIENT_SECRET = "test-secret";
-process.env.GADS_DEVELOPER_TOKEN = "test-token";
+process.env.ADWARP_GOOGLE_CLIENT_ID = "test-client";
+process.env.ADWARP_GOOGLE_CLIENT_SECRET = "test-secret";
+process.env.ADWARP_GOOGLE_DEVELOPER_TOKEN = "test-token";
 
 const { launchSearchCampaign, SearchCampaignBriefSchema, flattenGoogleAdsErrors, toMicros, fromMicros } =
   await import("../dist/index.js");

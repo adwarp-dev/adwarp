@@ -6,7 +6,7 @@ import {
   type OauthProvider,
   type StoredCredentials,
   type TokenProvider,
-} from "@liads/shared";
+} from "@adwarp/shared";
 import {
   loadGoogleConfig,
   resolveGoogleCredentialStore,
@@ -48,7 +48,7 @@ function googleProvider(config: GoogleAdsConfig, scopes: string[] = [ADWORDS_SCO
 
 /**
  * Interactive OAuth against the Google Cloud project's client. Persists tokens
- * to ~/.liads/google-credentials.json.
+ * to google-credentials.json in the Adwarp folder.
  *
  * If the consent screen is still in "Testing", Google issues refresh tokens
  * that stop working after 7 days. Set the app to Internal (any Workspace org

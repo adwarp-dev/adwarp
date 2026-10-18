@@ -1,10 +1,10 @@
 #!/usr/bin/env node
-import { getRemoteCreatives } from "@liads/core";
+import { getRemoteCreatives } from "@adwarp/core";
 import { Command } from "commander";
 import {
   login,
   exportHostedEnv,
-  createLiads,
+  createLinkedInAds,
   listAdAccounts,
   uploadAudienceFromFile,
   cleanAudienceCsv,
@@ -37,8 +37,8 @@ import {
   MIN_AUDIENCE_TO_SERVE,
   OptimizationTargetSchema,
   type OptimizationTarget,
-} from "@liads/core";
-import { VERSION } from "@liads/shared";
+} from "@adwarp/core";
+import { VERSION } from "@adwarp/shared";
 import { registerGoogleCommands } from "./google.js";
 
 const program = new Command();
@@ -56,7 +56,7 @@ program
   .command("mcp")
   .description("Start the MCP server on stdio, for Claude Code, Claude Desktop, Cursor, or any MCP client")
   .action(async () => {
-    const { startStdioServer } = await import("@liads/mcp/server");
+    const { startStdioServer } = await import("@adwarp/mcp/server");
     await startStdioServer();
   });
 
@@ -83,15 +83,15 @@ auth
     const env = await exportHostedEnv();
     if (opts.mcp) {
       const url = typeof opts.mcp === "string" ? opts.mcp : HOSTED_MCP_URL;
-      const { loadConfig } = await import("@liads/core");
+      const { loadConfig } = await import("@adwarp/core");
       const config = await loadConfig();
       const headers = [
-        `--header "X-Liads-Client-Id: ${env.LIADS_CLIENT_ID}"`,
-        `--header "X-Liads-Client-Secret: ${env.LIADS_CLIENT_SECRET}"`,
-        `--header "X-Liads-Refresh-Token: ${env.LIADS_REFRESH_TOKEN}"`,
+        `--header "X-Adwarp-Linkedin-Client-Id: ${env.ADWARP_LINKEDIN_CLIENT_ID}"`,
+        `--header "X-Adwarp-Linkedin-Client-Secret: ${env.ADWARP_LINKEDIN_CLIENT_SECRET}"`,
+        `--header "X-Adwarp-Linkedin-Refresh-Token: ${env.ADWARP_LINKEDIN_REFRESH_TOKEN}"`,
       ];
-      if (config.defaultAccountId) headers.push(`--header "X-Liads-Account-Id: ${config.defaultAccountId}"`);
-      if (env.LIADS_LINKEDIN_VERSION) headers.push(`--header "X-Liads-Linkedin-Version: ${env.LIADS_LINKEDIN_VERSION}"`);
+      if (config.defaultAccountId) headers.push(`--header "X-Adwarp-Linkedin-Account-Id: ${config.defaultAccountId}"`);
+      if (env.ADWARP_LINKEDIN_VERSION) headers.push(`--header "X-Adwarp-Linkedin-Version: ${env.ADWARP_LINKEDIN_VERSION}"`);
       console.log(["claude mcp add --transport http adwarp", url, ...headers].join(" \\\n  "));
       console.warn(
         "! This command carries your app secret and refresh token. Your credentials ride along on every call to that server, so only point it at a deployment you trust, or self-host (see the README).",
@@ -107,8 +107,8 @@ accounts
   .command("list")
   .description("List accessible ad accounts")
   .action(async () => {
-    const liads = await createLiads();
-    const list = await listAdAccounts(liads.client);
+    const linkedinAds = await createLinkedInAds();
+    const list = await listAdAccounts(linkedinAds.client);
     if (list.length === 0) {
       console.log("No ad accounts found. Map your account in the Developer Portal > Products > View Ad Accounts.");
       return;
@@ -137,8 +137,8 @@ audience
       clean.rows.slice(0, 3).forEach((r) => console.log(clean.columns.map((c) => r[c] ?? "").join(",")));
       return;
     }
-    const liads = await createLiads();
-    const res = await uploadAudienceFromFile(liads.client, liads.getToken, {
+    const linkedinAds = await createLinkedInAds();
+    const res = await uploadAudienceFromFile(linkedinAds.client, linkedinAds.getToken, {
       accountId: opts.account ?? (await requireDefaultAccountId()),
       name: opts.name,
       csvPath: opts.csv,
@@ -157,8 +157,8 @@ audience
   .option("-a, --account <id>", "Ad account id (defaults to config defaultAccountId)")
   .option("--email-field <col>", "Email column name if not 'Email'")
   .action(async (opts) => {
-    const liads = await createLiads();
-    const res = await audienceFromSalesforce(liads.client, liads.getToken, {
+    const linkedinAds = await createLinkedInAds();
+    const res = await audienceFromSalesforce(linkedinAds.client, linkedinAds.getToken, {
       accountId: opts.account ?? (await requireDefaultAccountId()),
       name: opts.name,
       soql: opts.soql,
@@ -173,8 +173,8 @@ audience
   .command("status <segmentId>")
   .description("Check a DMP segment's matching status")
   .action(async (segmentId: string) => {
-    const liads = await createLiads();
-    const s = await getDmpSegment(liads.client, segmentId);
+    const linkedinAds = await createLinkedInAds();
+    const s = await getDmpSegment(linkedinAds.client, segmentId);
     console.log(JSON.stringify(s, null, 2));
   });
 
@@ -183,16 +183,16 @@ targeting
   .command("search <facet> <query>")
   .description("Typeahead-search entities in a facet (e.g. titles 'marketing')")
   .action(async (facet: string, query: string) => {
-    const liads = await createLiads();
-    const entities = await searchTargeting(liads.client, facet, query);
+    const linkedinAds = await createLinkedInAds();
+    const entities = await searchTargeting(linkedinAds.client, facet, query);
     for (const e of entities) console.log(`${e.urn}\t${e.name}`);
   });
 targeting
   .command("estimate <facet> <urns...>")
   .description("Estimate audience size for one facet's URNs (comma/space separated)")
   .action(async (facet: string, urns: string[]) => {
-    const liads = await createLiads();
-    const est = await estimateAudience(liads.client, { include: { [facet]: urns } });
+    const linkedinAds = await createLinkedInAds();
+    const est = await estimateAudience(linkedinAds.client, { include: { [facet]: urns } });
     console.log(`total ${est.total} | active ${est.active} | canServe ${est.canServe}`);
   });
 
@@ -202,9 +202,9 @@ conversions
   .description("List the account's conversions to select one for a campaign")
   .option("-a, --account <id>", "Ad account id (defaults to config defaultAccountId)")
   .action(async (opts) => {
-    const liads = await createLiads();
+    const linkedinAds = await createLinkedInAds();
     const acct = opts.account ?? (await requireDefaultAccountId());
-    const list = await listConversions(liads.client, acct);
+    const list = await listConversions(linkedinAds.client, acct);
     for (const c of list) console.log(`${c.id}\t${c.enabled ? "on " : "off"}\t${c.type}\t${c.name}`);
   });
 
@@ -216,9 +216,9 @@ report
   .option("-a, --account <id>", "Ad account id (defaults to config)")
   .option("-p, --period <period>", "last_7_days|last_30_days|last_90_days|month_to_date|last_month", "last_30_days")
   .action(async (opts) => {
-    const liads = await createLiads();
+    const linkedinAds = await createLinkedInAds();
     const accountId = opts.account ?? (await requireDefaultAccountId());
-    const s = await performanceSummary(liads.client, { accountId, dateRange: resolveDateRange({ period: opts.period }) });
+    const s = await performanceSummary(linkedinAds.client, { accountId, dateRange: resolveDateRange({ period: opts.period }) });
     const t = s.totals;
     console.log(`TOTALS  spend $${t.costUsd}  impr ${t.impressions}  clicks ${t.clicks}  CTR ${pctf(t.ctr)}  conv ${t.conversions}  CPL/conv $${t.costPerConversion}`);
     console.log("\nTop campaigns by spend:");
@@ -235,9 +235,9 @@ report
   .option("--parent <id>", "Parent group id (campaigns) or campaign id (creatives)")
   .option("-p, --period <period>", "Date period", "last_30_days")
   .action(async (level, opts) => {
-    const liads = await createLiads();
+    const linkedinAds = await createLinkedInAds();
     const accountId = opts.account ?? (await requireDefaultAccountId());
-    const rows = await getPerformance(liads.client, { accountId, level, parentId: opts.parent, dateRange: resolveDateRange({ period: opts.period }) });
+    const rows = await getPerformance(linkedinAds.client, { accountId, level, parentId: opts.parent, dateRange: resolveDateRange({ period: opts.period }) });
     for (const r of rows) console.log(`$${r.costUsd}\timpr ${r.impressions}\tCTR ${pctf(r.ctr)}\tCPC $${r.cpc}\tconv ${r.conversions}\t${r.name ?? r.entityId}`);
   });
 report
@@ -246,8 +246,8 @@ report
   .option("-b, --bucket <bucket>", "weekly|monthly", "weekly")
   .option("-p, --period <period>", "Date period", "last_90_days")
   .action(async (level, entityId, opts) => {
-    const liads = await createLiads();
-    const points = await performanceTrend(liads.client, { level, entityId, bucket: opts.bucket, dateRange: resolveDateRange({ period: opts.period }) });
+    const linkedinAds = await createLinkedInAds();
+    const points = await performanceTrend(linkedinAds.client, { level, entityId, bucket: opts.bucket, dateRange: resolveDateRange({ period: opts.period }) });
     for (const p of points) {
       const dc = p.deltas?.costUsd;
       const d = dc !== undefined ? ` (spend ${dc >= 0 ? "+" : ""}${pctf(dc)})` : "";
@@ -309,7 +309,7 @@ changelog
     }
     for (const e of rows) {
       const when = e.ts.slice(0, 16).replace("T", " ");
-      const who = e.source === "liam" ? "auto" : "man ";
+      const who = e.source === "manual" ? "man " : "auto";
       const label = e.label ? `  «${e.label}»` : "";
       console.log(`${when}  ${who}  ${e.entity.type}/${e.entity.id}  ${e.summary ?? e.kind}${label}`);
     }
@@ -323,8 +323,8 @@ program
   .option("--json", "Print raw JSON")
   .action(async (level, entityId, opts) => {
     const type = normalizeEntityType(level);
-    const liads = await createLiads();
-    const lifts = await computeLift(liads.client, { type, entityId, windowDays: opts.window });
+    const linkedinAds = await createLinkedInAds();
+    const lifts = await computeLift(linkedinAds.client, { type, entityId, windowDays: opts.window });
     if (opts.json) {
       console.log(JSON.stringify(lifts, null, 2));
       return;
@@ -413,8 +413,8 @@ program
     const { readFile } = await import("node:fs/promises");
     const input = JSON.parse(await readFile(opts.brief, "utf8"));
     if (!input.accountId) input.accountId = await requireDefaultAccountId();
-    const liads = await createLiads();
-    const res = await launchFromBrief(liads, input);
+    const linkedinAds = await createLinkedInAds();
+    const res = await launchFromBrief(linkedinAds, input);
     console.log("Created (all DRAFT):");
     console.log(`  Campaign group: ${res.campaignGroupId}`);
     console.log(`  Campaign:       ${res.campaignId}`);
@@ -431,10 +431,10 @@ campaigns
   .option("--all", "include archived/removed entities")
   .option("--account <accountId>", "ad account id (defaults to config)")
   .action(async (opts) => {
-    const liads = await createLiads();
+    const linkedinAds = await createLinkedInAds();
     const accountId = opts.account ?? (await requireDefaultAccountId());
-    const groups = await listCampaignGroups(liads.client, accountId, { includeArchived: opts.all });
-    const list = await listCampaigns(liads.client, accountId, { groupId: opts.group, includeArchived: opts.all });
+    const groups = await listCampaignGroups(linkedinAds.client, accountId, { includeArchived: opts.all });
+    const list = await listCampaigns(linkedinAds.client, accountId, { groupId: opts.group, includeArchived: opts.all });
     const groupName = new Map(groups.map((g) => [g.id, g.name]));
     for (const g of groups) {
       if (opts.group && g.id !== opts.group) continue;
@@ -452,9 +452,9 @@ campaigns
   .description("Show a campaign (ad group): status, name, and its current targeting")
   .option("--account <accountId>", "ad account id (defaults to config)")
   .action(async (campaignId, opts) => {
-    const liads = await createLiads();
+    const linkedinAds = await createLinkedInAds();
     const accountId = opts.account ?? (await requireDefaultAccountId());
-    const c = (await getCampaign(liads.client, accountId, campaignId)) as Record<string, unknown>;
+    const c = (await getCampaign(linkedinAds.client, accountId, campaignId)) as Record<string, unknown>;
     console.log(`${c.id ?? campaignId}\t${c.status ?? ""}\t${c.name ?? ""}`);
     if (c.creativeSelection) {
       const label = c.creativeSelection === "ROUND_ROBIN" ? "even (ROUND_ROBIN)" : String(c.creativeSelection);
@@ -485,7 +485,7 @@ campaigns
   .option("--cost-type <type>", "CPC | CPM | CPV (Maximum Delivery needs CPM)")
   .option("--apply", "actually send the update (otherwise just preview the patch)")
   .action(async (campaignId, opts) => {
-    const liads = await createLiads();
+    const linkedinAds = await createLinkedInAds();
     const accountId = opts.account ?? (await requireDefaultAccountId());
     const money = (amount?: string) => (amount ? { amount, currencyCode: opts.currency } : undefined);
 
@@ -519,7 +519,7 @@ campaigns
     }
     if (spec) {
       try {
-        const est = await estimateAudience(liads.client, spec);
+        const est = await estimateAudience(linkedinAds.client, spec);
         const flag = est.total < MIN_AUDIENCE_TO_SERVE ? `  [WARNING] below ${MIN_AUDIENCE_TO_SERVE}, will NOT serve (note: forecast reads 0 for dynamicSegments/retargeting audiences — verify real size in CM)` : "";
         console.log(`Estimated audience: ${est.total} total (${est.active} active)${flag}`);
       } catch (e) {
@@ -527,7 +527,7 @@ campaigns
       }
     }
 
-    const res = await updateCampaign(liads.client, input as Parameters<typeof updateCampaign>[1]);
+    const res = await updateCampaign(linkedinAds.client, input as Parameters<typeof updateCampaign>[1]);
     if (res.dryRun) {
       console.log(`\nDRY RUN — nothing sent. Patch for campaign ${campaignId} (fields: ${res.updated.join(", ")}):`);
       console.log(JSON.stringify(res.patch, null, 2));
@@ -564,9 +564,9 @@ ad
   .description("List ads in an ad group, drafts included")
   .option("--account <accountId>", "ad account id (defaults to config)")
   .action(async (campaignId, opts) => {
-    const liads = await createLiads();
+    const linkedinAds = await createLinkedInAds();
     const accountId = opts.account ?? (await requireDefaultAccountId());
-    const ads = await listCreatives(liads.client, accountId, campaignId);
+    const ads = await listCreatives(linkedinAds.client, accountId, campaignId);
     if (ads.length === 0) {
       console.log("No ads in this ad group.");
       return;
@@ -578,9 +578,9 @@ ad
   .description("Delete an ad (creative + its Direct Sponsored Content post)")
   .option("--account <accountId>", "ad account id (defaults to config)")
   .action(async (creativeId, opts) => {
-    const liads = await createLiads();
+    const linkedinAds = await createLinkedInAds();
     const accountId = opts.account ?? (await requireDefaultAccountId());
-    const res = await deleteAd(liads.client, accountId, creativeId);
+    const res = await deleteAd(linkedinAds.client, accountId, creativeId);
     console.log(`Deleted ${res.creativeId}` + (res.postUrn ? ` (post ${res.postUrn}${res.postDeleted ? " deleted" : " left in place"})` : ""));
   });
 

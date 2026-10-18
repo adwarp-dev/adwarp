@@ -1,4 +1,4 @@
-import type { Liads } from "./client.js";
+import type { LinkedInAds } from "./client.js";
 import type { LaunchFromBriefInput } from "./schemas.js";
 import { uploadAudienceFromFile } from "./audience.js";
 import { createCampaignGroup } from "./resources/campaignGroups.js";
@@ -25,10 +25,10 @@ export interface LaunchResult {
  * for human review before anything is activated.
  */
 export async function launchFromBrief(
-  liads: Liads,
+  linkedinAds: LinkedInAds,
   input: LaunchFromBriefInput,
 ): Promise<LaunchResult> {
-  const { client, getToken } = liads;
+  const { client, getToken } = linkedinAds;
   const warnings: string[] = [];
 
   // 1. Audience (optional, requires Audiences/DMP product). The adSegment urn is

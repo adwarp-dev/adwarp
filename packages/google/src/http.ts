@@ -5,7 +5,7 @@ import {
   transportRetryDelayMs,
   DEFAULT_MAX_RETRIES,
   type TokenProvider,
-} from "@liads/shared";
+} from "@adwarp/shared";
 import { apiVersion, type GoogleAdsConfig } from "./config.js";
 
 export const GOOGLE_ADS_BASE = "https://googleads.googleapis.com";

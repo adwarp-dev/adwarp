@@ -1,5 +1,5 @@
 {
-  "name": "@liads/mcp",
+  "name": "@adwarp/mcp",
   "version": "0.1.0",
   "description": "Adwarp MCP server, the open-source ad agent for LinkedIn Ads and Google Ads",
   "private": true,
@@ -24,9 +24,9 @@
     "start": "tsx src/index.ts"
   },
   "dependencies": {
-    "@liads/core": "workspace:*",
-    "@liads/google": "workspace:*",
-    "@liads/shared": "workspace:*",
+    "@adwarp/core": "workspace:*",
+    "@adwarp/google": "workspace:*",
+    "@adwarp/shared": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.13.0",
     "zod": "^3.24.1"
   }

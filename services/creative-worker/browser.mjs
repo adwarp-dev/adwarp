@@ -9,7 +9,7 @@ export async function assertPageAllowed(page, status) {
 }
 
 export async function collectCreative(id, store, screenshotDir) {
-  if (process.platform !== 'linux' || process.env.LIADS_CREATIVE_WORKER !== '1') throw new Error('Creative collection is allowed only in the deployed Linux worker.');
+  if (process.platform !== 'linux' || (process.env.ADWARP_CREATIVE_WORKER || process.env.LIADS_CREATIVE_WORKER) !== '1') throw new Error('Creative collection is allowed only in the deployed Linux worker.');
   const browser = await chromium.launch({ headless: true, chromiumSandbox: true });
   let blocked = false;
   let budgetExceeded = false;

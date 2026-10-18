@@ -1,5 +1,5 @@
 {
-  "name": "linkedin-ads",
+  "name": "adwarp-monorepo",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -10,9 +10,9 @@
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r --if-present test && node --test services/creative-worker/test/*.test.mjs",
-    "cli": "pnpm --filter @liads/cli start",
-    "mcp": "pnpm --filter @liads/mcp start",
-    "gen:tools": "pnpm --filter \"@liads/mcp...\" build && node packages/mcp/scripts/gen-tools.mjs",
+    "cli": "pnpm --filter @adwarp/cli start",
+    "mcp": "pnpm --filter @adwarp/mcp start",
+    "gen:tools": "pnpm --filter \"@adwarp/mcp...\" build && node packages/mcp/scripts/gen-tools.mjs",
     "set-version": "node scripts/set-version.mjs"
   },
   "devDependencies": {

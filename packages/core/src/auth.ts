@@ -3,7 +3,7 @@ import {
   createOauthTokenProvider,
   type OauthProvider,
   type TokenProvider,
-} from "@liads/shared";
+} from "@adwarp/shared";
 import {
   type AppConfig,
   type StoredCredentials,
@@ -27,7 +27,7 @@ export const DEFAULT_SCOPES = ["rw_ads", "r_ads_reporting", "rw_conversions", "w
 
 const CALLBACK_PORT = 53682;
 
-const RELOGIN_HINT = "Run `adwarp auth login` (local) or set LIADS_REFRESH_TOKEN (hosted).";
+const RELOGIN_HINT = "Run `adwarp auth login` (local) or set ADWARP_LINKEDIN_REFRESH_TOKEN (hosted).";
 
 /** The shared OAuth descriptor for LinkedIn, built from the loaded app config. */
 function linkedinProvider(config: AppConfig, scopes: string[] = DEFAULT_SCOPES): OauthProvider {
@@ -45,7 +45,7 @@ function linkedinProvider(config: AppConfig, scopes: string[] = DEFAULT_SCOPES):
 
 /**
  * Interactive 3-legged OAuth: opens the consent screen, captures the code,
- * exchanges it, and persists tokens to ~/.liads/credentials.json. Returns the
+ * exchanges it, and persists tokens to credentials.json in the Adwarp folder. Returns the
  * granted credentials (including the scopes actually granted).
  */
 export async function login(scopes: string[] = DEFAULT_SCOPES): Promise<StoredCredentials> {
@@ -66,10 +66,10 @@ export async function exportHostedEnv(): Promise<Record<string, string>> {
     throw new Error("No refresh token found. Run `adwarp auth login` first.");
   }
   return {
-    LIADS_CLIENT_ID: config.clientId,
-    LIADS_CLIENT_SECRET: config.clientSecret,
-    LIADS_LINKEDIN_VERSION: config.linkedinVersion ?? "",
-    LIADS_REFRESH_TOKEN: creds.refreshToken,
+    ADWARP_LINKEDIN_CLIENT_ID: config.clientId,
+    ADWARP_LINKEDIN_CLIENT_SECRET: config.clientSecret,
+    ADWARP_LINKEDIN_VERSION: config.linkedinVersion ?? "",
+    ADWARP_LINKEDIN_REFRESH_TOKEN: creds.refreshToken,
   };
 }
 

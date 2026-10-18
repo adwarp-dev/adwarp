@@ -1,20 +1,21 @@
 import { join } from "node:path";
 import { readFile } from "node:fs/promises";
 import {
-  LIADS_DIR,
+  ADWARP_DIR,
+  displayPath,
+  env,
   EnvCredentialStore,
   FileCredentialStore,
   type CredentialStore,
-} from "@liads/shared";
+} from "@adwarp/shared";
 
 /**
- * Google Ads config lives alongside LinkedIn's in ~/.liads rather than in a
- * directory of its own: one place holds every credential this tool stores, and
- * the change journal at the root already spans both platforms. The directory
- * name is frozen (see AGENTS.md).
+ * Google Ads config lives alongside LinkedIn's in the Adwarp folder rather than in
+ * a directory of its own: one place holds every credential this tool stores, and
+ * the change journal at the root already spans both platforms.
  */
-const CONFIG_PATH = join(LIADS_DIR, "google.json");
-const CREDENTIALS_PATH = join(LIADS_DIR, "google-credentials.json");
+const CONFIG_PATH = join(ADWARP_DIR, "google.json");
+const CREDENTIALS_PATH = join(ADWARP_DIR, "google-credentials.json");
 
 /**
  * Google Ads API version. Pinned deliberately: major versions carry breaking
@@ -57,17 +58,19 @@ export const normalizeCustomerId = (id: string): string => id.replace(/\D/g, "")
 
 /**
  * Loads Google Ads config. Environment variables first (hosted / CI), then
- * ~/.liads/google.json (local CLI).
+ * google.json in the Adwarp folder (local CLI).
  */
 export async function loadGoogleConfig(): Promise<GoogleAdsConfig> {
-  if (process.env.GADS_CLIENT_ID && process.env.GADS_CLIENT_SECRET) {
+  const clientId = env("ADWARP_GOOGLE_CLIENT_ID");
+  const clientSecret = env("ADWARP_GOOGLE_CLIENT_SECRET");
+  if (clientId && clientSecret) {
     return {
-      clientId: process.env.GADS_CLIENT_ID,
-      clientSecret: process.env.GADS_CLIENT_SECRET,
-      developerToken: process.env.GADS_DEVELOPER_TOKEN ?? "",
-      loginCustomerId: process.env.GADS_LOGIN_CUSTOMER_ID,
-      defaultCustomerId: process.env.GADS_DEFAULT_CUSTOMER_ID,
-      apiVersion: process.env.GADS_API_VERSION,
+      clientId,
+      clientSecret,
+      developerToken: env("ADWARP_GOOGLE_DEVELOPER_TOKEN") ?? "",
+      loginCustomerId: env("ADWARP_GOOGLE_LOGIN_CUSTOMER_ID"),
+      defaultCustomerId: env("ADWARP_GOOGLE_DEFAULT_CUSTOMER_ID"),
+      apiVersion: env("ADWARP_GOOGLE_API_VERSION"),
     };
   }
   let raw: string;
@@ -75,12 +78,12 @@ export async function loadGoogleConfig(): Promise<GoogleAdsConfig> {
     raw = await readFile(CONFIG_PATH, "utf8");
   } catch {
     throw new Error(
-      `No Google Ads credentials. Create ${CONFIG_PATH} with { "clientId", "clientSecret", "developerToken", "loginCustomerId", "defaultCustomerId" }, or set GADS_CLIENT_ID / GADS_CLIENT_SECRET / GADS_DEVELOPER_TOKEN.`,
+      `No Google Ads credentials. Create ${displayPath(CONFIG_PATH)} with { "clientId", "clientSecret", "developerToken", "loginCustomerId", "defaultCustomerId" }, or set ADWARP_GOOGLE_CLIENT_ID / ADWARP_GOOGLE_CLIENT_SECRET / ADWARP_GOOGLE_DEVELOPER_TOKEN.`,
     );
   }
   const parsed = JSON.parse(raw) as GoogleAdsConfig;
   if (!parsed.clientId || !parsed.clientSecret) {
-    throw new Error(`${CONFIG_PATH} must include clientId and clientSecret.`);
+    throw new Error(`${displayPath(CONFIG_PATH)} must include clientId and clientSecret.`);
   }
   return parsed;
 }
@@ -94,7 +97,7 @@ export async function requireCustomerId(customerId?: string): Promise<string> {
   if (customerId) return normalizeCustomerId(customerId);
   const { defaultCustomerId } = await loadGoogleConfig();
   if (!defaultCustomerId) {
-    throw new Error("No customerId provided and no defaultCustomerId in ~/.liads/google.json.");
+    throw new Error(`No customerId provided and no defaultCustomerId in ${displayPath(CONFIG_PATH)}.`);
   }
   return normalizeCustomerId(defaultCustomerId);
 }
@@ -106,8 +109,9 @@ export function resolveDefaultConversionActionNames(config: GoogleAdsConfig): st
 
 /** Local token file, or an env-seeded memory store on a hosted deploy. */
 export function resolveGoogleCredentialStore(): CredentialStore {
-  if (process.env.GADS_REFRESH_TOKEN) {
-    return new EnvCredentialStore(process.env.GADS_REFRESH_TOKEN);
+  const refreshToken = env("ADWARP_GOOGLE_REFRESH_TOKEN");
+  if (refreshToken) {
+    return new EnvCredentialStore(refreshToken);
   }
   return new FileCredentialStore(CREDENTIALS_PATH);
 }

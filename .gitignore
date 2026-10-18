@@ -5,7 +5,8 @@ dist/
 *.tsbuildinfo
 .env
 .env.*
-# Local OAuth tokens / app credentials live in ~/.liads, never in repo
+# Local OAuth tokens / app credentials live in ~/.adwarp (or ~/.liads), never in repo
+.adwarp/
 .liads/
 *.log
 .DS_Store

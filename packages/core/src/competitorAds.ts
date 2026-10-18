@@ -20,10 +20,10 @@ export async function scanCompetitorAds(opts: CompetitorAdsOptions): Promise<Com
   if (opts.companyId && !/^\d+$/.test(opts.companyId)) throw new Error("companyId must be numeric.");
   if (opts.max !== undefined && (!Number.isInteger(opts.max) || opts.max < 1 || opts.max > 500)) throw new Error("max must be an integer from 1 to 500.");
   if (opts.copyMax !== undefined && (!Number.isInteger(opts.copyMax) || opts.copyMax < 0 || opts.copyMax > 10)) throw new Error("copyMax must be an integer from 0 to 10.");
-  const { createLiads } = await import("./client.js");
-  const liads = await createLiads();
+  const { createLinkedInAds } = await import("./client.js");
+  const linkedinAds = await createLinkedInAds();
   // API errors propagate. They must never trigger a browser fallback.
-  const result = await searchAdLibraryApi(liads.client, opts);
+  const result = await searchAdLibraryApi(linkedinAds.client, opts);
   const ads = opts.companyId ? result.ads.filter(ad =>
     ad.detail?.advertiserUrl?.replace(/\/$/, "").endsWith(`/company/${opts.companyId}`)) : result.ads;
   const notes = [opts.companyId

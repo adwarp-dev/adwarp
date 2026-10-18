@@ -1,10 +1,10 @@
-import { recordChange, type AdEntityType, type ChangeInput } from "@liads/shared";
+import { recordChange, type AdEntityType, type ChangeInput } from "@adwarp/shared";
 import type { GoogleMutationEvent } from "./http.js";
 import { createdResourceNames, idFromResourceName } from "./mutate.js";
 
 /**
  * Google's half of the change journal. Writes land in the same
- * ~/.liads/changelog.jsonl as LinkedIn's, tagged `platform: "google"`, so one
+ * changelog.jsonl as LinkedIn's, tagged `platform: "google"`, so one
  * `changelog list` shows every change across both platforms in order.
  */
 
@@ -34,7 +34,7 @@ export function interpretGoogleMutation(m: GoogleMutationEvent): ChangeInput[] {
     if (mapped.type === "keyword") {
       changes.push({
         platform: "google",
-        source: "liam",
+        source: "adwarp",
         kind: "create",
         entity: { type: "keyword", id: `${resourceNames.length} criteria`, accountId: m.customerId },
         summary: `Created ${resourceNames.length} keyword criteria`,
@@ -44,7 +44,7 @@ export function interpretGoogleMutation(m: GoogleMutationEvent): ChangeInput[] {
     for (const resourceName of resourceNames) {
       changes.push({
         platform: "google",
-        source: "liam",
+        source: "adwarp",
         kind: "create",
         entity: {
           type: mapped.type,

@@ -1,7 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import {
-  createGads,
+  createGoogleAds,
   listAccessibleCustomers,
   listClientAccounts,
   listCampaigns,
@@ -19,7 +19,7 @@ import {
   GooglePerformanceSchema,
   GoogleSearchSchema,
   ListGoogleCampaignsSchema,
-} from "@liads/google";
+} from "@adwarp/google";
 
 const ok = (data: unknown) => ({ content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }] });
 const fail = (e: unknown) => ({
@@ -42,8 +42,8 @@ export function registerGoogleTools(server: McpServer): void {
     {},
     async () => {
       try {
-        const gads = await createGads();
-        return ok(await listAccessibleCustomers(gads.client));
+        const googleAds = await createGoogleAds();
+        return ok(await listAccessibleCustomers(googleAds.client));
       } catch (e) {
         return fail(e);
       }
@@ -56,8 +56,8 @@ export function registerGoogleTools(server: McpServer): void {
     { managerId: z.string().describe("Manager customer id, digits only") },
     async ({ managerId }) => {
       try {
-        const gads = await createGads();
-        return ok(await listClientAccounts(gads.client, managerId));
+        const googleAds = await createGoogleAds();
+        return ok(await listClientAccounts(googleAds.client, managerId));
       } catch (e) {
         return fail(e);
       }
@@ -70,9 +70,9 @@ export function registerGoogleTools(server: McpServer): void {
     KeywordIdeasSchema.shape,
     async (args) => {
       try {
-        const gads = await createGads();
+        const googleAds = await createGoogleAds();
         const customerId = await requireCustomerId(args.customerId);
-        return ok(await generateKeywordIdeas(gads.client, customerId, args));
+        return ok(await generateKeywordIdeas(googleAds.client, customerId, args));
       } catch (e) {
         return fail(e);
       }
@@ -85,9 +85,9 @@ export function registerGoogleTools(server: McpServer): void {
     ListGoogleCampaignsSchema.shape,
     async (args) => {
       try {
-        const gads = await createGads();
+        const googleAds = await createGoogleAds();
         const customerId = await requireCustomerId(args.customerId);
-        return ok(await listCampaigns(gads.client, customerId, { includeRemoved: args.includeRemoved }));
+        return ok(await listCampaigns(googleAds.client, customerId, { includeRemoved: args.includeRemoved }));
       } catch (e) {
         return fail(e);
       }
@@ -100,8 +100,8 @@ export function registerGoogleTools(server: McpServer): void {
     { customerId: z.string().optional(), adGroupId: z.string() },
     async ({ customerId, adGroupId }) => {
       try {
-        const gads = await createGads();
-        return ok(await listAds(gads.client, await requireCustomerId(customerId), { adGroupId }));
+        const googleAds = await createGoogleAds();
+        return ok(await listAds(googleAds.client, await requireCustomerId(customerId), { adGroupId }));
       } catch (e) {
         return fail(e);
       }
@@ -114,8 +114,8 @@ export function registerGoogleTools(server: McpServer): void {
     { customerId: z.string().optional() },
     async ({ customerId }) => {
       try {
-        const gads = await createGads();
-        return ok(await listConversionActions(gads.client, await requireCustomerId(customerId)));
+        const googleAds = await createGoogleAds();
+        return ok(await listConversionActions(googleAds.client, await requireCustomerId(customerId)));
       } catch (e) {
         return fail(e);
       }
@@ -133,8 +133,8 @@ export function registerGoogleTools(server: McpServer): void {
     SearchCampaignBriefSchema.shape,
     async (args) => {
       try {
-        const gads = await createGads();
-        return ok(await launchSearchCampaign(gads.client, args));
+        const googleAds = await createGoogleAds();
+        return ok(await launchSearchCampaign(googleAds.client, args));
       } catch (e) {
         return fail(e);
       }
@@ -147,9 +147,9 @@ export function registerGoogleTools(server: McpServer): void {
     GooglePerformanceSchema.shape,
     async (args) => {
       try {
-        const gads = await createGads();
+        const googleAds = await createGoogleAds();
         const customerId = await requireCustomerId(args.customerId);
-        const rows = await getGooglePerformance(gads.client, customerId, {
+        const rows = await getGooglePerformance(googleAds.client, customerId, {
           level: args.level,
           campaignId: args.campaignId,
           dateRange: resolveGoogleDateRange(args),
@@ -172,8 +172,8 @@ export function registerGoogleTools(server: McpServer): void {
         if (!/^\s*SELECT\b/i.test(query)) {
           return fail(new Error("gads_search only runs SELECT queries. Use gads_launch_search_campaign to create things."));
         }
-        const gads = await createGads();
-        return ok(await gaqlSearch(gads.client, await requireCustomerId(customerId), query));
+        const googleAds = await createGoogleAds();
+        return ok(await gaqlSearch(googleAds.client, await requireCustomerId(customerId), query));
       } catch (e) {
         return fail(e);
       }

@@ -1,7 +1,7 @@
 /**
  * Guards the promises the Ad Library scraper makes about the user's IP.
  *
- * Runs against dist (`pnpm --filter @liads/core build` first). No browser, no
+ * Runs against dist (`pnpm --filter @adwarp/core build` first). No browser, no
  * network: these pin the pure pieces. If they fail, a scan can keep hammering
  * LinkedIn after Cloudflare has already blocked the user.
  */
