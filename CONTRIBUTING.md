@@ -25,7 +25,7 @@ pnpm -r typecheck
 - Every campaign/creative is created `DRAFT`. Do not change that default.
 - All LinkedIn payload shapes live as zod schemas in `packages/core/src/schemas.ts` and are
   reused as MCP tool inputs. Add new fields there first.
-- Secrets never enter the repo. Local credentials live in `~/.liads`; hosted in env vars.
+- Secrets never enter the repo. Local credentials live in `~/.adwarp` (or `~/.liads` on older installs); hosted in env vars.
 
 ## Pull requests
 

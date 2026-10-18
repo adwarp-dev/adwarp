@@ -131,7 +131,7 @@ Google Ads needs two things LinkedIn does not:
    Internal is the better default for an internal tool. Choose External only if
    the fast track is worth the verification risk.
 
-Then write `~/.liads/google.json`:
+Then write `~/.adwarp/google.json`:
 
 ```json
 {
@@ -149,18 +149,18 @@ target account through one. Run `adwarp google auth login` and you are set.
 
 ## Packages
 
-- `@liads/shared`: the platform-neutral layer — OAuth, credential stores, retry policy, the change journal, period and KPI math.
-- `@liads/core`: LinkedIn REST client, resource modules, CSV + SHA256 hashing, Salesforce reader.
-- `@liads/google`: Google Ads REST client, GAQL reads, atomic mutate builder, Search campaign creation.
-- `@liads/mcp`: MCP server (stdio for local; reused by the hosted app). **Primary interface.**
-- `@liads/cli`: the `adwarp` CLI over the same engines, for scripted batch runs.
-- `@liads/web`: Next.js app that hosts the MCP over HTTP on Vercel.
+- `@adwarp/shared`: the platform-neutral layer — OAuth, credential stores, retry policy, the change journal, period and KPI math.
+- `@adwarp/core`: LinkedIn REST client, resource modules, CSV + SHA256 hashing, Salesforce reader.
+- `@adwarp/google`: Google Ads REST client, GAQL reads, atomic mutate builder, Search campaign creation.
+- `@adwarp/mcp`: MCP server (stdio for local; reused by the hosted app). **Primary interface.**
+- `@adwarp/cli`: the `adwarp` CLI over the same engines, for scripted batch runs.
+- `@adwarp/web`: Next.js app that hosts the MCP over HTTP on Vercel.
 - `adwarp`: the published npm package. Bundles the CLI and the MCP server behind the `adwarp`, `adwarp-mcp` and `liam` commands.
 
 ## How it works
 
 Both interfaces are thin layers over the same engine. Every MCP tool and CLI command builds
-a client via `createLiads()` (`core/src/client.ts`), which loads config plus an
+a client via `createLinkedInAds()` (`core/src/client.ts`), which loads config plus an
 auto-refreshing OAuth token provider, then calls a typed resource module
 (`campaigns.ts`, `audience.ts`, `report.ts`, ...) that wraps LinkedIn's versioned REST API
 (`LinkedIn-Version` pinned in config). Input shapes live as zod schemas in
@@ -171,7 +171,7 @@ The drafts-first safety rule is enforced at creation: campaign groups, campaigns
 creatives default to `DRAFT` status, and going live is always an explicit request (a
 `status` of `ACTIVE`, or `campaigns update --status ACTIVE --apply`). On Google, no
 create schema can express an enabled status at all. Every write also passes through one HTTP chokepoint that appends to a
-local change journal (`~/.liads/changelog.jsonl`) for later lift analysis.
+local change journal (`~/.adwarp/changelog.jsonl`) for later lift analysis.
 
 [AGENTS.md](./AGENTS.md) has the full architecture notes and the LinkedIn API gotchas
 (restli encoding, required fields, DMP audience flow) learned from live testing.
@@ -190,7 +190,7 @@ There are two ways to install Adwarp:
 Both run against **your own LinkedIn developer app**, so your credentials and your ad
 account stay yours. Both come from the same npm package, `adwarp`. The first two steps
 are shared: create a LinkedIn app (step 0) and authenticate (step 1). After that, pick
-your path, or do both; they read the same `~/.liads` credentials.
+your path, or do both; they read the same `~/.adwarp` credentials.
 
 ### Step 0: create a LinkedIn app (once)
 
@@ -221,17 +221,17 @@ you originally granted.
 Requires Node.js 20+.
 
 ```bash
-# App credentials (alternatively set LIADS_CLIENT_ID / LIADS_CLIENT_SECRET env vars)
-mkdir -p ~/.liads
-echo '{ "clientId": "...", "clientSecret": "...", "linkedinVersion": "202605" }' > ~/.liads/config.json
+# App credentials (alternatively set ADWARP_LINKEDIN_CLIENT_ID / ADWARP_LINKEDIN_CLIENT_SECRET env vars)
+mkdir -p ~/.adwarp
+echo '{ "clientId": "...", "clientSecret": "...", "linkedinVersion": "202605" }' > ~/.adwarp/config.json
 
-npx -y adwarp auth login      # opens the browser; tokens land in ~/.liads
+npx -y adwarp auth login      # opens the browser; tokens land in ~/.adwarp
 npx -y adwarp accounts list   # verify, then set defaultAccountId in config.json
 ```
 
 ### Option 1: install as an MCP server
 
-Register the server with your MCP client; it reads the `~/.liads` credentials from step 1.
+Register the server with your MCP client; it reads the `~/.adwarp` credentials from step 1.
 
 **Claude Code**
 
@@ -272,11 +272,11 @@ still works and serves the same endpoint, so existing connections need no change
 
 | Header | Value | Required? |
 | --- | --- | --- |
-| `X-Liads-Client-Id` | your LinkedIn app's Client ID | Yes |
-| `X-Liads-Client-Secret` | your LinkedIn app's Client Secret | Yes |
-| `X-Liads-Refresh-Token` | a refresh token from your `auth login` (~365d) | Yes |
-| `X-Liads-Account-Id` | numeric ad account id used when a call omits one | No |
-| `X-Liads-Linkedin-Version` | API version pin (YYYYMM), defaults to the server's | No |
+| `X-Adwarp-Linkedin-Client-Id` | your LinkedIn app's Client ID | Yes |
+| `X-Adwarp-Linkedin-Client-Secret` | your LinkedIn app's Client Secret | Yes |
+| `X-Adwarp-Linkedin-Refresh-Token` | a refresh token from your `auth login` (~365d) | Yes |
+| `X-Adwarp-Linkedin-Account-Id` | numeric ad account id used when a call omits one | No |
+| `X-Adwarp-Linkedin-Version` | API version pin (YYYYMM), defaults to the server's | No |
 
 Do step 0 and step 1 above once (the LinkedIn app and the local `auth login`; LinkedIn's
 OAuth consent has to happen in your browser, so the token mint is the one local step).
@@ -285,14 +285,14 @@ Then print the ready-to-run connect command:
 ```bash
 npx -y adwarp auth export --mcp
 # claude mcp add --transport http adwarp https://mcp.adwarp.dev/api/mcp \
-#   --header "X-Liads-Client-Id: …" \
-#   --header "X-Liads-Client-Secret: …" \
-#   --header "X-Liads-Refresh-Token: …" \
-#   --header "X-Liads-Account-Id: …"
+#   --header "X-Adwarp-Linkedin-Client-Id: …" \
+#   --header "X-Adwarp-Linkedin-Client-Secret: …" \
+#   --header "X-Adwarp-Linkedin-Refresh-Token: …" \
+#   --header "X-Adwarp-Linkedin-Account-Id: …"
 ```
 
 Any MCP client that supports custom headers works the same way (for clients without
-native HTTP transport: `npx mcp-remote <url> --header "X-Liads-Client-Id: …" …`).
+native HTTP transport: `npx mcp-remote <url> --header "X-Adwarp-Linkedin-Client-Id: …" …`).
 Verify with a read-only call ("list my ad accounts"), and from then on the connection is
 just a URL plus headers, usable from machines that never cloned this repo.
 
@@ -304,7 +304,7 @@ so treat these credentials like an ad account password.
 Hosted limitations (all by design, they need local resources): `upload_audience_csv`
 reads a CSV path on the server, `audience_from_salesforce` needs your local `sf` CLI,
 competitor-ads scraping falls back to API-only metadata (no browser), and the change
-journal / lift tools need the local `~/.liads/changelog.jsonl`. Run those through the
+journal / lift tools need the local `~/.adwarp/changelog.jsonl`. Run those through the
 local MCP server or CLI.
 
 **Put a skill on top.** The clean split for teams: your MCP client's config holds the
@@ -321,8 +321,8 @@ get a private env-configured tenant:
 
 1. Get your env values locally: `npx -y adwarp auth export`.
 2. Deploy `apps/web` to Vercel (set the project **Root Directory** to `apps/web`).
-3. In Vercel project settings, add the env vars from `.env.example`
-   (`LIADS_CLIENT_ID`, `LIADS_CLIENT_SECRET`, `LIADS_REFRESH_TOKEN`, `LIADS_LINKEDIN_VERSION`,
+3. In Vercel project settings, add the env vars that `auth export` printed
+   (`ADWARP_LINKEDIN_CLIENT_ID`, `ADWARP_LINKEDIN_CLIENT_SECRET`, `ADWARP_LINKEDIN_REFRESH_TOKEN`, `ADWARP_LINKEDIN_VERSION`,
    and a strong `MCP_AUTH_TOKEN`). In Vercel's Deployment Protection settings, disable
    Vercel Authentication for production (or add a protection-bypass secret); otherwise
    MCP clients can't reach the endpoint.
@@ -335,7 +335,7 @@ claude mcp add --transport http adwarp https://<your-app>.vercel.app/api/mcp \
 ```
 
 Requests carrying `MCP_AUTH_TOKEN` use the env credentials (your tenant). Requests
-carrying the `X-Liads-*` headers above use the caller's credentials instead, so one
+carrying the `X-Adwarp-Linkedin-*` headers above use the caller's credentials instead, so one
 self-hosted instance can serve your whole team, each member on their own LinkedIn app.
 
 ### Option 2: install the terminal CLI
@@ -403,14 +403,14 @@ before moving to the next step.
       metadata through the official API.
    d. On the Auth tab, add http://localhost:53682/callback as an authorized
       redirect URL, and show me where the Client ID and Client Secret live.
-3. Create ~/.liads/config.json containing my clientId, clientSecret, and
+3. Create ~/.adwarp/config.json containing my clientId, clientSecret, and
    "linkedinVersion": "202605".
 4. Run "npx -y adwarp auth login". My browser opens LinkedIn's
-   consent screen; after I approve, tokens are stored in ~/.liads/credentials.json.
+   consent screen; after I approve, tokens are stored in ~/.adwarp/credentials.json.
 5. Verify with "npx -y adwarp accounts list". If no accounts
    show up, remind me to map my ad account in the Developer Portal under
    Products > Advertising API > View Ad Accounts. Then set my account id as
-   "defaultAccountId" in ~/.liads/config.json.
+   "defaultAccountId" in ~/.adwarp/config.json.
 6. Register the MCP server with the assistant I use:
    - Claude Code: claude mcp add adwarp -- npx -y adwarp mcp
    - Claude Desktop or another client: add {"command": "npx", "args":
@@ -503,7 +503,7 @@ Structured targeting uses short facet names mapped to entity URNs (resolve URNs 
 All commands also work via `npx -y adwarp <cmd>`.
 
 ```
-adwarp auth login                         # OAuth, stores tokens in ~/.liads
+adwarp auth login                         # OAuth, stores tokens in ~/.adwarp
 adwarp auth export                        # print env vars for a self-hosted (Vercel) server
 adwarp auth export --mcp                  # print the hosted-MCP connect command with your headers
 adwarp accounts list                      # list accessible ad accounts
@@ -539,8 +539,8 @@ Periods: `last_7_days`, `last_30_days`, `last_90_days`, `month_to_date`, `last_m
 Adwarp keeps an append-only journal of every change made to an ad entity so you can measure the
 **lift** of a change: how performance differed in the window before it versus after.
 
-- **Where it lives:** `~/.liads/changelog.jsonl` (one JSON object per line). A plain local
-  file with nothing to set up. Override the path with `LIADS_CHANGELOG_PATH`.
+- **Where it lives:** `~/.adwarp/changelog.jsonl` (one JSON object per line). A plain local
+  file with nothing to set up. Override the path with `ADWARP_CHANGELOG_PATH`.
 - **Auto-capture:** every create/update Adwarp makes to a campaign group, campaign, or creative is
   journaled automatically (captured at the one HTTP chokepoint, so it can't be forgotten).
 - **Manual entries:** log changes made outside Adwarp (e.g. in Campaign Manager), or attach a
@@ -553,23 +553,27 @@ Adwarp keeps an append-only journal of every change made to an ad entity so you 
 
 This is a **directional pre/post comparison, not a controlled experiment**. It is confounded by
 seasonality, the LinkedIn learning phase after an edit, and any concurrent budget change, so treat
-the deltas as a signal. Set `LIADS_NO_CHANGELOG=1` to disable auto-capture; journaling is
+the deltas as a signal. Set `ADWARP_NO_CHANGELOG=1` to disable auto-capture; journaling is
 also off on hosted deploys (read-only filesystem).
 
 ## Configuration
 
-Local config lives in `~/.liads/config.json` (mode 0600, never in the repo):
+Local config lives in `~/.adwarp/config.json` (mode 0600, never in the repo):
 
 | Field | Purpose |
 | --- | --- |
-| `clientId`, `clientSecret` | LinkedIn app credentials (or `LIADS_CLIENT_ID`/`LIADS_CLIENT_SECRET`) |
+| `clientId`, `clientSecret` | LinkedIn app credentials (or `ADWARP_LINKEDIN_CLIENT_ID`/`ADWARP_LINKEDIN_CLIENT_SECRET`) |
 | `linkedinVersion` | Pinned API version, e.g. `202605` |
 | `defaultAccountId` | Ad account used when a command/brief omits one |
 | `defaultConversionName` | Conversion auto-selected for new campaigns when none is given |
 | `mcpAuthToken` | Bearer secret for the hosted MCP endpoint |
 
-Hosted equivalents are the `LIADS_*` env vars plus `MCP_AUTH_TOKEN` (see `.env.example`).
-OAuth tokens are stored separately in `~/.liads/credentials.json`.
+Hosted equivalents are the `ADWARP_LINKEDIN_*` env vars plus `MCP_AUTH_TOKEN` (see [Configuration](./docs/config.md)).
+OAuth tokens are stored separately in `~/.adwarp/credentials.json`.
+
+Coming from Liam? Every name from before the rename still works: the `~/.liads` folder, the
+`LIADS_*` and `GADS_*` variables, and the `X-Liads-*` headers. See
+[Names from before the rename](./docs/config.md#names-from-before-the-rename).
 
 ## Salesforce integration
 
@@ -589,7 +593,7 @@ adwarp audience from-salesforce -n "Q3 target accounts" \
 - Every campaign/creative is created **DRAFT/PAUSED**. Activation is a separate, explicit step.
 - Matched-audience matching takes up to 48h, and a campaign needs ~300 matched members to serve.
 - LinkedIn does not expose person-level ad-view data; cross-referencing is account/segment-level.
-- Secrets never enter the repo. Local: `~/.liads`. Hosted: Vercel env vars.
+- Secrets never enter the repo. Local: `~/.adwarp`. Hosted: Vercel env vars.
 
 ## Docs
 
@@ -602,7 +606,7 @@ generated from the real tool registration code, so never edit it by hand. After 
 removing, or changing a tool (including its zod input schema), run:
 
 ```bash
-pnpm gen:tools   # builds @liads/mcp and its dependencies, then rewrites docs/tools.json
+pnpm gen:tools   # builds @adwarp/mcp and its dependencies, then rewrites docs/tools.json
 ```
 
 and commit the result. CI runs the same command and fails if `docs/tools.json` changes.
