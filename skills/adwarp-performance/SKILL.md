@@ -17,7 +17,7 @@ at 90 days; for custom windows use the MCP tools with `startDate`/`endDate`. Rea
 
 ## Scope
 
-Default to the whole account over `last_30_days`. If the user names a campaign group,
+Cover the whole account over `last_30_days` by default. If the user names a campaign group,
 campaign, or period, scope to it. If total conversions in the window are under ~10,
 widen to `last_90_days` and say you did.
 

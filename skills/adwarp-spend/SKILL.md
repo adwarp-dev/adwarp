@@ -19,7 +19,7 @@ CLI report presets: `last_7_days`, `last_30_days`, `last_90_days`, `month_to_dat
 
 ## What to pull
 
-Default period is `last_30_days` unless the user names one.
+The default period is `last_30_days` unless the user names one.
 
 1. `performance_summary` for the account rollup: total spend, conversions, flags.
 2. `get_performance` at `campaign_group` level, then `campaign` level, then `creative`

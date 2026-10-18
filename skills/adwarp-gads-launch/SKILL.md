@@ -58,7 +58,7 @@ costs $60 a click.
 
 - Quote the bid range against the user's proposed max CPC. If the bid range sits
   above it, say so plainly: the keyword will not serve.
-- Default to EXACT and PHRASE for B2B. BROAD without a strong negative list is
+- Start with EXACT and PHRASE for B2B. BROAD without a strong negative list is
   how Google budgets disappear.
 - Propose negatives from what the research surfaces (jobs, salary, free, course,
   tutorial, competitor brand terms the user does not want to bid on).
