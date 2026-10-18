@@ -163,8 +163,8 @@ modules are thin typed wrappers over `LinkedInClient.request()`.
 - **Geo and language constants are queried, not hard-coded** (`geo_target_constant`,
   `language_constant` are queryable resources), so "US" and "en" never go stale.
 - **The safety rule is structural.** No create schema can express a status other than `PAUSED`;
-  only keyword criteria are `ENABLED`, since nothing serves under a paused parent. There is no
-  activate tool, matching LinkedIn's draft-only rule. `packages/google/test/launch.test.mjs`
+  only keyword criteria are `ENABLED`, since nothing serves under a paused parent. Google
+  campaigns can only be switched on in the Google Ads UI. `packages/google/test/launch.test.mjs`
   asserts this against a stubbed transport — keep it passing.
 - **Temp names only on referenced parents.** Composite-key resources (campaign criteria, ad
   group criteria, ad group ads, campaign shared sets) have ids like `parent~child`, and a negative
