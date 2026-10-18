@@ -396,7 +396,7 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
 
   server.tool(
     "log_ad_change",
-    "Record a change to an ad entity in the local change journal, so a later lift report can compare performance before vs. after it. Liam logs its own changes automatically — use this for changes made elsewhere (e.g. in Campaign Manager) or to attach a hypothesis/label. Provide field+after for a field change, or note for a freeform annotation.",
+    "Record a change to an ad entity in the local change journal, so a later lift report can compare performance before vs. after it. Adwarp logs its own changes automatically. Use this for changes made elsewhere (e.g. in Campaign Manager) or to attach a hypothesis/label. Provide field+after for a field change, or note for a freeform annotation.",
     {
       entityType: AD_ENTITY_TYPE,
       entityId: z.string().describe("Numeric id of the campaign group / campaign / creative"),

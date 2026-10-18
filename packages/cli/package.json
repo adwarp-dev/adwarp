@@ -1,9 +1,11 @@
 {
   "name": "@liads/cli",
   "version": "0.1.0",
+  "description": "Adwarp CLI, the open-source ad agent for LinkedIn Ads and Google Ads",
   "private": true,
   "type": "module",
   "bin": {
+    "adwarp": "./dist/index.js",
     "liam": "./dist/index.js"
   },
   "scripts": {

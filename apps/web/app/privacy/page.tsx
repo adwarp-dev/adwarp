@@ -1,12 +1,12 @@
 import Link from "next/link";
 
-const REPO = "https://github.com/stan-default/liam";
+const REPO = "https://github.com/adwarp-dev/adwarp";
 const UPDATED = "4 August 2026";
 
 export const metadata = {
-  title: "Privacy Policy · Liam",
+  title: "Privacy Policy · Adwarp",
   description:
-    "What Liam accesses, where it is stored, and what is never collected. Credentials and ad data stay on your machine; the hosted endpoint holds them in memory for the length of a request and nothing longer.",
+    "What Adwarp accesses, where it is stored, and what is never collected. Credentials and ad data stay on your machine; the hosted endpoint holds them in memory for the length of a request and nothing longer.",
 };
 
 export default function Privacy() {
@@ -16,7 +16,7 @@ export default function Privacy() {
         <span>
           <b>
             <Link href="/" style={{ color: "inherit", textDecoration: "none", border: "none" }}>
-              LIAM
+              ADWARP
             </Link>
           </b>{" "}
           · PRIVACY POLICY
@@ -34,7 +34,7 @@ export default function Privacy() {
         <header className="dochead">
           <h1 className="docmark reveal d1">Privacy Policy</h1>
           <p className="lede reveal d2">
-            Liam is a tool you run against your own advertising accounts.{" "}
+            Adwarp is a tool you run against your own advertising accounts.{" "}
             <em>It has no user accounts and no database.</em> Your credentials and your ad data stay
             on your machine. Last updated {UPDATED}.
           </p>
@@ -45,10 +45,10 @@ export default function Privacy() {
           <h2>Three things this covers.</h2>
           <ul>
             <li>
-              <b>This website</b>, liam-mcp.vercel.app, which is documentation.
+              <b>This website</b>, adwarp.dev (formerly liam-mcp.vercel.app), which is documentation.
             </li>
             <li>
-              <b>The tool you run locally</b>, the <code>liam</code> CLI and the MCP server, on your
+              <b>The tool you run locally</b>, the <code>adwarp</code> CLI and the MCP server, on your
               own computer.
             </li>
             <li>
@@ -57,7 +57,7 @@ export default function Privacy() {
             </li>
           </ul>
           <p>
-            Liam is operated by Default (default.com). There is no sign-up, no user account, and no
+            Adwarp is operated by Default (default.com). There is no sign-up, no user account, and no
             profile. We do not know who you are unless you email us.
           </p>
         </section>
@@ -77,7 +77,7 @@ export default function Privacy() {
           <p className="kicker">The local tool</p>
           <h2>Nothing leaves your machine except calls to the ad platform.</h2>
           <p>
-            When you run Liam locally, it talks directly from your computer to LinkedIn and Google.
+            When you run Adwarp locally, it talks directly from your computer to LinkedIn and Google.
             Nothing is sent to us. There is no telemetry, no usage reporting, and no phone-home of
             any kind in the CLI or the local MCP server.
           </p>
@@ -88,13 +88,13 @@ export default function Privacy() {
               owner-only file permissions. These never leave your machine.
             </li>
             <li>
-              <b>A change journal</b>, a local log of the campaign changes Liam has made, used to
+              <b>A change journal</b>, a local log of the campaign changes Adwarp has made, used to
               compare performance before and after a change. It records entity ids and the fields
               that changed. It is a plain file you can read or delete at any time.
             </li>
           </ul>
           <p>
-            To revoke Liam&rsquo;s access entirely, delete that directory and remove the
+            To revoke Adwarp&rsquo;s access entirely, delete that directory and remove the
             application&rsquo;s access in your{" "}
             <a href="https://myaccount.google.com/permissions" target="_blank" rel="noreferrer">
               Google account permissions
@@ -128,7 +128,7 @@ export default function Privacy() {
           <p className="kicker">Google user data</p>
           <h2>What we access from Google, and what we do with it.</h2>
           <p>
-            When you connect a Google account, Liam requests a single scope,{" "}
+            When you connect a Google account, Adwarp requests a single scope,{" "}
             <code>https://www.googleapis.com/auth/adwords</code>, which grants access to the Google
             Ads accounts your Google user can already reach. We request nothing else: no email,
             profile, contacts, Drive, or Gmail access.
@@ -143,7 +143,7 @@ export default function Privacy() {
             Data obtained from Google APIs is used only to provide these features to you, in the
             session in which you asked for them. It is not stored on any server we control, not sold,
             not shared with third parties, not used for advertising, and not used to train any
-            machine-learning or artificial-intelligence model. Liam&rsquo;s use of information
+            machine-learning or artificial-intelligence model. Adwarp&rsquo;s use of information
             received from Google APIs adheres to the{" "}
             <a
               href="https://developers.google.com/terms/api-services-user-data-policy"
@@ -164,7 +164,7 @@ export default function Privacy() {
             on the same terms as above.
           </p>
           <p>
-            One case deserves naming. If you upload a contact list as a matched audience, Liam reads
+            One case deserves naming. If you upload a contact list as a matched audience, Adwarp reads
             that file on your machine, hashes the email addresses with SHA-256 as LinkedIn requires,
             and uploads the hashes directly to LinkedIn. The list is never sent to us, and the
             unhashed addresses never leave your computer. You are responsible for having a lawful
@@ -211,7 +211,7 @@ export default function Privacy() {
           <a href="/docs">Docs</a>
           <a href="/terms">Terms</a>
           <a href={REPO} target="_blank" rel="noreferrer">
-            github.com/stan-default/liam ↗
+            github.com/adwarp-dev/adwarp ↗
           </a>
         </span>
       </footer>

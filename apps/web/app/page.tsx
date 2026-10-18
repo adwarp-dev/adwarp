@@ -1,20 +1,20 @@
 import { CopyButton } from "./CopyButton";
 import { CLI_SETUP_PROMPT, HOSTED_MCP_SETUP_PROMPT, MCP_SETUP_PROMPT } from "./setupPrompt";
 
-const REPO = "https://github.com/stan-default/liam";
+const REPO = "https://github.com/adwarp-dev/adwarp";
 
 const FAQ: Array<{ q: string; a: string }> = [
   {
     q: "Can it spend money without me?",
-    a: "No. Everything Liam creates is written to LinkedIn as a draft, and there is deliberately no activate command or tool anywhere in the codebase. A campaign starts spending only when you switch it on yourself in Campaign Manager.",
+    a: "No. Everything Adwarp creates is written to LinkedIn as a draft, and there is deliberately no activate command or tool anywhere in the codebase. A campaign starts spending only when you switch it on yourself in Campaign Manager.",
   },
   {
     q: "What permissions does it need?",
-    a: "Liam runs against your own LinkedIn developer app with the Advertising API product. At login it asks for four OAuth scopes: rw_ads to create and edit campaigns, r_ads_reporting to read performance, rw_conversions for conversion tracking, and w_organization_social so image ads can create the post owned by your LinkedIn Page. Two optional products unlock more: Audiences for CSV list uploads and Ad Library for competitor metadata.",
+    a: "Adwarp runs against your own LinkedIn developer app with the Advertising API product. At login it asks for four OAuth scopes: rw_ads to create and edit campaigns, r_ads_reporting to read performance, rw_conversions for conversion tracking, and w_organization_social so image ads can create the post owned by your LinkedIn Page. Two optional products unlock more: Audiences for CSV list uploads and Ad Library for competitor metadata.",
   },
   {
     q: "How does it work?",
-    a: "A CLI and an MCP server sit on top of the same typed client for LinkedIn's Marketing API. You say what you want and your assistant calls the matching tools. Every change Liam makes is journaled to a local file so you can measure the lift of any edit later.",
+    a: "A CLI and an MCP server sit on top of the same typed client for LinkedIn's Marketing API. You say what you want and your assistant calls the matching tools. Every change Adwarp makes is journaled to a local file so you can measure the lift of any edit later.",
   },
   {
     q: "How do I get started?",
@@ -34,7 +34,7 @@ const FAQ: Array<{ q: string; a: string }> = [
   },
   {
     q: "What does it cost?",
-    a: "Nothing. Liam is open source under the MIT license, and there is no hosted service to subscribe to. The only money involved is what you choose to spend on LinkedIn after you activate a campaign.",
+    a: "Nothing. Adwarp is open source under the MIT license, and there is no hosted service to subscribe to. The only money involved is what you choose to spend on LinkedIn after you activate a campaign.",
   },
   {
     q: "Does it only work with Claude?",
@@ -42,7 +42,7 @@ const FAQ: Array<{ q: string; a: string }> = [
   },
   {
     q: "Is this an official LinkedIn product?",
-    a: "No. Liam is unofficial and has no affiliation with or endorsement from LinkedIn. It talks to LinkedIn's documented Marketing API through the developer app you create and control.",
+    a: "No. Adwarp is unofficial and has no affiliation with or endorsement from LinkedIn. It talks to LinkedIn's documented Marketing API through the developer app you create and control.",
   },
 ];
 
@@ -77,7 +77,7 @@ const USE_CASES: Array<{ q: string; note: string }> = [
   },
   {
     q: "Rewrite the copy on the losing ad.",
-    note: "LinkedIn ignores edits to a live ad's post, so Liam recreates it as a fresh draft.",
+    note: "LinkedIn ignores edits to a live ad's post, so Adwarp recreates it as a fresh draft.",
   },
   {
     q: "Build last month's report: spend, CTR, cost per conversion.",
@@ -90,7 +90,7 @@ export default function Home() {
     <div className="wrap">
       <header className="topbar reveal d1">
         <span>
-          <b>LIAM</b> · LINKEDIN ADS MANAGER
+          <b>ADWARP</b> · LINKEDIN ADS MANAGER
         </span>
         <nav className="topnav">
           <a href="/docs">DOCS</a>
@@ -102,11 +102,11 @@ export default function Home() {
 
       <main>
         <section className="hero">
-          <h1 className="wordmark reveal d1">LIAM</h1>
+          <h1 className="wordmark reveal d1">ADWARP</h1>
 
           <p className="tagline reveal d2">
             The <em>LinkedIn Ads Manager</em> you talk to. Describe the campaign in plain language
-            and Liam drafts the <em>audience</em>, the <em>ad groups</em>, and the <em>ads</em>.
+            and Adwarp drafts the <em>audience</em>, the <em>ad groups</em>, and the <em>ads</em>.
             Works from <em>Claude over MCP</em> or a <em>CLI</em>, locally or through the{" "}
             <em>hosted endpoint</em> with your own LinkedIn app.
           </p>
@@ -142,7 +142,7 @@ export default function Home() {
           <p className="kicker">Get started</p>
           <h2>One prompt sets everything up.</h2>
           <p className="sub">
-            Pick how you want to use Liam and paste the matching prompt into Claude Code. It
+            Pick how you want to use Adwarp and paste the matching prompt into Claude Code. It
             checks your machine, helps you create your own LinkedIn developer app, logs you in,
             and verifies the connection, one step at a time.
           </p>
@@ -151,7 +151,7 @@ export default function Home() {
             <div className="col">
               <h3>Use it as a CLI</h3>
               <p className="note">
-                For scripted and batch work in the terminal. Ends with a global <code>liam</code>{" "}
+                For scripted and batch work in the terminal. Ends with a global <code>adwarp</code>{" "}
                 command and your first report.
               </p>
               <div className="promptcard">
@@ -167,7 +167,7 @@ export default function Home() {
             <div className="col">
               <h3>Talk to it over MCP</h3>
               <p className="note">
-                Adds Liam as an MCP server in Claude Code, Claude Desktop, or any MCP client.
+                Adds Adwarp as an MCP server in Claude Code, Claude Desktop, or any MCP client.
                 The one-time install runs only if it is not on your machine yet.
               </p>
               <div className="promptcard">
@@ -231,7 +231,7 @@ export default function Home() {
           <a href="/terms">Terms</a>
           <a href="/privacy">Privacy</a>
           <a href={REPO} target="_blank" rel="noreferrer">
-            github.com/stan-default/liam ↗
+            github.com/adwarp-dev/adwarp ↗
           </a>
         </span>
       </footer>

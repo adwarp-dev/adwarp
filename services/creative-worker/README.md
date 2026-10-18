@@ -1,12 +1,12 @@
 # Remote creative worker
 
-Liam's CLI and MCP use the official API for discovery. Only this separate Linux service
+Adwarp's CLI and MCP use the official API for discovery. Only this separate Linux service
 can open creative pages. It must run on a cloud host with its own outbound IP, not on the
 user's Mac, home network, or a tunnel through either. No personal LinkedIn cookies,
 credentials, proxies or IP rotation are used. A cloud IP can still be blocked; the worker
 stops rather than trying to bypass it.
 
-This adds a cache that Liam did not previously have. It stores extracted copy, a preview
+This adds a cache that Adwarp did not previously have. It stores extracted copy, a preview
 screenshot and collection time in a persistent SQLite database and volume. Cached results
 are reused for seven days, then refreshed on the next request; this is a freshness window,
 not automatic deletion of stored results.
@@ -55,11 +55,11 @@ without a shared queue. The service deliberately does not restart automatically.
 ## Use
 
 ```sh
-liam competitor ads Ramp --company-id 1406226 --max 100 --copy-max 10 --json
-liam creative-status 1473633543,1473650383
+adwarp competitor ads Ramp --company-id 1406226 --max 100 --copy-max 10 --json
+adwarp creative-status 1473633543,1473650383
 ```
 
-Use advertiser name plus numeric companyId. The API does not filter by ID, so Liam filters
+Use advertiser name plus numeric companyId. The API does not filter by ID, so Adwarp filters
 its metadata results before collecting creatives. The first metadata page may contain no
 matching ads; increase metadata `max` within its 500 limit if necessary. A numeric ID alone
 no longer silently launches a browser. API errors never fall back to the browser.

@@ -2,7 +2,7 @@ import type { LinkedInClient } from "../http.js";
 import { sponsoredAccountUrn, campaignUrn } from "../urns.js";
 
 /**
- * Conversions (insight-tag based) live at the account level. Liam never creates
+ * Conversions (insight-tag based) live at the account level. Adwarp never creates
  * them; it lists existing ones and associates campaigns with a selected one.
  *
  * IMPORTANT: `associatedCampaigns` is read-only. The writable `campaigns` field

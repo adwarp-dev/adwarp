@@ -1,8 +1,8 @@
 # Roadmap
 
-Where Liam is and where it could go. Maintained by Stan (Head of Growth at Default).
-Liam is an MCP server and CLI for creating and optimizing LinkedIn ads. This is a living
-list of ideas, not a committed schedule. Everything Liam does keeps the safety rule: it
+Where Adwarp is and where it could go. Maintained by Stan (Head of Growth at Default).
+Adwarp is an MCP server and CLI for creating and optimizing LinkedIn ads. This is a living
+list of ideas, not a committed schedule. Everything Adwarp does keeps the safety rule: it
 creates drafts, and nothing spends until you activate it.
 
 ## Shipped
@@ -35,7 +35,7 @@ creates drafts, and nothing spends until you activate it.
   hard-coded: search network only (display expansion and search partners off), physical
   presence geo targeting, Manual CPC. Plus keyword research with volume, competition, and
   top-of-page bid ranges; conversion-action lookup; account structure; and GAQL reporting at
-  campaign, ad group, ad, keyword, and search-term level. CLI `liam google ...`, MCP `gads_*`,
+  campaign, ad group, ad, keyword, and search-term level. CLI `adwarp google ...`, MCP `gads_*`,
   skill `gads-launch`.
 
 ## Planned
@@ -50,7 +50,7 @@ creates drafts, and nothing spends until you activate it.
   set, once there is enough spend to read.
 - **Search-term mining**. Turn the search-term report into a ranked negative-keyword list and
   apply it, which is the highest-leverage recurring job on a search account.
-- **Per-campaign conversion goals**. Liam verifies conversion actions today but leaves goal
+- **Per-campaign conversion goals**. Adwarp verifies conversion actions today but leaves goal
   selection to the UI; wire it at creation once the right field is confirmed live.
 - **Editing what exists**. Budget, bid, status, and keyword changes on live campaigns, with
   the same preview-before-apply shape as LinkedIn's `campaigns update`.

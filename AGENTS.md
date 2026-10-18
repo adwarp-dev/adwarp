@@ -1,7 +1,7 @@
 # AGENTS.md
 
-Guidance for AI agents and contributors working in this repo. Liam is an MCP server
-and CLI that creates ad campaigns on LinkedIn and Google Ads. Read this before
+Guidance for AI agents and contributors working in this repo. Adwarp (formerly Liam) is an
+MCP server and CLI that creates ad campaigns on LinkedIn and Google Ads. Read this before
 changing code.
 
 ## Architecture
@@ -18,8 +18,8 @@ pnpm + TypeScript monorepo:
   chokepoint, thin typed resource modules over GAQL, zod schemas reused as MCP inputs.
 - `packages/mcp` — MCP server. `src/tools.ts` (LinkedIn) and `src/googleTools.ts`
   (`gads_*`) are shared by the stdio entry (`src/index.ts`) and the hosted Vercel route.
-- `packages/cli` — the `liam` CLI (commander). LinkedIn at the top level, Google under
-  `liam google ...` (`src/google.ts`).
+- `packages/cli` — the `adwarp` CLI (commander), also installed as `liam` for existing users.
+  LinkedIn at the top level, Google under `adwarp google ...` (`src/google.ts`).
 - `apps/web` — Next.js app hosting the MCP over HTTP at `/api/mcp` (Vercel). Two tenants:
   the env-credential tenant gated by a `MCP_AUTH_TOKEN` bearer, and bring-your-own
   credentials callers who send `X-Liads-*` headers (client id/secret + refresh token,
@@ -49,9 +49,11 @@ modules are thin typed wrappers over `LinkedInClient.request()`.
   endpoint is multi-tenant over per-request LinkedIn credentials while Google credentials
   would come from shared server env vars, so exposing them would let any caller operate the
   server's Google Ads account. `registerTools(server, { google: false })` in the web route.
-- **Internal names are frozen.** The package scope `@liads/*`, the `~/.liads` dir, and the
-  `LIADS_*` env prefix are intentionally NOT renamed to "liam" (renaming breaks stored
-  creds and the deployed Vercel env). The brand "Liam" is visible-surface only. Google
+- **Internal names are frozen.** The package scope `@liads/*`, the `~/.liads` dir, the
+  `LIADS_*` env prefix, the `X-Liads-*` headers, and the change journal's `source: "liam"`
+  value are intentionally NOT renamed to "adwarp" (renaming breaks stored creds, existing
+  journals, and the deployed Vercel env). The brand "Adwarp" (formerly Liam) is
+  visible-surface only, and the `liam` and `liads-mcp` bins stay as aliases. Google
   config shares `~/.liads` for the same reason, and because the change journal at its root
   already spans both platforms.
 - Match the surrounding code style. Keep comments at the existing density. No em dashes in
@@ -161,7 +163,7 @@ modules are thin typed wrappers over `LinkedInClient.request()`.
 - **Verified live with `validateOnly` on 2026-09-13** against the Default account (6022535221):
   the full example brief passes Google's validators end to end. Both `startDateTime` formats,
   `"YYYY-MM-DD HH:MM:SS"` (documented) and `"YYYYMMDD HH:MM:SS"` (Google's samples), were
-  accepted by the dry run, so Liam passes the field through as given. A real `--apply` has not
+  accepted by the dry run, so Adwarp passes the field through as given. A real `--apply` has not
   been run yet; the first real launch is the live test of the result parsing in
   `createdResourceNames` and the `~`-split ad ids.
 

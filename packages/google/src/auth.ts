@@ -22,7 +22,7 @@ const TOKEN_URL = "https://oauth2.googleapis.com/token";
 /** The single scope the Google Ads API uses. There is no finer-grained split. */
 export const ADWORDS_SCOPE = "https://www.googleapis.com/auth/adwords";
 
-const RELOGIN_HINT = "Run `liam google auth login`.";
+const RELOGIN_HINT = "Run `adwarp google auth login`.";
 
 /**
  * Google's OAuth descriptor.

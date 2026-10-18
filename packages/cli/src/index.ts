@@ -42,16 +42,16 @@ import { registerGoogleCommands } from "./google.js";
 
 const program = new Command();
 program
-  .name("liam")
-  .description("Liam, an ad manager for LinkedIn and Google Ads (CLI)")
+  .name("adwarp")
+  .description("Adwarp, the open-source ad agent for LinkedIn and Google Ads (CLI)")
   .version("0.1.0");
 
-// Google Ads lives under `liam google ...`; LinkedIn keeps the top level it has
+// Google Ads lives under `adwarp google ...`; LinkedIn keeps the top level it has
 // always had, so no existing command or script changes.
 registerGoogleCommands(program);
 
 /** The public hosted MCP endpoint (see README "Hosted MCP" section). */
-const HOSTED_MCP_URL = "https://liam-mcp.vercel.app/api/mcp";
+const HOSTED_MCP_URL = "https://mcp.adwarp.dev/api/mcp";
 
 const auth = program.command("auth").description("Authentication");
 auth
@@ -67,7 +67,7 @@ auth
   .description("Print env vars for a self-hosted (Vercel) MCP server, or --mcp for a hosted connect command")
   .option(
     "--mcp [url]",
-    "Print the `claude mcp add` command that connects your credentials to a hosted Liam MCP endpoint",
+    "Print the `claude mcp add` command that connects your credentials to a hosted Adwarp MCP endpoint",
   )
   .action(async (opts: { mcp?: string | boolean }) => {
     const env = await exportHostedEnv();
@@ -82,7 +82,7 @@ auth
       ];
       if (config.defaultAccountId) headers.push(`--header "X-Liads-Account-Id: ${config.defaultAccountId}"`);
       if (env.LIADS_LINKEDIN_VERSION) headers.push(`--header "X-Liads-Linkedin-Version: ${env.LIADS_LINKEDIN_VERSION}"`);
-      console.log(["claude mcp add --transport http liam", url, ...headers].join(" \\\n  "));
+      console.log(["claude mcp add --transport http adwarp", url, ...headers].join(" \\\n  "));
       console.warn(
         "! This command carries your app secret and refresh token. Your credentials ride along on every call to that server, so only point it at a deployment you trust, or self-host (see the README).",
       );
@@ -303,7 +303,7 @@ changelog
       const label = e.label ? `  «${e.label}»` : "";
       console.log(`${when}  ${who}  ${e.entity.type}/${e.entity.id}  ${e.summary ?? e.kind}${label}`);
     }
-    console.log(`\n${rows.length} of ${all.length} change(s). Run \`liam lift <level> <entityId>\` to measure performance lift.`);
+    console.log(`\n${rows.length} of ${all.length} change(s). Run \`adwarp lift <level> <entityId>\` to measure performance lift.`);
   });
 
 program
@@ -320,7 +320,7 @@ program
       return;
     }
     if (lifts.length === 0) {
-      console.log(`No recorded changes for ${type} ${entityId}. Log one with \`liam changelog add\`, or let Liam capture changes automatically.`);
+      console.log(`No recorded changes for ${type} ${entityId}. Log one with \`adwarp changelog add\`, or let Adwarp capture changes automatically.`);
       return;
     }
     console.log(`Lift for ${type} ${entityId} — ${opts.window}d before vs. after each change`);

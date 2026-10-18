@@ -1,10 +1,11 @@
 import Link from "next/link";
 
-const REPO = "https://github.com/stan-default/liam";
-const HOSTED_URL = "https://liam-mcp.vercel.app/api/mcp";
+const REPO = "https://github.com/adwarp-dev/adwarp";
+const HOSTED_URL = "https://mcp.adwarp.dev/api/mcp";
+const LEGACY_HOSTED_URL = "https://liam-mcp.vercel.app/api/mcp";
 
 export const metadata = {
-  title: "Docs · Liam",
+  title: "Docs · Adwarp",
   description:
     "Everything in the repo README, on one page: LinkedIn app setup, local MCP, the hosted endpoint with your own credentials, CLI reference, tools, skills, and safety.",
 };
@@ -33,7 +34,7 @@ export default function Docs() {
         <span>
           <b>
             <Link href="/" style={{ color: "inherit", textDecoration: "none", border: "none" }}>
-              LIAM
+              ADWARP
             </Link>
           </b>{" "}
           · LINKEDIN ADS MANAGER
@@ -52,7 +53,7 @@ export default function Docs() {
         <header className="dochead">
           <h1 className="docmark reveal d1">Docs</h1>
           <p className="lede reveal d2">
-            Everything you need to run Liam: the LinkedIn app, the local MCP server, the{" "}
+            Everything you need to run Adwarp: the LinkedIn app, the local MCP server, the{" "}
             <em>hosted endpoint you can use with your own credentials</em>, the CLI, and the
             playbook skills on top. This page mirrors the{" "}
             <a href={`${REPO}#readme`} target="_blank" rel="noreferrer">
@@ -71,16 +72,16 @@ export default function Docs() {
 
         <section id="overview" className="section">
           <p className="kicker">Overview</p>
-          <h2>What Liam is.</h2>
+          <h2>What Adwarp is.</h2>
           <p>
-            Liam is an ad manager for LinkedIn. You describe the campaign in plain language and
-            Liam drafts the audience, the ad groups, and the ads, from Claude over MCP or from a
+            Adwarp is an ad manager for LinkedIn. You describe the campaign in plain language and
+            Adwarp drafts the audience, the ad groups, and the ads, from Claude over MCP or from a
             CLI. It covers creation, matched audiences (including building one straight from
             Salesforce), conversion selection, performance reporting, competitor ad intelligence,
             and a change journal with before and after lift.
           </p>
           <p>
-            Everything Liam creates is a <b>draft</b>. There is deliberately no activate tool or
+            Everything Adwarp creates is a <b>draft</b>. There is deliberately no activate tool or
             command anywhere in the codebase, so nothing spends until you switch a campaign on
             yourself in Campaign Manager.
           </p>
@@ -127,7 +128,7 @@ export default function Docs() {
           <p className="kicker">Step 0 · once</p>
           <h2>Create a LinkedIn app.</h2>
           <p>
-            Liam runs against <em>your own LinkedIn developer app</em>, so your credentials and
+            Adwarp runs against <em>your own LinkedIn developer app</em>, so your credentials and
             your ad account stay yours.
           </p>
           <ol>
@@ -179,7 +180,7 @@ export default function Docs() {
           </div>
           <h3>OAuth scopes</h3>
           <p>
-            <code>liam auth login</code> requests <code>rw_ads</code> (create and edit campaigns),{" "}
+            <code>adwarp auth login</code> requests <code>rw_ads</code> (create and edit campaigns),{" "}
             <code>r_ads_reporting</code> (reporting), <code>rw_conversions</code> (conversion
             tracking), and <code>w_organization_social</code> (image ads create a post owned by
             your LinkedIn Page). If you add a product or scope later, run <code>auth login</code>{" "}
@@ -191,8 +192,8 @@ export default function Docs() {
           <p className="kicker">Step 1 · once</p>
           <h2>Build and authenticate.</h2>
           <p>Requires git, Node.js 20 or newer, and pnpm.</p>
-          <pre className="code" tabIndex={0}>{`git clone https://github.com/stan-default/liam.git
-cd liam
+          <pre className="code" tabIndex={0}>{`git clone https://github.com/adwarp-dev/adwarp.git
+cd adwarp
 pnpm install && pnpm -r build
 
 # App credentials (alternatively set LIADS_CLIENT_ID / LIADS_CLIENT_SECRET env vars)
@@ -211,12 +212,12 @@ node packages/cli/dist/index.js accounts list   # verify, then set defaultAccoun
             credentials from step 1.
           </p>
           <pre className="code" tabIndex={0}>{`# Claude Code
-claude mcp add liam -- node /abs/path/liam/packages/mcp/dist/index.js
+claude mcp add adwarp -- node /abs/path/adwarp/packages/mcp/dist/index.js
 
 # Claude Desktop, Cursor, or any MCP client, in its MCP config JSON:
 {
   "mcpServers": {
-    "liam": { "command": "node", "args": ["/abs/path/liam/packages/mcp/dist/index.js"] }
+    "adwarp": { "command": "node", "args": ["/abs/path/adwarp/packages/mcp/dist/index.js"] }
   }
 }`}</pre>
           <p>
@@ -234,7 +235,9 @@ claude mcp add liam -- node /abs/path/liam/packages/mcp/dist/index.js
             is <b>multi-tenant, bring your own credentials</b>: you pass your LinkedIn developer
             app&apos;s details as request headers, and every call runs against <em>your</em> app
             and <em>your</em> ad account. The server holds no state for you. Credentials are used
-            in memory to call LinkedIn and never logged or persisted.
+            in memory to call LinkedIn and never logged or persisted. The original address,{" "}
+            <code>{LEGACY_HOSTED_URL}</code>, still works and serves the same endpoint, so existing
+            connections need no change.
           </p>
           <div className="tblwrap">
             <table className="tbl">
@@ -290,7 +293,7 @@ claude mcp add liam -- node /abs/path/liam/packages/mcp/dist/index.js
             command:
           </p>
           <pre className="code" tabIndex={0}>{`node packages/cli/dist/index.js auth export --mcp
-# claude mcp add --transport http liam ${HOSTED_URL} \\
+# claude mcp add --transport http adwarp ${HOSTED_URL} \\
 #   --header "X-Liads-Client-Id: ..." \\
 #   --header "X-Liads-Client-Secret: ..." \\
 #   --header "X-Liads-Refresh-Token: ..." \\
@@ -360,7 +363,7 @@ claude mcp add liam -- node /abs/path/liam/packages/mcp/dist/index.js
               Connect with the secret in the header.
             </li>
           </ol>
-          <pre className="code" tabIndex={0}>{`claude mcp add --transport http liam https://<your-app>.vercel.app/api/mcp \\
+          <pre className="code" tabIndex={0}>{`claude mcp add --transport http adwarp https://<your-app>.vercel.app/api/mcp \\
   --header "Authorization: Bearer <MCP_AUTH_TOKEN>"`}</pre>
           <p>
             Requests carrying <code>MCP_AUTH_TOKEN</code> use the env credentials (your tenant).
@@ -375,15 +378,17 @@ claude mcp add liam -- node /abs/path/liam/packages/mcp/dist/index.js
           <h2>Install the terminal CLI.</h2>
           <p>
             Step 1 already left a working CLI at <code>node packages/cli/dist/index.js</code>. To
-            get a global <code>liam</code> command instead of the long node path:
+            get a global <code>adwarp</code> command instead of the long node path. Coming from
+            Liam? <code>liam</code> still works as an alias for <code>adwarp</code>, so existing
+            scripts and cron jobs keep running.
           </p>
           <pre className="code" tabIndex={0}>{`cd packages/cli && pnpm link --global
-liam accounts list
+adwarp accounts list
 
 # A sensible first session:
-liam targeting search titles "demand generation"   # resolve targeting URNs
-liam report summary -p last_30_days                # account rollup + flags
-liam launch --brief examples/brief.json            # creates DRAFTS only`}</pre>
+adwarp targeting search titles "demand generation"   # resolve targeting URNs
+adwarp report summary -p last_30_days                # account rollup + flags
+adwarp launch --brief examples/brief.json            # creates DRAFTS only`}</pre>
         </section>
 
         <section id="tools" className="section">
@@ -409,7 +414,7 @@ liam launch --brief examples/brief.json            # creates DRAFTS only`}</pre>
                   <td>
                     <code>list_targeting_facets</code>, <code>search_targeting</code> (typeahead a
                     facet for entity URNs), <code>list_facet_entities</code>,{" "}
-                    <code>estimate_audience</code>. Talk in plain language and Liam resolves the
+                    <code>estimate_audience</code>. Talk in plain language and Adwarp resolves the
                     facets, estimates reach, then builds the campaign.
                   </td>
                 </tr>
@@ -487,28 +492,28 @@ liam launch --brief examples/brief.json            # creates DRAFTS only`}</pre>
         <section id="cli-reference" className="section">
           <p className="kicker">CLI reference</p>
           <h2>The full CLI reference.</h2>
-          <pre className="code" tabIndex={0}>{`liam auth login                         # OAuth, stores tokens in ~/.liads
-liam auth export                        # print env vars for a self-hosted (Vercel) server
-liam auth export --mcp                  # print the hosted-MCP connect command with your headers
-liam accounts list                      # list accessible ad accounts
-liam targeting search <facet> <query>   # typeahead a facet for entity URNs
-liam targeting estimate <facet> <urns>  # audience size for one facet's URNs
-liam audience upload -n <name> -f <csv> # clean + upload a CSV as a matched audience
-liam audience upload ... --dry-run      # preview the cleaned CSV, no upload
-liam audience from-salesforce -n <name> -q "<SOQL>"   # Salesforce query -> matched audience
-liam audience status <segmentId>        # matching status + resolved size
-liam conversions list                   # account conversions (pick one to track)
-liam campaigns list [--group <id>]      # campaign groups + ad groups, drafts included
-liam ad list <campaignId>               # ads in an ad group, drafts included
-liam ad delete <creativeId>             # delete an ad (creative + its DSC post)
-liam report summary [-p <period>]       # account rollup: totals, top performers, flags
-liam report perf <level> [--parent <id>] # per-entity KPI rows
-liam report trend <level> <id> [-b weekly|monthly]  # trend with deltas
-liam launch --brief <brief.json>        # audience + group + campaign + draft creatives
-liam competitor ads <advertiser>        # any company's ads from the public Ad Library
-liam changelog list [-t <type>] [-i <id>]           # recorded ad changes, newest first
-liam changelog add -t <type> -i <id> -f <field> --after <v>   # log a change made elsewhere
-liam lift <level> <id> [-w <days>]      # before vs after performance per recorded change
+          <pre className="code" tabIndex={0}>{`adwarp auth login                         # OAuth, stores tokens in ~/.liads
+adwarp auth export                        # print env vars for a self-hosted (Vercel) server
+adwarp auth export --mcp                  # print the hosted-MCP connect command with your headers
+adwarp accounts list                      # list accessible ad accounts
+adwarp targeting search <facet> <query>   # typeahead a facet for entity URNs
+adwarp targeting estimate <facet> <urns>  # audience size for one facet's URNs
+adwarp audience upload -n <name> -f <csv> # clean + upload a CSV as a matched audience
+adwarp audience upload ... --dry-run      # preview the cleaned CSV, no upload
+adwarp audience from-salesforce -n <name> -q "<SOQL>"   # Salesforce query -> matched audience
+adwarp audience status <segmentId>        # matching status + resolved size
+adwarp conversions list                   # account conversions (pick one to track)
+adwarp campaigns list [--group <id>]      # campaign groups + ad groups, drafts included
+adwarp ad list <campaignId>               # ads in an ad group, drafts included
+adwarp ad delete <creativeId>             # delete an ad (creative + its DSC post)
+adwarp report summary [-p <period>]       # account rollup: totals, top performers, flags
+adwarp report perf <level> [--parent <id>] # per-entity KPI rows
+adwarp report trend <level> <id> [-b weekly|monthly]  # trend with deltas
+adwarp launch --brief <brief.json>        # audience + group + campaign + draft creatives
+adwarp competitor ads <advertiser>        # any company's ads from the public Ad Library
+adwarp changelog list [-t <type>] [-i <id>]           # recorded ad changes, newest first
+adwarp changelog add -t <type> -i <id> -f <field> --after <v>   # log a change made elsewhere
+adwarp lift <level> <id> [-w <days>]      # before vs after performance per recorded change
 
 # Periods: last_7_days, last_30_days, last_90_days, month_to_date, last_month.
 # --account defaults to defaultAccountId from config where applicable.`}</pre>
@@ -516,13 +521,13 @@ liam lift <level> <id> [-w <days>]      # before vs after performance per record
 
         <section id="skills" className="section">
           <p className="kicker">Skills</p>
-          <h2>Playbooks on top of Liam.</h2>
+          <h2>Playbooks on top of Adwarp.</h2>
           <p>
             The{" "}
             <a href={`${REPO}/tree/main/skills`} target="_blank" rel="noreferrer">
               skills directory
             </a>{" "}
-            ships ten portable agent skills that turn Liam&apos;s raw tools into opinionated
+            ships ten portable agent skills that turn Adwarp&apos;s raw tools into opinionated
             workflows. Each encodes a methodology: what to pull, how to judge it, significance
             floors, caveats, and a fixed report format. Analysis and monitoring skills are
             read-only; the operating skills create drafts only, after confirmation.
@@ -546,7 +551,7 @@ liam lift <level> <id> [-w <days>]      # before vs after performance per record
           <p className="kicker">Change journal &amp; lift</p>
           <h2>Every change is journaled, so lift is measurable.</h2>
           <p>
-            Liam keeps an append-only journal of every change made to an ad entity, so you can
+            Adwarp keeps an append-only journal of every change made to an ad entity, so you can
             measure how performance differed in the window before a change versus after it.
           </p>
           <ul>
@@ -555,15 +560,15 @@ liam lift <level> <id> [-w <days>]      # before vs after performance per record
               No database, no account, no setup.
             </li>
             <li>
-              <b>Auto-capture</b>: every create or update Liam makes is journaled at one HTTP
+              <b>Auto-capture</b>: every create or update Adwarp makes is journaled at one HTTP
               chokepoint, so it can&apos;t be forgotten.
             </li>
             <li>
               <b>Manual entries</b>: log changes made in Campaign Manager, or attach a
-              hypothesis, with <code>liam changelog add</code> and a label naming the test.
+              hypothesis, with <code>adwarp changelog add</code> and a label naming the test.
             </li>
             <li>
-              <b>Lift</b>: <code>liam lift &lt;level&gt; &lt;id&gt;</code> compares the window
+              <b>Lift</b>: <code>adwarp lift &lt;level&gt; &lt;id&gt;</code> compares the window
               before each change (default 14 days) against the window after, with per-metric
               deltas.
             </li>
@@ -634,12 +639,12 @@ liam lift <level> <id> [-w <days>]      # before vs after performance per record
           <p className="kicker">Salesforce</p>
           <h2>From a Salesforce query to a matched audience.</h2>
           <p>
-            Liam reads Salesforce by shelling out to the authenticated <code>sf</code> CLI, so it
+            Adwarp reads Salesforce by shelling out to the authenticated <code>sf</code> CLI, so it
             reuses your existing login and needs no new credentials. Give it a SOQL query that
             selects an email column and it becomes a matched audience, closing the loop from
             &quot;accounts flagged in Salesforce&quot; to &quot;LinkedIn targeting&quot;.
           </p>
-          <pre className="code" tabIndex={0}>{`liam audience from-salesforce -n "Q3 target accounts" \\
+          <pre className="code" tabIndex={0}>{`adwarp audience from-salesforce -n "Q3 target accounts" \\
   -q "SELECT Email FROM Contact WHERE Account.Target_List__c = true AND Email != null"`}</pre>
         </section>
 
@@ -673,7 +678,7 @@ liam lift <level> <id> [-w <days>]      # before vs after performance per record
           <a href="/terms">Terms</a>
           <a href="/privacy">Privacy</a>
           <a href={REPO} target="_blank" rel="noreferrer">
-            github.com/stan-default/liam ↗
+            github.com/adwarp-dev/adwarp ↗
           </a>
         </span>
       </footer>

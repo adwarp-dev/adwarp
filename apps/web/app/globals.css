@@ -90,7 +90,7 @@ body::after {
 .wordmark {
   font-family: var(--font-display), sans-serif;
   font-weight: 900;
-  font-size: clamp(96px, 26vw, 300px);
+  font-size: clamp(72px, 26vw, 280px);
   line-height: 0.78;
   letter-spacing: -0.02em;
   color: var(--ink);

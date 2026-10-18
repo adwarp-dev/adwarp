@@ -1,9 +1,11 @@
 {
   "name": "@liads/mcp",
   "version": "0.1.0",
+  "description": "Adwarp MCP server, the open-source ad agent for LinkedIn Ads and Google Ads",
   "private": true,
   "type": "module",
   "bin": {
+    "adwarp-mcp": "./dist/index.js",
     "liads-mcp": "./dist/index.js"
   },
   "exports": {
