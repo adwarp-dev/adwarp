@@ -1,17 +1,17 @@
 ---
-name: liam-health
-description: Daily LinkedIn ads guardrail check via Liam that stays silent unless something is wrong. Catches active campaigns with zero delivery, daily spend spikes, cost-per-lead blowouts, spend with nothing back, stuck audiences, and CTR collapses. One line when all clear. Use for "health check", "anything on fire", "daily ads check", or on a morning schedule.
+name: adwarp-health
+description: Daily LinkedIn ads guardrail check via Adwarp that stays silent unless something is wrong. Catches active campaigns with zero delivery, daily spend spikes, cost-per-lead blowouts, spend with nothing back, stuck audiences, and CTR collapses. One line when all clear. Use for "health check", "anything on fire", "daily ads check", or on a morning schedule.
 ---
 
-# Liam: daily health check
+# Adwarp: daily health check
 
 An alarm, not a report. If nothing trips, the entire output is one line. The weekly
-digest is liam-weekly; deep dives are liam-performance and liam-spend. Never pad an
+digest is adwarp-weekly; deep dives are adwarp-performance and adwarp-spend. Never pad an
 all-clear into a report.
 
-## How to reach Liam
+## How to reach Adwarp
 
-Prefer the `liam` MCP tools: `get_performance` with explicit `startDate`/`endDate`
+Prefer the Adwarp MCP tools: `get_performance` with explicit `startDate`/`endDate`
 (yesterday, plus trailing 7-day and 30-day windows for baselines), `list_campaigns`
 for statuses, `get_audience_status` for any segment ids known from the change
 journal. CLI presets approximate the windows if MCP is unavailable.
@@ -49,5 +49,5 @@ that caveat once at the bottom.
 ## Scheduling
 
 Built to run unattended every morning: a Claude Code scheduled agent ("run the
-liam-health skill and send only its output"), a /loop in a long-lived session, or
-cron feeding the CLI. Pair with liam-weekly on Mondays; the two do not overlap.
+adwarp-health skill and send only its output"), a /loop in a long-lived session, or
+cron feeding the CLI. Pair with adwarp-weekly on Mondays; the two do not overlap.

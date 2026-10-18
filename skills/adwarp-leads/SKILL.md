@@ -1,19 +1,19 @@
 ---
-name: liam-leads
-description: Rank which LinkedIn ads actually drive leads and which burn budget without converting, using Liam creative-level reporting. Produces a drivers list, a pause list, and copy-angle patterns. Use for "which ads drive leads", "which ads don't convert", "cost per lead by ad", "what should I pause", "which creative is working".
+name: adwarp-leads
+description: Rank which LinkedIn ads actually drive leads and which burn budget without converting, using Adwarp creative-level reporting. Produces a drivers list, a pause list, and copy-angle patterns. Use for "which ads drive leads", "which ads don't convert", "cost per lead by ad", "what should I pause", "which creative is working".
 ---
 
-# Liam: lead drivers and duds
+# Adwarp: lead drivers and duds
 
 Split every ad in scope into four buckets (drivers, promising, non-converters, too
 early) and say what to do with each. The pause list with dollar amounts is usually the
 most valuable output.
 
-## How to reach Liam
+## How to reach Adwarp
 
-Prefer the `liam` MCP tools if they are loaded (`get_performance`, `list_ads`,
-`list_campaigns`, `list_conversions`). Otherwise the CLI: `liam report perf creative`,
-`liam ad list <campaignId>`, etc., or `node <liam-repo>/packages/cli/dist/index.js`.
+Prefer the Adwarp MCP tools if they are loaded (`get_performance`, `list_ads`,
+`list_campaigns`, `list_conversions`). Otherwise the CLI: `adwarp report perf creative`,
+`adwarp ad list <campaignId>`, etc., or `npx -y adwarp`.
 Read-only, except the explicitly-confirmed recreate flow at the end.
 
 ## What to pull
@@ -64,6 +64,6 @@ what to kill.
 - **Actions:** scale/shift suggestions plus refresh candidates. On LinkedIn, changing
   copy means recreate, not edit (`delete_ad` + `create_image_ad`, drafts only). Only
   run deletes if the user explicitly confirms the exact ads; pausing and activating
-  happen in Campaign Manager, not through Liam.
+  happen only on the user's explicit request, through Adwarp or in Campaign Manager.
 - Afterwards, suggest journaling any change made (`log_ad_change`) so `compute_lift`
   can measure it later.

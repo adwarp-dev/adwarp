@@ -1,19 +1,19 @@
 ---
-name: liam-account-audit
-description: Quarterly hygiene review of a LinkedIn ads account via Liam. Naming conventions, conversion wiring, safety toggles, targeting overlap between active campaigns, leftover drafts, landing-page and UTM consistency, and untracked changes. Use for "audit my account", "account hygiene check", "review my account setup", "is my account set up right".
+name: adwarp-account-audit
+description: Quarterly hygiene review of a LinkedIn ads account via Adwarp. Naming conventions, conversion wiring, safety toggles, targeting overlap between active campaigns, leftover drafts, landing-page and UTM consistency, and untracked changes. Use for "audit my account", "account hygiene check", "review my account setup", "is my account set up right".
 ---
 
-# Liam: account audit
+# Adwarp: account audit
 
-A setup review, not a performance review (that is liam-performance). The output is a
+A setup review, not a performance review (that is adwarp-performance). The output is a
 scorecard: pass, flag, or fail per area, each verdict carrying its evidence, followed
 by a ranked fix list. Run it quarterly or when inheriting an account.
 
-## How to reach Liam
+## How to reach Adwarp
 
-Prefer the `liam` MCP tools: `list_campaigns` (drafts included), `list_ads`,
+Prefer the Adwarp MCP tools: `list_campaigns` (drafts included), `list_ads`,
 `list_conversions`, `list_ad_changes`, and a light `get_performance` pass to see what
-is actually spending. Where Liam does not expose a field (some toggles and
+is actually spending. Where Adwarp does not expose a field (some toggles and
 associations are only visible in Campaign Manager), put it on the manual checklist at
 the end rather than skipping it silently.
 
@@ -40,7 +40,7 @@ the end rather than skipping it silently.
    holds. Inconsistent or missing UTMs on some ads is the most common silent leak.
 7. **Journal coverage.** Entities with meaningful spend but no journaled changes
    mean edits are happening untracked (usually directly in Campaign Manager);
-   recommend the liam-experiments logging discipline.
+   recommend the adwarp-experiments logging discipline.
 
 ## Report format
 

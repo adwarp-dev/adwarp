@@ -43,8 +43,9 @@ modules are thin typed wrappers over `LinkedInClient.request()`.
 - **Nothing is ever created live.** On LinkedIn, campaigns, campaign groups, and creatives
   default to `DRAFT`/`intendedStatus: DRAFT`. On Google, which has no draft status, campaigns,
   ad groups, and ads are created `PAUSED` and the schemas cannot express any other status.
-  Never change either default. Activation is a separate, explicit, human step, and there is
-  deliberately no tool for it on either platform.
+  Never change either default. On LinkedIn, going live happens only on an explicit request:
+  the user asks Adwarp to set a campaign ACTIVE, or switches it on in Campaign Manager. On
+  Google, nothing can be switched on from Adwarp; that happens in the Google Ads UI.
 - **zod schemas are the source of truth.** All tool/command inputs live as zod schemas in
   `core/src/schemas.ts` and are reused as MCP tool input schemas (`Schema.shape`). Add or
   change a field there first, then thread it through the resource module.

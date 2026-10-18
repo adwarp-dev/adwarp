@@ -1,18 +1,18 @@
 ---
-name: liam-spend
-description: Analyze LinkedIn ad spend with Liam. Where the budget actually goes, spend concentration, wasted spend with zero results, pacing, and concrete reallocation moves. Use for "analyze my spend", "where is my budget going", "what are we wasting money on", "spend breakdown", "am I overspending".
+name: adwarp-spend
+description: Analyze LinkedIn ad spend with Adwarp. Where the budget actually goes, spend concentration, wasted spend with zero results, pacing, and concrete reallocation moves. Use for "analyze my spend", "where is my budget going", "what are we wasting money on", "spend breakdown", "am I overspending".
 ---
 
-# Liam: spend analysis
+# Adwarp: spend analysis
 
 Answer one question: is the money going where the results are? Produce a verdict and
 moves, never a raw table dump.
 
-## How to reach Liam
+## How to reach Adwarp
 
-Prefer the `liam` MCP tools if they are loaded (`list_campaigns`, `get_performance`,
-`performance_summary`, `performance_trend`). Otherwise use the CLI: `liam <command>`,
-or `node <liam-repo>/packages/cli/dist/index.js <command>` if not globally linked.
+Prefer the Adwarp MCP tools if they are loaded (`list_campaigns`, `get_performance`,
+`performance_summary`, `performance_trend`). Otherwise use the CLI: `adwarp <command>`,
+or `npx -y adwarp <command>` if it isn't installed globally.
 CLI report presets: `last_7_days`, `last_30_days`, `last_90_days`, `month_to_date`,
 `last_month`. For custom windows use the MCP tools with explicit `startDate`/`endDate`
 (YYYY-MM-DD). Everything here is read-only.
@@ -61,5 +61,5 @@ Compute the account average cost per conversion first; it is the yardstick for w
 - **Where it goes:** top spend lines with cost per conversion, worst divergences called out.
 - **What is wasted:** ranked list with dollar amounts, and the summed waste figure.
 - **Moves:** 2-4 reallocations, each "shift $X/day from A to B because...". If the user
-  wants to act on them, campaign changes happen in Campaign Manager; Liam only creates
-  drafts and never activates or pauses anything itself.
+  wants to act on them, make each change only on their explicit request, through Adwarp
+  or in Campaign Manager. This skill never activates or pauses anything on its own.

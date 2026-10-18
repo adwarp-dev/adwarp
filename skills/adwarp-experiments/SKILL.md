@@ -1,19 +1,19 @@
 ---
-name: liam-experiments
-description: Run disciplined ad tests with Liam's change journal and lift analysis. Log a hypothesis before a change, measure before vs after with compute_lift, and read results with the confounds stated. Use for "did that change help", "measure the lift", "log this test", "what tests are running", "was the new headline better".
+name: adwarp-experiments
+description: Run disciplined ad tests with Adwarp's change journal and lift analysis. Log a hypothesis before a change, measure before vs after with compute_lift, and read results with the confounds stated. Use for "did that change help", "measure the lift", "log this test", "what tests are running", "was the new headline better".
 ---
 
-# Liam: experiments and lift
+# Adwarp: experiments and lift
 
 Ad accounts accumulate changes nobody can evaluate later because nobody wrote down
-what changed and why. Liam journals every change it makes automatically; this skill
+what changed and why. Adwarp journals every change it makes automatically; this skill
 adds the discipline around it: hypotheses going in, honest verdicts coming out.
 
-## How to reach Liam
+## How to reach Adwarp
 
-Prefer the `liam` MCP tools if loaded: `log_ad_change`, `list_ad_changes`,
-`compute_lift`. CLI: `liam changelog list`, `liam changelog add`, `liam lift <level>
-<entityId> [-w days]`. The journal lives at `~/.liads/changelog.jsonl`. Changes made
+Prefer the Adwarp MCP tools if loaded: `log_ad_change`, `list_ad_changes`,
+`compute_lift`. CLI: `adwarp changelog list`, `adwarp changelog add`, `adwarp lift <level>
+<entityId> [-w days]`. The journal lives at `~/.adwarp/changelog.jsonl`. Changes made
 directly in Campaign Manager are invisible until logged by hand; that is the most
 common reason a lift read comes back empty.
 
@@ -22,7 +22,7 @@ common reason a lift read comes back empty.
 1. **Hypothesis first**, one sentence: "outcome-led headline will beat feature-led on
    cost per conversion."
 2. **Make the change.** Copy changes on LinkedIn are recreate, not edit
-   (`delete_ad` + `create_image_ad`, drafts, user confirms deletes); Liam journals
+   (`delete_ad` + `create_image_ad`, drafts, user confirms deletes); Adwarp journals
    these automatically. Changes made in Campaign Manager get `log_ad_change` with the
    entity, field, and after-value.
 3. **Label it** (`-l "outcome-led headline test"`) and tag related changes so the

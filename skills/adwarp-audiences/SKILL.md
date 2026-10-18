@@ -1,24 +1,24 @@
 ---
-name: liam-audiences
-description: Audit and operate LinkedIn matched audiences with Liam. Inventory and health checks (stuck matching, under 300 members, stale, orphaned), disciplined CSV uploads with dry runs, and the Salesforce-to-audience refresh loop. Use for "audit my audiences", "audience status", "upload this list", "refresh the audience from Salesforce", "why isn't this audience serving".
+name: adwarp-audiences
+description: Audit and operate LinkedIn matched audiences with Adwarp. Inventory and health checks (stuck matching, under 300 members, stale, orphaned), disciplined CSV uploads with dry runs, and the Salesforce-to-audience refresh loop. Use for "audit my audiences", "audience status", "upload this list", "refresh the audience from Salesforce", "why isn't this audience serving".
 ---
 
-# Liam: audience ops
+# Adwarp: audience ops
 
 Most "retargeting is not working" and "campaign will not serve" problems are audience
 problems. This skill keeps the matched-audience layer healthy: what exists, what state
 it is in, and how lists get in and stay fresh.
 
-## How to reach Liam
+## How to reach Adwarp
 
-Prefer the `liam` MCP tools if loaded: `get_audience_status`, `upload_audience_csv`,
-`audience_from_salesforce`, `list_campaigns`, `list_ad_changes`. CLI: `liam audience
-status <segmentId>`, `liam audience upload`, `liam audience from-salesforce`.
+Prefer the Adwarp MCP tools if loaded: `get_audience_status`, `upload_audience_csv`,
+`audience_from_salesforce`, `list_campaigns`, `list_ad_changes`. CLI: `adwarp audience
+status <segmentId>`, `adwarp audience upload`, `adwarp audience from-salesforce`.
 
 ## Inventory
 
-Liam has no list-all-segments call, so assemble the inventory honestly from three
-sources: the change journal (`list_ad_changes` records every segment Liam created,
+Adwarp has no list-all-segments call, so assemble the inventory honestly from three
+sources: the change journal (`list_ad_changes` records every segment Adwarp created,
 with dates), campaign targeting where `list_campaigns` exposes attached audiences,
 and the user's own knowledge. Say explicitly when the inventory may be incomplete.
 
@@ -39,7 +39,7 @@ and the user's own knowledge. Say explicitly when the inventory may be incomplet
 ## Upload discipline
 
 Always `--dry-run` first and show the cleaned columns and row count before uploading
-anything. Liam auto-cleans: normalizes column names, drops non-matcher columns,
+anything. Adwarp auto-cleans: normalizes column names, drops non-matcher columns,
 hashes emails, converts company domains to website URLs, and auto-detects contact vs
 company lists. Warn on anything under 300 rows: it will never serve.
 

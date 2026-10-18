@@ -1,22 +1,22 @@
 ---
-name: liam-launch
-description: Create LinkedIn campaigns through Liam with guardrails, from a plain-language ask to a confirmed brief to draft campaign group, campaign, and ads. Applies house defaults (audience expansion and Audience Network off, standing exclusions, conversion wiring, create-only format fields) so the draft is right the first time. Use for "launch a campaign", "set up a campaign for", "create ads for", "spin up an ABM campaign".
+name: adwarp-launch
+description: Create LinkedIn campaigns through Adwarp with guardrails, from a plain-language ask to a confirmed brief to draft campaign group, campaign, and ads. Applies house defaults (audience expansion and Audience Network off, standing exclusions, conversion wiring, create-only format fields) so the draft is right the first time. Use for "launch a campaign", "set up a campaign for", "create ads for", "spin up an ABM campaign".
 ---
 
-# Liam: guarded campaign launch
+# Adwarp: guarded campaign launch
 
-Everything Liam creates is a DRAFT and there is deliberately no activate tool, so the
-cost of a mistake is rework, not money. This skill's job is making rework rare: gather
+Everything Adwarp creates is a DRAFT and goes live only when the user explicitly asks, so
+the cost of a mistake is rework, not money. This skill's job is making rework rare: gather
 a complete brief, estimate before creating, apply the house rules, confirm, create,
 verify.
 
-## How to reach Liam
+## How to reach Adwarp
 
-Prefer the `liam` MCP tools if loaded: `launch_from_brief`, `create_campaign_group`,
+Prefer the Adwarp MCP tools if loaded: `launch_from_brief`, `create_campaign_group`,
 `create_campaign`, `create_image_ad`, `search_targeting`, `list_targeting_facets`,
 `estimate_audience`, `list_conversions`, `upload_audience_csv`,
-`audience_from_salesforce`. CLI fallback: `liam launch --brief brief.json` (see
-`examples/brief.json` in the Liam repo). Naming map: campaignGroupName is LinkedIn's
+`audience_from_salesforce`. CLI fallback: `adwarp launch --brief brief.json` (see
+`examples/brief.json` in the Adwarp repo). Naming map: campaignGroupName is LinkedIn's
 "campaign", campaignName is the "ad group", creatives are the "ads".
 
 ## Step 1: gather the brief
@@ -44,7 +44,7 @@ later.
 Ask once for the account's standing defaults if you do not know them, then apply on
 every campaign:
 
-- **Audience Expansion off** and **LinkedIn Audience Network off**. Where Liam does
+- **Audience Expansion off** and **LinkedIn Audience Network off**. Where Adwarp does
   not expose a toggle at creation, list it as a Campaign Manager check in the handoff
   rather than assuming.
 - **Standing exclusion audiences** (customers, competitors, employees are the usual
@@ -60,7 +60,7 @@ every campaign:
   default, favors the predicted winner) or `ROUND_ROBIN` (Campaign Manager's "Rotate ads
   evenly"). Small audiences with several ads per ad set usually want `ROUND_ROBIN` so every
   ad gets a fair read. Set it on `create_campaign` / `update_campaign`, in a brief, or with
-  `liam campaigns update <id> --rotation even --apply`.
+  `adwarp campaigns update <id> --rotation even --apply`.
 
 ## Step 4: confirm, then create
 
@@ -77,7 +77,8 @@ it up or reuse it on retry.
   a DSC post; the landing URL field is `contentLandingPage`. If scopes are missing,
   a fresh `auth login` is required (token refresh keeps only the original scopes).
 - Journal the launch hypothesis with `log_ad_change` and a label, so
-  liam-experiments can measure it later.
-- Hand off activation: it happens in Campaign Manager, group first, then campaigns,
-  then creatives (LinkedIn rejects activating a child under a DRAFT parent). Liam
-  never activates anything.
+  adwarp-experiments can measure it later.
+- Hand off activation. It happens only on the user's explicit request, through Adwarp
+  or in Campaign Manager, never as part of the launch itself. Order matters: group
+  first, then campaigns, then creatives (LinkedIn rejects activating a child under a
+  DRAFT parent).

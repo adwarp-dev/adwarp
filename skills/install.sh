@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
-# Install the Liam skills into an agent's skills directory.
+# Install the Adwarp skills into an agent's skills directory.
 # Default: symlink (git pull keeps them current). --copy to copy instead.
+#
+# Skills were called liam-* and gads-launch before the rename. Those names stay in
+# this folder as links to the new ones, so existing installs keep working. Running
+# this script again swaps an install over to the adwarp-* names.
 set -euo pipefail
 
 MODE="${1:-link}"
@@ -9,7 +13,18 @@ DEST="${CLAUDE_SKILLS_DIR:-$HOME/.claude/skills}"
 
 mkdir -p "$DEST"
 
-for dir in "$SRC"/liam-*/ "$SRC"/gads-*/; do
+# Old-name links this script made earlier point into this folder; remove them.
+for target in "$DEST"/liam-* "$DEST"/gads-launch; do
+  [ -L "$target" ] || continue
+  case "$(readlink "$target")" in
+    "$SRC"/*)
+      rm "$target"
+      echo "removed $(basename "$target") (renamed to adwarp-*)"
+      ;;
+  esac
+done
+
+for dir in "$SRC"/adwarp-*/; do
   [ -d "$dir" ] || continue
   name="$(basename "$dir")"
   target="$DEST/$name"
