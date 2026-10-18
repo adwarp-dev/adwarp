@@ -98,6 +98,17 @@ jobs:
             echo "io.github.adwarp-dev/adwarp $VERSION is already in the MCP Registry."
             exit 0
           fi
+          # The registry checks the npm package, and a fresh npm publish can take a
+          # minute or more to show up there. Wait for it instead of failing.
+          for attempt in $(seq 1 30); do
+            if curl -sf -o /dev/null "https://registry.npmjs.org/adwarp/$VERSION"; then break; fi
+            if [ "$attempt" = 30 ]; then
+              echo "::error::adwarp@$VERSION did not appear on npm within 5 minutes. Re-run this job."
+              exit 1
+            fi
+            echo "Waiting for adwarp@$VERSION to appear on npm ($attempt/30)..."
+            sleep 10
+          done
           curl -sSfL "https://github.com/modelcontextprotocol/registry/releases/download/$MCP_PUBLISHER_VERSION/mcp-publisher_linux_amd64.tar.gz" | tar xz mcp-publisher
           ./mcp-publisher login github-oidc
           ./mcp-publisher publish
