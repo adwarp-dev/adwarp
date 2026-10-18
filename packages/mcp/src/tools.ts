@@ -44,6 +44,8 @@ import {
   listCampaigns,
   listCreatives,
   deleteAd,
+  updateAd,
+  AdUpdateSchema,
 } from "@adwarp/core";
 import { registerGoogleTools } from "./googleTools.js";
 
@@ -238,6 +240,22 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
         const linkedinAds = await createLinkedInAds();
         const acct = accountId ?? (await requireDefaultAccountId());
         return ok(await deleteAd(linkedinAds.client, acct, creativeId));
+      } catch (e) {
+        return fail(e);
+      }
+    },
+  );
+
+  server.tool(
+    "update_ad",
+    "Change a single ad's (creative's) status in place: PAUSED stops it serving, ACTIVE starts it serving, ARCHIVED retires it. Use PAUSED to stop an ad without touching the rest of its ad group. Accepts a numeric creative id or a full urn:li:sponsoredCreative URN. Setting ACTIVE starts spend, so set it only when the user explicitly asks to turn the ad on, never as a side effect of another request. An ACTIVE ad still only serves while its campaign (ad group) is ACTIVE. LinkedIn refuses to pause an ad that is still in review. Pass dryRun=true to preview the patch without sending it.",
+    AdUpdateSchema.shape,
+    async (args) => {
+      try {
+        const input = AdUpdateSchema.parse(args);
+        const linkedinAds = await createLinkedInAds();
+        const acct = input.accountId ?? (await requireDefaultAccountId());
+        return ok(await updateAd(linkedinAds.client, { ...input, accountId: acct }));
       } catch (e) {
         return fail(e);
       }

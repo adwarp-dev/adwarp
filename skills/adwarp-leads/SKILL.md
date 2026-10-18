@@ -64,6 +64,7 @@ what to kill.
 - **Actions:** scale/shift suggestions plus refresh candidates. On LinkedIn, changing
   copy means recreate, not edit (`delete_ad` + `create_image_ad`, drafts only). Only
   run deletes if the user explicitly confirms the exact ads; pausing and activating
-  happen only on the user's explicit request, through Adwarp or in Campaign Manager.
+  happen only on the user's explicit request, through Adwarp (`update_ad` with
+  `status: PAUSED` pauses 1 ad and leaves its ad group running) or in Campaign Manager.
 - Afterwards, suggest journaling any change made (`log_ad_change`) so `compute_lift`
   can measure it later.

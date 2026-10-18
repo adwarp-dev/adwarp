@@ -194,6 +194,30 @@ export const SponsoredImageCreativeSchema = z.object({
 });
 export type SponsoredImageCreativeInput = z.infer<typeof SponsoredImageCreativeSchema>;
 
+/**
+ * The statuses an existing ad (creative) can be switched to. PAUSED stops it
+ * serving, ACTIVE starts it serving and spending, ARCHIVED retires it. DRAFT is
+ * left out on purpose: Adwarp creates ads as drafts, and this only pauses,
+ * resumes, or archives them.
+ */
+export const AdStatusSchema = z.enum(["ACTIVE", "PAUSED", "ARCHIVED"]);
+export type AdStatus = z.infer<typeof AdStatusSchema>;
+
+/**
+ * Change an existing ad (creative) in place via LinkedIn PARTIAL_UPDATE of its
+ * `intendedStatus`. `status` is required and has no default, so no call can
+ * switch an ad on by omission.
+ */
+export const AdUpdateSchema = z.object({
+  accountId: z.string().optional().describe("Numeric ad account id; defaults to the configured account"),
+  creativeId: z.string().describe("Numeric creative (ad) id or a full urn:li:sponsoredCreative URN"),
+  status: AdStatusSchema.describe(
+    "PAUSED stops the ad serving. ACTIVE starts it serving and spending: set it only when the user explicitly asks. ARCHIVED retires it.",
+  ),
+  dryRun: z.boolean().default(false).describe("Return the patch without sending it"),
+});
+export type AdUpdateInput = z.infer<typeof AdUpdateSchema>;
+
 export const AudienceUploadSchema = z.object({
   accountId: z.string(),
   name: z.string().min(1),

@@ -44,7 +44,7 @@ modules are thin typed wrappers over `LinkedInClient.request()`.
   default to `DRAFT`/`intendedStatus: DRAFT`. On Google, which has no draft status, campaigns,
   ad groups, and ads are created `PAUSED` and the schemas cannot express any other status.
   Never change either default. On LinkedIn, going live happens only on an explicit request:
-  the user asks Adwarp to set a campaign ACTIVE, or switches it on in Campaign Manager. On
+  the user asks Adwarp to set a campaign or an ad ACTIVE, or switches it on in Campaign Manager. On
   Google, nothing can be switched on from Adwarp; that happens in the Google Ads UI.
 - **zod schemas are the source of truth.** All tool/command inputs live as zod schemas in
   `core/src/schemas.ts` and are reused as MCP tool input schemas (`Schema.shape`). Add or
@@ -85,6 +85,12 @@ modules are thin typed wrappers over `LinkedInClient.request()`.
 - **Hierarchy:** Ad Account → Campaign Group → Campaign (targeting/budget/bid) → Creative.
 - **Creatives** use the unified API (`content` + `intendedStatus`); single-image Sponsored
   Content is created inline via `?action=createInline`.
+- **Creative status** (`updateAd`, `update_ad`): `POST /adAccounts/{id}/creatives/{urn}` with
+  the `urn:li:sponsoredCreative:` URN percent-encoded in the path, `X-RestLi-Method:
+  PARTIAL_UPDATE`, body `{ patch: { $set: { intendedStatus } } }`, answered 204. A creative's
+  status is independent of its campaign's, but a campaign that is not ACTIVE still keeps an
+  ACTIVE creative from serving. LinkedIn returns 400 when pausing a creative still in review.
+  The journal records creatives under the numeric id, decoded from the path or x-restli-id URN.
 - **Audiences (DMP):** list-upload flow only — `generateUploadUrl` → upload hashed CSV to
   the signed URL → create `LIST_UPLOAD` segment → attach list → poll until READY for the
   `adSegment` urn. Emails are SHA256(lowercased, trimmed). `USER_LIST_UPLOAD` requires

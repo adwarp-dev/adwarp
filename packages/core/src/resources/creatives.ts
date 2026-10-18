@@ -143,6 +143,10 @@ export async function createTextAdCreative(
   return { id: res.restliId };
 }
 
+/**
+ * Set a creative's intendedStatus: POST to the creative with
+ * `X-RestLi-Method: PARTIAL_UPDATE` and a `patch.$set`; LinkedIn answers 204.
+ */
 export async function setCreativeStatus(
   client: LinkedInClient,
   accountId: string,

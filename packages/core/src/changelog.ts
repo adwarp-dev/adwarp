@@ -17,6 +17,7 @@ import {
   type LiDate,
 } from "./resources/analytics.js";
 import { aggregate, normalize, type MetricRow } from "./report.js";
+import { idFromUrn } from "./urns.js";
 
 /**
  * LinkedIn's half of the change journal. The journal model, its JSONL storage,
@@ -65,6 +66,13 @@ const fmtVal = (v: unknown): string =>
   v === null || v === undefined ? "(none)" : typeof v === "object" ? JSON.stringify(v) : String(v);
 
 /**
+ * Creatives are addressed by URN: percent-encoded in an update path, bare in a
+ * create's x-restli-id. Journal the numeric id, which `lift` and
+ * `changelog list -i` take, so every change to an ad lands under the same id.
+ */
+const journalId = (raw: string): string => idFromUrn(decodeURIComponent(raw));
+
+/**
  * Translate a raw HTTP write into a structured change event, or null if it isn't
  * one of the three tracked management endpoints. Creates are POSTs to a
  * collection (id comes back in restliId); updates are POSTs to a specific id
@@ -87,7 +95,7 @@ export function interpretMutation(m: MutationEvent): ChangeInput | null {
       platform: "linkedin",
       source: "adwarp",
       kind: "update",
-      entity: { type, id: idSeg, accountId },
+      entity: { type, id: journalId(idSeg), accountId },
       fields,
       summary: fields.map((f) => `${f.field} → ${fmtVal(f.after)}`).join(", "),
     };
@@ -102,7 +110,7 @@ export function interpretMutation(m: MutationEvent): ChangeInput | null {
       platform: "linkedin",
       source: "adwarp",
       kind: "create",
-      entity: { type, id, name, accountId },
+      entity: { type, id: journalId(id), name, accountId },
       summary: `Created ${TYPE_LABEL[type]}${name ? ` “${name}”` : ""}`,
     };
   }

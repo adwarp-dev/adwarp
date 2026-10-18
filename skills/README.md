@@ -10,8 +10,8 @@ installed and authenticated.
 The analysis and monitoring skills are read-only against your ad account. The ones
 that write (adwarp-launch, adwarp-gads-launch, and adwarp-experiments when it recreates an ad)
 create drafts or paused entities only, after explicit confirmation. On LinkedIn, a
-campaign goes live only when the user explicitly asks Adwarp to set it ACTIVE or switches
-it on in Campaign Manager. Google campaigns can only be switched on in Google Ads.
+campaign or an ad goes live only when the user explicitly asks Adwarp to set it ACTIVE or
+switches it on in Campaign Manager. Google campaigns can only be switched on in Google Ads.
 
 **Analyze**
 
