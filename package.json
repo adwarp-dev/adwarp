@@ -12,7 +12,8 @@
     "test": "pnpm -r --if-present test && node --test services/creative-worker/test/*.test.mjs",
     "cli": "pnpm --filter @liads/cli start",
     "mcp": "pnpm --filter @liads/mcp start",
-    "gen:tools": "pnpm --filter \"@liads/mcp...\" build && node packages/mcp/scripts/gen-tools.mjs"
+    "gen:tools": "pnpm --filter \"@liads/mcp...\" build && node packages/mcp/scripts/gen-tools.mjs",
+    "set-version": "node scripts/set-version.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
