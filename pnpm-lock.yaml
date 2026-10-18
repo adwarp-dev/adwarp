@@ -26,6 +26,9 @@ importers:
       '@liads/mcp':
         specifier: workspace:*
         version: link:../../packages/mcp
+      '@liads/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       '@vercel/analytics':
         specifier: ^2.0.1
         version: 2.0.1(next@15.5.19(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react@19.2.7)
@@ -49,6 +52,37 @@ importers:
         specifier: ^19.0.0
         version: 19.2.17
 
+  packages/adwarp:
+    dependencies:
+      '@modelcontextprotocol/sdk':
+        specifier: ^1.13.0
+        version: 1.29.0(zod@3.25.76)
+      commander:
+        specifier: ^13.0.0
+        version: 13.1.0
+      csv-parse:
+        specifier: ^5.6.0
+        version: 5.6.0
+      open:
+        specifier: ^10.1.0
+        version: 10.2.0
+      zod:
+        specifier: ^3.24.1
+        version: 3.25.76
+    devDependencies:
+      '@liads/cli':
+        specifier: workspace:*
+        version: link:../cli
+      '@liads/mcp':
+        specifier: workspace:*
+        version: link:../mcp
+      '@liads/shared':
+        specifier: workspace:*
+        version: link:../shared
+      esbuild:
+        specifier: ^0.28.1
+        version: 0.28.1
+
   packages/cli:
     dependencies:
       '@liads/core':
@@ -57,6 +91,12 @@ importers:
       '@liads/google':
         specifier: workspace:*
         version: link:../google
+      '@liads/mcp':
+        specifier: workspace:*
+        version: link:../mcp
+      '@liads/shared':
+        specifier: workspace:*
+        version: link:../shared
       commander:
         specifier: ^13.0.0
         version: 13.1.0
@@ -96,6 +136,9 @@ importers:
       '@liads/google':
         specifier: workspace:*
         version: link:../google
+      '@liads/shared':
+        specifier: workspace:*
+        version: link:../shared
       '@modelcontextprotocol/sdk':
         specifier: ^1.13.0
         version: 1.29.0(zod@3.25.76)

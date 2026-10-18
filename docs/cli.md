@@ -8,16 +8,16 @@ Every capability of the MCP server is also an `adwarp` CLI command, for your ter
 
 ## Install the global command
 
-The [build step](./install.md#build-and-authenticate) already left a working CLI at `node packages/cli/dist/index.js`. To get a global `adwarp` command instead of the long `node` path:
+Requires Node.js 20 or newer. Install the package from npm, then [authenticate](./install.md#authenticate) if you haven't yet:
 
 ```bash
-cd packages/cli && pnpm link --global
+npm install -g adwarp
 adwarp accounts list
 ```
 
-No pnpm link? A shell alias works too: `alias adwarp="node /absolute/path/to/adwarp/packages/cli/dist/index.js"`.
+To run a single command without installing, use `npx -y adwarp <command>`.
 
-Coming from Liam? `liam` still works as an alias for `adwarp`. The link installs both names, so existing scripts and cron jobs keep running.
+Coming from Liam? `liam` still works as an alias for `adwarp`. The package installs both names, so existing scripts and cron jobs keep running.
 
 A sensible first session:
 
@@ -29,7 +29,7 @@ adwarp launch --brief examples/brief.json            # creates DRAFTS only
 
 ## LinkedIn commands
 
-All commands also work as `node packages/cli/dist/index.js <command>`.
+All commands also work as `npx -y adwarp <command>`.
 
 ```
 adwarp auth login                         # OAuth, stores tokens in ~/.liads

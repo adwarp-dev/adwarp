@@ -155,6 +155,7 @@ target account through one. Run `adwarp google auth login` and you are set.
 - `@liads/mcp`: MCP server (stdio for local; reused by the hosted app). **Primary interface.**
 - `@liads/cli`: the `adwarp` CLI over the same engines, for scripted batch runs.
 - `@liads/web`: Next.js app that hosts the MCP over HTTP on Vercel.
+- `adwarp`: the published npm package. Bundles the CLI and the MCP server behind the `adwarp`, `adwarp-mcp` and `liam` commands.
 
 ## How it works
 
@@ -187,9 +188,9 @@ There are two ways to install Adwarp:
    for running everything from your terminal, scripts, or cron.
 
 Both run against **your own LinkedIn developer app**, so your credentials and your ad
-account stay yours. The first two steps are shared: create a LinkedIn app (step 0) and
-build + authenticate (step 1). After that, pick your path, or do both; they read the
-same `~/.liads` credentials.
+account stay yours. Both come from the same npm package, `adwarp`. The first two steps
+are shared: create a LinkedIn app (step 0) and authenticate (step 1). After that, pick
+your path, or do both; they read the same `~/.liads` credentials.
 
 ### Step 0: create a LinkedIn app (once)
 
@@ -215,21 +216,17 @@ same `~/.liads` credentials.
 a product or scope later, run `auth login` again; a token refresh keeps only the scopes
 you originally granted.
 
-### Step 1: build and authenticate (once, both paths)
+### Step 1: authenticate (once, both paths)
 
-Requires git, Node.js 20+, and pnpm.
+Requires Node.js 20+.
 
 ```bash
-git clone https://github.com/adwarp-dev/adwarp.git
-cd adwarp
-pnpm install && pnpm -r build
-
 # App credentials (alternatively set LIADS_CLIENT_ID / LIADS_CLIENT_SECRET env vars)
 mkdir -p ~/.liads
 echo '{ "clientId": "...", "clientSecret": "...", "linkedinVersion": "202605" }' > ~/.liads/config.json
 
-node packages/cli/dist/index.js auth login      # opens the browser; tokens land in ~/.liads
-node packages/cli/dist/index.js accounts list   # verify, then set defaultAccountId in config.json
+npx -y adwarp auth login      # opens the browser; tokens land in ~/.liads
+npx -y adwarp accounts list   # verify, then set defaultAccountId in config.json
 ```
 
 ### Option 1: install as an MCP server
@@ -239,7 +236,7 @@ Register the server with your MCP client; it reads the `~/.liads` credentials fr
 **Claude Code**
 
 ```bash
-claude mcp add adwarp -- node /abs/path/adwarp/packages/mcp/dist/index.js
+claude mcp add adwarp -- npx -y adwarp mcp
 ```
 
 **Claude Desktop, Cursor, or any MCP client**, in its MCP config JSON:
@@ -247,10 +244,14 @@ claude mcp add adwarp -- node /abs/path/adwarp/packages/mcp/dist/index.js
 ```json
 {
   "mcpServers": {
-    "adwarp": { "command": "node", "args": ["/abs/path/adwarp/packages/mcp/dist/index.js"] }
+    "adwarp": { "command": "npx", "args": ["-y", "adwarp", "mcp"] }
   }
 }
 ```
+
+`adwarp mcp` and the `adwarp-mcp` command start the same server. Prefer Docker? The root
+`Dockerfile` builds an image of the same server; see
+[Run it in Docker](./docs/install.md#run-it-in-docker).
 
 Ask for something read-only to confirm it works: "List my ad accounts" or "How did my
 account do in the last 30 days?"
@@ -282,7 +283,7 @@ OAuth consent has to happen in your browser, so the token mint is the one local 
 Then print the ready-to-run connect command:
 
 ```bash
-node packages/cli/dist/index.js auth export --mcp
+npx -y adwarp auth export --mcp
 # claude mcp add --transport http adwarp https://mcp.adwarp.dev/api/mcp \
 #   --header "X-Liads-Client-Id: …" \
 #   --header "X-Liads-Client-Secret: …" \
@@ -318,7 +319,7 @@ rules. Credentials never belong in a skill file.
 Run your own instance so credentials never touch shared infrastructure, and so you also
 get a private env-configured tenant:
 
-1. Get your env values locally: `node packages/cli/dist/index.js auth export`.
+1. Get your env values locally: `npx -y adwarp auth export`.
 2. Deploy `apps/web` to Vercel (set the project **Root Directory** to `apps/web`).
 3. In Vercel project settings, add the env vars from `.env.example`
    (`LIADS_CLIENT_ID`, `LIADS_CLIENT_SECRET`, `LIADS_REFRESH_TOKEN`, `LIADS_LINKEDIN_VERSION`,
@@ -339,17 +340,15 @@ self-hosted instance can serve your whole team, each member on their own LinkedI
 
 ### Option 2: install the terminal CLI
 
-Step 1 already left a working CLI at `node packages/cli/dist/index.js`. To get a global
-`adwarp` command instead of the long `node` path:
+Install the package globally for an `adwarp` command, or run any single command with
+`npx -y adwarp <command>`:
 
 ```bash
-cd packages/cli && pnpm link --global
+npm install -g adwarp
 adwarp accounts list
 ```
 
-(No pnpm link? A shell alias works too: `alias adwarp="node /abs/path/adwarp/packages/cli/dist/index.js"`.)
-
-Coming from Liam? `liam` still works as an alias for `adwarp`: the link installs both
+Coming from Liam? `liam` still works as an alias for `adwarp`: the package installs both
 names, so existing scripts and cron jobs keep running.
 
 A sensible first session:
@@ -362,6 +361,19 @@ adwarp launch --brief examples/brief.json            # creates DRAFTS only
 
 The full [CLI reference](#cli-reference) is below.
 
+### From source
+
+For contributors, or to run changes that are not released yet. Requires git and pnpm too.
+
+```bash
+git clone https://github.com/adwarp-dev/adwarp.git
+cd adwarp
+pnpm install && pnpm -r build
+
+node packages/cli/dist/index.js accounts list
+claude mcp add adwarp -- node /abs/path/adwarp/packages/mcp/dist/index.js
+```
+
 ### Or paste this prompt and let your assistant do the setup
 
 Copy the whole block into Claude (or any capable assistant with terminal access) and it
@@ -369,7 +381,8 @@ will walk you through everything above, one step at a time:
 
 ```text
 You are helping me set up Adwarp, an open-source LinkedIn Ad Manager from
-https://github.com/adwarp-dev/adwarp. It runs locally as an MCP server and a CLI.
+https://github.com/adwarp-dev/adwarp. It runs locally as an MCP server and a CLI,
+both from the npm package "adwarp".
 Everything it creates on LinkedIn starts as a draft, so nothing spends money until I
 explicitly turn it on.
 
@@ -377,11 +390,9 @@ Walk me through the setup one step at a time. Run commands for me where you can,
 show me exactly what to click where you cannot, and wait for my confirmation
 before moving to the next step.
 
-1. Check that git, Node.js 20 or newer, and pnpm are installed. Help me install
-   whatever is missing.
-2. Clone https://github.com/adwarp-dev/adwarp and run "pnpm install" then
-   "pnpm -r build" in the repo root.
-3. Help me create a LinkedIn developer app at
+1. Check that Node.js 20 or newer is installed. Help me install it if it is
+   missing.
+2. Help me create a LinkedIn developer app at
    https://www.linkedin.com/developers/apps (it must be associated with my
    company's LinkedIn Page):
    a. On the Products tab, request access to the "Advertising API" product.
@@ -392,19 +403,19 @@ before moving to the next step.
       metadata through the official API.
    d. On the Auth tab, add http://localhost:53682/callback as an authorized
       redirect URL, and show me where the Client ID and Client Secret live.
-4. Create ~/.liads/config.json containing my clientId, clientSecret, and
+3. Create ~/.liads/config.json containing my clientId, clientSecret, and
    "linkedinVersion": "202605".
-5. Run "node packages/cli/dist/index.js auth login". My browser opens LinkedIn's
+4. Run "npx -y adwarp auth login". My browser opens LinkedIn's
    consent screen; after I approve, tokens are stored in ~/.liads/credentials.json.
-6. Verify with "node packages/cli/dist/index.js accounts list". If no accounts
+5. Verify with "npx -y adwarp accounts list". If no accounts
    show up, remind me to map my ad account in the Developer Portal under
    Products > Advertising API > View Ad Accounts. Then set my account id as
    "defaultAccountId" in ~/.liads/config.json.
-7. Register the MCP server with the assistant I use:
-   - Claude Code: claude mcp add adwarp -- node <abs repo path>/packages/mcp/dist/index.js
-   - Claude Desktop or another client: add {"command": "node", "args":
-     ["<abs repo path>/packages/mcp/dist/index.js"]} under mcpServers in its config.
-8. Confirm the tools load, then show me one read-only call working, for example
+6. Register the MCP server with the assistant I use:
+   - Claude Code: claude mcp add adwarp -- npx -y adwarp mcp
+   - Claude Desktop or another client: add {"command": "npx", "args":
+     ["-y", "adwarp", "mcp"]} under mcpServers in its config.
+7. Confirm the tools load, then show me one read-only call working, for example
    list_ad_accounts or a last_30_days performance summary.
 
 If any step fails, show me the exact error and fix it with me before moving on.
@@ -489,7 +500,7 @@ Structured targeting uses short facet names mapped to entity URNs (resolve URNs 
 
 ## CLI reference
 
-All commands also work via `node packages/cli/dist/index.js <cmd>`.
+All commands also work via `npx -y adwarp <cmd>`.
 
 ```
 adwarp auth login                         # OAuth, stores tokens in ~/.liads

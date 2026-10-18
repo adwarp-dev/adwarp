@@ -20,6 +20,12 @@ pnpm + TypeScript monorepo:
   (`gads_*`) are shared by the stdio entry (`src/index.ts`) and the hosted Vercel route.
 - `packages/cli` — the `adwarp` CLI (commander), also installed as `liam` for existing users.
   LinkedIn at the top level, Google under `adwarp google ...` (`src/google.ts`).
+- `packages/adwarp`: the published npm package `adwarp`. `build.mjs` bundles the private
+  `@liads/*` packages with esbuild into `dist/cli.js` (`adwarp`, `liam`) and `dist/mcp.js`
+  (`adwarp-mcp`). Third-party imports stay npm dependencies, and the build fails on one its
+  package.json does not declare. `scripts/smoke.mjs` tests the packed tarball and the root
+  `Dockerfile`'s image. The release version lives in its package.json and in
+  `packages/shared/src/version.ts`, and the build fails when the 2 differ.
 - `apps/web` — Next.js app hosting the MCP over HTTP at `/api/mcp` (Vercel). Two tenants:
   the env-credential tenant gated by a `MCP_AUTH_TOKEN` bearer, and bring-your-own
   credentials callers who send `X-Liads-*` headers (client id/secret + refresh token,

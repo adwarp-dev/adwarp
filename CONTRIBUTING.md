@@ -15,6 +15,9 @@ pnpm -r typecheck
 - `packages/core`: LinkedIn REST client, OAuth, resource modules, audience hashing, Salesforce reader.
 - `packages/mcp`: MCP server. `src/tools.ts` registers tools; `src/index.ts` is the stdio entry.
 - `packages/cli`: the `adwarp` CLI (also installed as `liam`, the legacy alias).
+- `packages/adwarp`: the npm package `adwarp`, which bundles the CLI and the MCP server. Test
+  a change the way users get it with `pnpm pack` in that folder, then
+  `node scripts/smoke.mjs <tarball>`.
 - `apps/web`: Next.js app hosting the MCP over HTTP (Vercel).
 
 ## Conventions

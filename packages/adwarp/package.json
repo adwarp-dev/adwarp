@@ -1,0 +1,56 @@
+{
+  "name": "adwarp",
+  "version": "0.2.0",
+  "description": "Open-source ad agent for LinkedIn Ads and Google Ads. Drafts campaigns, audiences and reports from Claude or any MCP client.",
+  "keywords": [
+    "mcp",
+    "mcp-server",
+    "model-context-protocol",
+    "linkedin-ads",
+    "google-ads",
+    "ai-agent",
+    "claude",
+    "cli"
+  ],
+  "homepage": "https://adwarp.dev",
+  "bugs": "https://github.com/adwarp-dev/adwarp/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adwarp-dev/adwarp.git",
+    "directory": "packages/adwarp"
+  },
+  "license": "MIT",
+  "mcpName": "io.github.adwarp-dev/adwarp",
+  "type": "module",
+  "bin": {
+    "adwarp": "./dist/cli.js",
+    "adwarp-mcp": "./dist/mcp.js",
+    "liam": "./dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "smoke": "node scripts/smoke.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.13.0",
+    "commander": "^13.0.0",
+    "csv-parse": "^5.6.0",
+    "open": "^10.1.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@liads/cli": "workspace:*",
+    "@liads/mcp": "workspace:*",
+    "@liads/shared": "workspace:*",
+    "esbuild": "^0.28.1"
+  }
+}

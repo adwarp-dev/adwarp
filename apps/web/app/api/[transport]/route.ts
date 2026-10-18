@@ -3,6 +3,7 @@ import { createMcpHandler } from "mcp-handler";
 import { after } from "next/server";
 import { track } from "@vercel/analytics/server";
 import { withRequestCredentials, type RequestCredentials } from "@liads/core";
+import { VERSION } from "@liads/shared";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 import { registerTools } from "@liads/mcp/tools";
 
@@ -27,7 +28,7 @@ const mcpHandler = createMcpHandler(
   // over per-request LinkedIn credentials, and Google credentials would come
   // from shared server env vars. See RegisterToolsOptions.
   (server) => registerTools(server as any, { google: false }),
-  { serverInfo: { name: "adwarp", version: "0.1.0" } },
+  { serverInfo: { name: "adwarp", version: VERSION } },
   { basePath: "/api" },
 );
 

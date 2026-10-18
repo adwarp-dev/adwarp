@@ -9,6 +9,10 @@
     "liads-mcp": "./dist/index.js"
   },
   "exports": {
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "default": "./dist/server.js"
+    },
     "./tools": {
       "types": "./dist/tools.d.ts",
       "default": "./dist/tools.js"
@@ -22,6 +26,7 @@
   "dependencies": {
     "@liads/core": "workspace:*",
     "@liads/google": "workspace:*",
+    "@liads/shared": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.13.0",
     "zod": "^3.24.1"
   }

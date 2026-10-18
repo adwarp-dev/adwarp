@@ -12,6 +12,7 @@
   "dependencies": {
     "@liads/core": "workspace:*",
     "@liads/mcp": "workspace:*",
+    "@liads/shared": "workspace:*",
     "@vercel/analytics": "^2.0.1",
     "mcp-handler": "^1.0.1",
     "next": "^15.1.6",
