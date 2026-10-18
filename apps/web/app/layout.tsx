@@ -18,9 +18,9 @@ const mono = IBM_Plex_Mono({
 });
 
 export const metadata = {
-  title: "Liam · LinkedIn Ads Manager",
+  title: "Adwarp · LinkedIn Ads Manager",
   description:
-    "The LinkedIn Ads Manager you talk to. Describe the campaign and Liam drafts the audience, ad groups, and ads, from Claude over MCP or a CLI. Nothing spends until you activate it.",
+    "The LinkedIn Ads Manager you talk to. Describe the campaign and Adwarp drafts the audience, ad groups, and ads, from Claude over MCP or a CLI. Nothing spends until you activate it.",
 };
 
 export const viewport = {

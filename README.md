@@ -1,11 +1,12 @@
-# Liam
+# Adwarp
 
-**Liam** is an ad manager for LinkedIn and Google Ads. Create campaigns by talking
-to Claude (MCP) or from a CLI. Built for go-to-market teams who want to spin up many
-campaigns from a contact list and a brief, then add creative images themselves. Nothing
-is ever created live: LinkedIn entities are **drafts**, Google entities are **paused**,
-and there is no activate tool on either platform, so nothing spends until you turn it on
-yourself.
+**Adwarp** (formerly Liam) is the open-source ad agent for LinkedIn Ads and Google Ads.
+Create campaigns by talking to Claude (MCP) or from a CLI. Built for go-to-market teams
+who want to spin up many campaigns from a contact list and a brief, then add creative
+images themselves. Everything starts switched off: LinkedIn entities are created as **drafts** and
+Google entities as **paused**. A LinkedIn campaign goes live only when you explicitly
+ask Adwarp to turn it on or switch it on yourself in Campaign Manager, and Google
+campaigns can only be switched on in the Google Ads UI.
 
 > Unofficial and not affiliated with or endorsed by LinkedIn or Google.
 
@@ -16,7 +17,7 @@ yourself.
 
 ## What you can do with it
 
-Once Liam is connected, you talk to your assistant in plain language. Real requests it
+Once Adwarp is connected, you talk to your assistant in plain language. Real requests it
 handles today, roughly in the order a campaign comes together:
 
 - "How many VPs of demand gen at US SaaS companies can we reach?" (resolves targeting
@@ -36,12 +37,12 @@ handles today, roughly in the order a campaign comes together:
   ignores edits to a live ad's post)
 - "Did the new headline actually help?" (change journal + before/after lift)
 
-Liam resolves the details and reports back the ids. Every capability is also a `liam`
+Adwarp resolves the details and reports back the ids. Every capability is also an `adwarp`
 CLI command for scripted or batch use.
 
 ### Put it on a loop
 
-There is no scheduler in Liam. Use the one in whatever client you drive it from.
+There is no scheduler in Adwarp. Use the one in whatever client you drive it from.
 Some loops that work well:
 
 - "Every Monday at 9am, pull last week's performance summary, compare it to the week
@@ -51,7 +52,7 @@ Some loops that work well:
 - "Check the audience match status every few hours and tell me when it clears 300
   members." (the minimum for a matched audience to serve)
 - Or skip the assistant entirely and put the CLI in cron:
-  `0 9 * * 1 liam report summary -p last_7_days`
+  `0 9 * * 1 adwarp report summary -p last_7_days`
 
 ## Hierarchy mapping (the two platforms disagree)
 
@@ -75,14 +76,14 @@ campaign holds the budget and targeting (LinkedIn's *campaign group* plus
 Search campaigns only, creation-first. What is there today:
 
 ```bash
-liam google auth login
-liam google accounts list                       # proves the token and OAuth client work
-liam google keywords "revops automation" --url https://www.default.com/platform
-liam google conversions list
-liam google launch --brief examples/google-brief.json           # dry run
-liam google launch --brief examples/google-brief.json --apply   # create it, paused
-liam google campaigns list
-liam google report perf keyword -p last_30_days
+adwarp google auth login
+adwarp google accounts list                       # proves the token and OAuth client work
+adwarp google keywords "revops automation" --url https://example.com/product
+adwarp google conversions list
+adwarp google launch --brief examples/google-brief.json           # dry run
+adwarp google launch --brief examples/google-brief.json --apply   # create it, paused
+adwarp google campaigns list
+adwarp google report perf keyword -p last_30_days
 ```
 
 A launch creates the budget, campaign, geo and language targeting, ad groups,
@@ -109,7 +110,7 @@ Google Ads needs two things LinkedIn does not:
    client account cannot issue one. Approval usually lands on **Explorer** access
    automatically (2,880 production ops/day).
 
-   **Explorer is not enough for `liam google keywords`.** Explorer blocks
+   **Explorer is not enough for `adwarp google keywords`.** Explorer blocks
    KeywordPlanService, so keyword research needs **Basic** access (15,000
    ops/day), which is a separate application on the same screen. Campaign
    creation and reporting work fine on Explorer.
@@ -144,7 +145,7 @@ Then write `~/.liads/google.json`:
 ```
 
 `loginCustomerId` is the manager account and is only needed when you reach the
-target account through one. Run `liam google auth login` and you are set.
+target account through one. Run `adwarp google auth login` and you are set.
 
 ## Packages
 
@@ -152,7 +153,7 @@ target account through one. Run `liam google auth login` and you are set.
 - `@liads/core`: LinkedIn REST client, resource modules, CSV + SHA256 hashing, Salesforce reader.
 - `@liads/google`: Google Ads REST client, GAQL reads, atomic mutate builder, Search campaign creation.
 - `@liads/mcp`: MCP server (stdio for local; reused by the hosted app). **Primary interface.**
-- `@liads/cli`: the `liam` CLI over the same engines, for scripted batch runs.
+- `@liads/cli`: the `adwarp` CLI over the same engines, for scripted batch runs.
 - `@liads/web`: Next.js app that hosts the MCP over HTTP on Vercel.
 
 ## How it works
@@ -165,9 +166,10 @@ auto-refreshing OAuth token provider, then calls a typed resource module
 `core/src/schemas.ts` and are reused verbatim as the MCP tool input schemas, so the CLI and
 MCP can never drift apart.
 
-The draft-only safety rule is enforced at creation: campaign groups, campaigns, and
-creatives are all written with `DRAFT` status, and there is deliberately no "activate"
-tool or command. Every write also passes through one HTTP chokepoint that appends to a
+The drafts-first safety rule is enforced at creation: campaign groups, campaigns, and
+creatives default to `DRAFT` status, and going live is always an explicit request (a
+`status` of `ACTIVE`, or `campaigns update --status ACTIVE --apply`). On Google, no
+create schema can express an enabled status at all. Every write also passes through one HTTP chokepoint that appends to a
 local change journal (`~/.liads/changelog.jsonl`) for later lift analysis.
 
 [AGENTS.md](./AGENTS.md) has the full architecture notes and the LinkedIn API gotchas
@@ -175,13 +177,13 @@ local change journal (`~/.liads/changelog.jsonl`) for later lift analysis.
 
 ## Install
 
-There are two ways to install Liam:
+There are two ways to install Adwarp:
 
 1. **[As an MCP server](#option-1-install-as-an-mcp-server)**, registered with Claude
    Code, Claude Desktop, Cursor, or any MCP client, so you create campaigns by talking
    to your assistant. Run it locally, or skip the always-on install entirely and
    [connect to the hosted endpoint with your own credentials](#hosted-mcp-connect-with-your-own-credentials-nothing-to-deploy).
-2. **[As a terminal CLI](#option-2-install-the-terminal-cli)**, a global `liam` command
+2. **[As a terminal CLI](#option-2-install-the-terminal-cli)**, a global `adwarp` command
    for running everything from your terminal, scripts, or cron.
 
 Both run against **your own LinkedIn developer app**, so your credentials and your ad
@@ -207,7 +209,7 @@ same `~/.liads` credentials.
    **Products → Advertising API → View Ad Accounts**. Skip this and `accounts list`
    comes back empty.
 
-**OAuth scopes.** `liam auth login` requests `rw_ads` (create and edit campaigns),
+**OAuth scopes.** `adwarp auth login` requests `rw_ads` (create and edit campaigns),
 `r_ads_reporting` (reporting), `rw_conversions` (conversion tracking), and
 `w_organization_social` (image ads create a post owned by your LinkedIn Page). If you add
 a product or scope later, run `auth login` again; a token refresh keeps only the scopes
@@ -218,8 +220,8 @@ you originally granted.
 Requires git, Node.js 20+, and pnpm.
 
 ```bash
-git clone https://github.com/stan-default/liam.git
-cd liam
+git clone https://github.com/adwarp-dev/adwarp.git
+cd adwarp
 pnpm install && pnpm -r build
 
 # App credentials (alternatively set LIADS_CLIENT_ID / LIADS_CLIENT_SECRET env vars)
@@ -237,7 +239,7 @@ Register the server with your MCP client; it reads the `~/.liads` credentials fr
 **Claude Code**
 
 ```bash
-claude mcp add liam -- node /abs/path/liam/packages/mcp/dist/index.js
+claude mcp add adwarp -- node /abs/path/adwarp/packages/mcp/dist/index.js
 ```
 
 **Claude Desktop, Cursor, or any MCP client**, in its MCP config JSON:
@@ -245,7 +247,7 @@ claude mcp add liam -- node /abs/path/liam/packages/mcp/dist/index.js
 ```json
 {
   "mcpServers": {
-    "liam": { "command": "node", "args": ["/abs/path/liam/packages/mcp/dist/index.js"] }
+    "adwarp": { "command": "node", "args": ["/abs/path/adwarp/packages/mcp/dist/index.js"] }
   }
 }
 ```
@@ -258,13 +260,14 @@ account do in the last 30 days?"
 The hosted MCP server at
 
 ```
-https://liam-mcp.vercel.app/api/mcp
+https://mcp.adwarp.dev/api/mcp
 ```
 
 is **multi-tenant, bring-your-own-credentials**: you pass your LinkedIn developer app's
 details as request headers, and every call runs against *your* app and *your* ad account.
 The server holds no state for you: credentials are used in memory to call LinkedIn and
-never logged or persisted.
+never logged or persisted. The original address, `https://liam-mcp.vercel.app/api/mcp`,
+still works and serves the same endpoint, so existing connections need no change.
 
 | Header | Value | Required? |
 | --- | --- | --- |
@@ -280,7 +283,7 @@ Then print the ready-to-run connect command:
 
 ```bash
 node packages/cli/dist/index.js auth export --mcp
-# claude mcp add --transport http liam https://liam-…vercel.app/api/mcp \
+# claude mcp add --transport http adwarp https://mcp.adwarp.dev/api/mcp \
 #   --header "X-Liads-Client-Id: …" \
 #   --header "X-Liads-Client-Secret: …" \
 #   --header "X-Liads-Refresh-Token: …" \
@@ -294,8 +297,8 @@ just a URL plus headers, usable from machines that never cloned this repo.
 
 Know the trade-off: your client secret and refresh token travel with every request to
 that server, so only point them at a deployment you trust, or self-host the identical
-endpoint (next section). The scopes they carry can manage ads but never activate them;
-the draft-only rule is enforced in the tool layer itself.
+endpoint (next section). The same scopes that manage ads can also switch them on,
+so treat these credentials like an ad account password.
 
 Hosted limitations (all by design, they need local resources): `upload_audience_csv`
 reads a CSV path on the server, `audience_from_salesforce` needs your local `sf` CLI,
@@ -326,7 +329,7 @@ get a private env-configured tenant:
    in the header:
 
 ```bash
-claude mcp add --transport http liam https://<your-app>.vercel.app/api/mcp \
+claude mcp add --transport http adwarp https://<your-app>.vercel.app/api/mcp \
   --header "Authorization: Bearer <MCP_AUTH_TOKEN>"
 ```
 
@@ -337,21 +340,24 @@ self-hosted instance can serve your whole team, each member on their own LinkedI
 ### Option 2: install the terminal CLI
 
 Step 1 already left a working CLI at `node packages/cli/dist/index.js`. To get a global
-`liam` command instead of the long `node` path:
+`adwarp` command instead of the long `node` path:
 
 ```bash
 cd packages/cli && pnpm link --global
-liam accounts list
+adwarp accounts list
 ```
 
-(No pnpm link? An alias works too: `alias liam="node /abs/path/liam/packages/cli/dist/index.js"`.)
+(No pnpm link? A shell alias works too: `alias adwarp="node /abs/path/adwarp/packages/cli/dist/index.js"`.)
+
+Coming from Liam? `liam` still works as an alias for `adwarp`: the link installs both
+names, so existing scripts and cron jobs keep running.
 
 A sensible first session:
 
 ```bash
-liam targeting search titles "demand generation"   # resolve targeting URNs
-liam report summary -p last_30_days                # account rollup + flags
-liam launch --brief examples/brief.json            # creates DRAFTS only
+adwarp targeting search titles "demand generation"   # resolve targeting URNs
+adwarp report summary -p last_30_days                # account rollup + flags
+adwarp launch --brief examples/brief.json            # creates DRAFTS only
 ```
 
 The full [CLI reference](#cli-reference) is below.
@@ -362,10 +368,10 @@ Copy the whole block into Claude (or any capable assistant with terminal access)
 will walk you through everything above, one step at a time:
 
 ```text
-You are helping me set up Liam, an open-source LinkedIn Ad Manager from
-https://github.com/stan-default/liam. It runs locally as an MCP server and a CLI.
-Everything it creates on LinkedIn is a draft, so nothing spends money until I
-activate it myself in Campaign Manager.
+You are helping me set up Adwarp, an open-source LinkedIn Ad Manager from
+https://github.com/adwarp-dev/adwarp. It runs locally as an MCP server and a CLI.
+Everything it creates on LinkedIn starts as a draft, so nothing spends money until I
+explicitly turn it on.
 
 Walk me through the setup one step at a time. Run commands for me where you can,
 show me exactly what to click where you cannot, and wait for my confirmation
@@ -373,7 +379,7 @@ before moving to the next step.
 
 1. Check that git, Node.js 20 or newer, and pnpm are installed. Help me install
    whatever is missing.
-2. Clone https://github.com/stan-default/liam and run "pnpm install" then
+2. Clone https://github.com/adwarp-dev/adwarp and run "pnpm install" then
    "pnpm -r build" in the repo root.
 3. Help me create a LinkedIn developer app at
    https://www.linkedin.com/developers/apps (it must be associated with my
@@ -395,7 +401,7 @@ before moving to the next step.
    Products > Advertising API > View Ad Accounts. Then set my account id as
    "defaultAccountId" in ~/.liads/config.json.
 7. Register the MCP server with the assistant I use:
-   - Claude Code: claude mcp add liam -- node <abs repo path>/packages/mcp/dist/index.js
+   - Claude Code: claude mcp add adwarp -- node <abs repo path>/packages/mcp/dist/index.js
    - Claude Desktop or another client: add {"command": "node", "args":
      ["<abs repo path>/packages/mcp/dist/index.js"]} under mcpServers in its config.
 8. Confirm the tools load, then show me one read-only call working, for example
@@ -404,9 +410,9 @@ before moving to the next step.
 If any step fails, show me the exact error and fix it with me before moving on.
 ```
 
-## Skills: playbooks on top of Liam
+## Skills: playbooks on top of Adwarp
 
-The [`skills/`](./skills) directory ships ten portable agent skills that turn Liam's
+The [`skills/`](./skills) directory ships ten portable agent skills that turn Adwarp's
 raw tools into opinionated workflows. Each encodes a methodology (what to pull, how to
 judge it, significance floors, caveats, a fixed report format) and works over MCP or
 the CLI. Analysis and monitoring skills are read-only; the operating skills create
@@ -442,7 +448,7 @@ See [skills/README.md](./skills/README.md) for details and conventions.
 - **Accounts:** `list_ad_accounts`
 - **Targeting:** `list_targeting_facets`, `search_targeting` (typeahead a facet for entity URNs),
   `list_facet_entities`, `estimate_audience` (structured spec). Talk in plain language
-  ("VPs of demand gen at SaaS companies in the US") and Liam resolves the facets and
+  ("VPs of demand gen at SaaS companies in the US") and Adwarp resolves the facets and
   estimates reach before building the campaign.
 - **Audiences:** `upload_audience_csv` (auto-cleans the CSV: normalizes column names, drops
   non-matcher columns, hashes emails, converts company domains to website URLs; supports both
@@ -464,11 +470,11 @@ See [skills/README.md](./skills/README.md) for details and conventions.
   No CLI or MCP code launches a local browser or falls back to scraping when the API fails.
   Supply both `advertiser` and `companyId` to filter broad API matches before queuing creatives.
   `api` mode is metadata only. `auto` queues at most 10 ads and returns cached results or job
-  status; use `get_competitor_creatives` / `liam creative-status <ids>` to read completed jobs.
+  status; use `get_competitor_creatives` / `adwarp creative-status <ids>` to read completed jobs.
   The worker persists its cache, queue, rolling budgets and block state. See
   [Remote creative worker](services/creative-worker/README.md) for deployment and configuration.
 - **Change journal & lift:** `log_ad_change` (record a change), `list_ad_changes`, `compute_lift`
-  (before-vs-after performance for each recorded change). Liam auto-journals every change it makes;
+  (before-vs-after performance for each recorded change). Adwarp auto-journals every change it makes;
   see [Change journal & lift](#change-journal--lift) below.
 
 ### Targeting spec
@@ -486,31 +492,31 @@ Structured targeting uses short facet names mapped to entity URNs (resolve URNs 
 All commands also work via `node packages/cli/dist/index.js <cmd>`.
 
 ```
-liam auth login                         # OAuth, stores tokens in ~/.liads
-liam auth export                        # print env vars for a self-hosted (Vercel) server
-liam auth export --mcp                  # print the hosted-MCP connect command with your headers
-liam accounts list                      # list accessible ad accounts
-liam targeting search <facet> <query>   # typeahead a facet for entity URNs
-liam targeting estimate <facet> <urns…> # audience size for one facet's URNs
-liam audience upload -n <name> -f <csv> # clean + upload a CSV as a matched audience
-liam audience upload -n <name> -f <csv> --dry-run   # preview the cleaned CSV, no upload
-liam audience from-salesforce -n <name> -q "<SOQL>"   # Salesforce query -> matched audience
-liam audience status <segmentId>        # matching status + resolved size
-liam conversions list                   # account conversions (pick one to track)
-liam campaigns list [--group <id>] [--all]   # campaign groups + ad groups, drafts included
-liam ad list <campaignId>               # ads in an ad group (id, status, name), drafts included
-liam ad delete <creativeId>             # delete an ad (creative + its DSC post)
-liam report summary [-p <period>]       # account rollup: totals, top performers, flags
-liam report perf <level> [--parent <id>] # per-entity KPI rows
-liam report trend <level> <id> [-b weekly|monthly]  # trend with deltas
-liam launch --brief <brief.json>        # audience + group + campaign + draft creatives
-liam competitor ads <advertiser>        # any company's ads from the public Ad Library
+adwarp auth login                         # OAuth, stores tokens in ~/.liads
+adwarp auth export                        # print env vars for a self-hosted (Vercel) server
+adwarp auth export --mcp                  # print the hosted-MCP connect command with your headers
+adwarp accounts list                      # list accessible ad accounts
+adwarp targeting search <facet> <query>   # typeahead a facet for entity URNs
+adwarp targeting estimate <facet> <urns…> # audience size for one facet's URNs
+adwarp audience upload -n <name> -f <csv> # clean + upload a CSV as a matched audience
+adwarp audience upload -n <name> -f <csv> --dry-run   # preview the cleaned CSV, no upload
+adwarp audience from-salesforce -n <name> -q "<SOQL>"   # Salesforce query -> matched audience
+adwarp audience status <segmentId>        # matching status + resolved size
+adwarp conversions list                   # account conversions (pick one to track)
+adwarp campaigns list [--group <id>] [--all]   # campaign groups + ad groups, drafts included
+adwarp ad list <campaignId>               # ads in an ad group (id, status, name), drafts included
+adwarp ad delete <creativeId>             # delete an ad (creative + its DSC post)
+adwarp report summary [-p <period>]       # account rollup: totals, top performers, flags
+adwarp report perf <level> [--parent <id>] # per-entity KPI rows
+adwarp report trend <level> <id> [-b weekly|monthly]  # trend with deltas
+adwarp launch --brief <brief.json>        # audience + group + campaign + draft creatives
+adwarp competitor ads <advertiser>        # any company's ads from the public Ad Library
                                         #   <advertiser> = name, company id, or company URL
                                         #   -k <keyword> -c <countries> -e auto|api -m <max> --json
                                         #   --company-id <id> --copy-max <n> (remote sample, max 10)
-liam changelog list [-t <type>] [-i <id>]           # recorded ad changes, newest first
-liam changelog add -t <type> -i <id> -f <field> --after <v> [-l <label>]   # log a change made elsewhere
-liam lift <level> <id> [-w <days>]      # before-vs-after performance for each recorded change
+adwarp changelog list [-t <type>] [-i <id>]           # recorded ad changes, newest first
+adwarp changelog add -t <type> -i <id> -f <field> --after <v> [-l <label>]   # log a change made elsewhere
+adwarp lift <level> <id> [-w <days>]      # before-vs-after performance for each recorded change
 ```
 
 Periods: `last_7_days`, `last_30_days`, `last_90_days`, `month_to_date`, `last_month`.
@@ -519,17 +525,17 @@ Periods: `last_7_days`, `last_30_days`, `last_90_days`, `month_to_date`, `last_m
 
 ## Change journal & lift
 
-Liam keeps an append-only journal of every change made to an ad entity so you can measure the
+Adwarp keeps an append-only journal of every change made to an ad entity so you can measure the
 **lift** of a change: how performance differed in the window before it versus after.
 
 - **Where it lives:** `~/.liads/changelog.jsonl` (one JSON object per line). A plain local
   file with nothing to set up. Override the path with `LIADS_CHANGELOG_PATH`.
-- **Auto-capture:** every create/update Liam makes to a campaign group, campaign, or creative is
+- **Auto-capture:** every create/update Adwarp makes to a campaign group, campaign, or creative is
   journaled automatically (captured at the one HTTP chokepoint, so it can't be forgotten).
-- **Manual entries:** log changes made outside Liam (e.g. in Campaign Manager), or attach a
-  hypothesis, with `liam changelog add` / the `log_ad_change` tool. Use `-l/--label` to name the
+- **Manual entries:** log changes made outside Adwarp (e.g. in Campaign Manager), or attach a
+  hypothesis, with `adwarp changelog add` / the `log_ad_change` tool. Use `-l/--label` to name the
   test (e.g. `"outcome-led headline test"`) and `--tags` to group related changes.
-- **Lift:** `liam lift <level> <entityId>` (or `compute_lift`) reads the journal for that entity
+- **Lift:** `adwarp lift <level> <entityId>` (or `compute_lift`) reads the journal for that entity
   and, for each change, compares the `--window` days before (default 14) against the same window
   after, reporting before/after KPIs and per-metric deltas (CTR, CPC, conversion rate,
   cost-per-conversion, …). Recent changes get a clamped, `partial` after-window.
@@ -556,14 +562,14 @@ OAuth tokens are stored separately in `~/.liads/credentials.json`.
 
 ## Salesforce integration
 
-Liam reads Salesforce by shelling out to the authenticated `sf` CLI (`sf data query`), so it
+Adwarp reads Salesforce by shelling out to the authenticated `sf` CLI (`sf data query`), so it
 reuses your existing login and needs no new credentials. `audience_from_salesforce` (and
-`liam audience from-salesforce`) take a SOQL query that selects an email column and turn the
+`adwarp audience from-salesforce`) take a SOQL query that selects an email column and turn the
 result into a matched audience, closing the loop from "accounts flagged in Salesforce" to
 "LinkedIn targeting." Example:
 
 ```
-liam audience from-salesforce -n "Q3 target accounts" \
+adwarp audience from-salesforce -n "Q3 target accounts" \
   -q "SELECT Email FROM Contact WHERE Account.Target_List__c = true AND Email != null"
 ```
 

@@ -27,7 +27,7 @@ const mcpHandler = createMcpHandler(
   // over per-request LinkedIn credentials, and Google credentials would come
   // from shared server env vars. See RegisterToolsOptions.
   (server) => registerTools(server as any, { google: false }),
-  { serverInfo: { name: "liam", version: "0.1.0" } },
+  { serverInfo: { name: "adwarp", version: "0.1.0" } },
   { basePath: "/api" },
 );
 

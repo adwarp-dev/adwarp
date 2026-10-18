@@ -17,7 +17,7 @@ export interface KeywordIdea {
 
 /**
  * Keyword research: volume, competition, and top-of-page bid range for seed
- * terms and/or a landing page. This is the Google analog of Liam's targeting
+ * terms and/or a landing page. This is the Google analog of Adwarp's targeting
  * search plus audience estimate — the sizing you do before committing budget.
  */
 export async function generateKeywordIdeas(

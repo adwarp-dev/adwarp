@@ -8,7 +8,7 @@ import { Runner } from '../runner.mjs';
 import { assertPageAllowed } from '../browser.mjs';
 
 function fixture(t) {
-  const dir = mkdtempSync(join(tmpdir(),'liam-worker-'));
+  const dir = mkdtempSync(join(tmpdir(),'adwarp-worker-'));
   const clock = { at: 1800000000000 };
   const store = new Store(join(dir,'test.sqlite'), () => clock.at);
   t.after(() => { try { store.close(); } catch {} rmSync(dir,{ recursive:true,force:true }); });

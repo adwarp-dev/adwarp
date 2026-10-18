@@ -7,7 +7,7 @@ import { z } from "zod";
  * The safety rule lives here, in the type system: there is no status field on
  * any create schema that can express ENABLED. Campaigns, ad groups, and ads are
  * created PAUSED and can only be switched on by a human in the Google Ads UI,
- * which is the same guarantee Liam gives on LinkedIn with DRAFT.
+ * which is the same guarantee Adwarp gives on LinkedIn with DRAFT.
  */
 
 /* -------------------------------- primitives -------------------------------- */

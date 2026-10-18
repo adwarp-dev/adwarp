@@ -24,7 +24,7 @@ export interface GoogleAdGroupSummary {
 
 /**
  * Account structure: campaigns with their ad groups nested, drafts and paused
- * included. The rough equivalent of `liam campaigns list`.
+ * included. The rough equivalent of `adwarp campaigns list`.
  */
 export async function listCampaigns(
   client: GoogleAdsClient,

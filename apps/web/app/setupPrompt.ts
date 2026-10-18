@@ -3,10 +3,10 @@
  * core steps; only the last mile differs (CLI usage vs registering the MCP
  * server). README.md carries a combined version of the same walkthrough.
  */
-const INTRO = `You are helping me set up Liam, an open-source LinkedIn Ads Manager from
-https://github.com/stan-default/liam. It runs locally as a CLI and an MCP server.
-Everything it creates on LinkedIn is a draft, so nothing spends money until I
-activate it myself in Campaign Manager.
+const INTRO = `You are helping me set up Adwarp, an open-source LinkedIn Ads Manager from
+https://github.com/adwarp-dev/adwarp. It runs locally as a CLI and an MCP server.
+Everything it creates on LinkedIn starts as a draft, so nothing spends money until I
+explicitly turn it on.
 
 Walk me through the setup one step at a time. Run commands for me where you can,
 show me exactly what to click where you cannot, and wait for my confirmation
@@ -14,7 +14,7 @@ before moving to the next step.
 
 1. Check that git, Node.js 20 or newer, and pnpm are installed. Help me install
    whatever is missing.
-2. Clone https://github.com/stan-default/liam and run "pnpm install" then
+2. Clone https://github.com/adwarp-dev/adwarp and run "pnpm install" then
    "pnpm -r build" in the repo root.
 3. Help me create a LinkedIn developer app at
    https://www.linkedin.com/developers/apps (it must be associated with my
@@ -42,16 +42,16 @@ If any step fails, show me the exact error and fix it with me before moving on.`
 
 export const CLI_SETUP_PROMPT = `${INTRO}
 7. Link the CLI globally with "cd packages/cli && pnpm link --global" so I can
-   run "liam" from anywhere, and confirm "liam accounts list" works.
-8. Show me a first session: "liam report summary -p last_30_days" and
-   "liam targeting search titles" with a title I care about.${OUTRO}`;
+   run "adwarp" from anywhere, and confirm "adwarp accounts list" works.
+8. Show me a first session: "adwarp report summary -p last_30_days" and
+   "adwarp targeting search titles" with a title I care about.${OUTRO}`;
 
-export const HOSTED_MCP_SETUP_PROMPT = `You are helping me connect to the hosted MCP endpoint of Liam, an
-open-source LinkedIn Ads Manager (https://github.com/stan-default/liam), at
-https://liam-mcp.vercel.app/api/mcp. I bring my own
+export const HOSTED_MCP_SETUP_PROMPT = `You are helping me connect to the hosted MCP endpoint of Adwarp, an
+open-source LinkedIn Ads Manager (https://github.com/adwarp-dev/adwarp), at
+https://mcp.adwarp.dev/api/mcp. I bring my own
 LinkedIn developer app credentials as request headers, so every call runs
-against my own LinkedIn ad account, and everything Liam creates is a draft
-that spends nothing until I activate it myself in Campaign Manager.
+against my own LinkedIn ad account, and everything Adwarp creates starts as a draft
+that spends nothing until I explicitly turn it on.
 
 Work one step at a time, run commands for me where you can, and wait for my
 confirmation before moving on.
@@ -62,14 +62,14 @@ confirmation before moving on.
    on the Auth tab add http://localhost:53682/callback as a redirect URL and
    show me where the Client ID and Client Secret live.
 2. Mint my refresh token, the one step that runs locally: clone
-   https://github.com/stan-default/liam, run "pnpm install" and "pnpm -r build",
+   https://github.com/adwarp-dev/adwarp, run "pnpm install" and "pnpm -r build",
    write my clientId and clientSecret into ~/.liads/config.json, then run
    "node packages/cli/dist/index.js auth login" and approve in the browser.
 3. Run "node packages/cli/dist/index.js auth export --mcp". It prints the
    exact "claude mcp add" command with my credentials as X-Liads headers.
    Run that command for me (or show me where to paste the headers in my MCP
    client's config if I am not on Claude Code).
-4. Confirm the liam tools load and show me one read-only call working, for
+4. Confirm the adwarp tools load and show me one read-only call working, for
    example list_ad_accounts. If my default account is missing, add an
    "X-Liads-Account-Id" header with my ad account id.
 
@@ -79,24 +79,24 @@ I can self-host the same endpoint on my own Vercel account if I prefer
 
 If a step fails, show me the exact error and fix it with me before moving on.`;
 
-export const MCP_SETUP_PROMPT = `You are helping me connect Liam, an open-source LinkedIn Ads Manager
-(https://github.com/stan-default/liam), to Claude as an MCP server. Everything
-it creates on LinkedIn is a draft, so nothing spends money until I activate it
-myself in Campaign Manager.
+export const MCP_SETUP_PROMPT = `You are helping me connect Adwarp, an open-source LinkedIn Ads Manager
+(https://github.com/adwarp-dev/adwarp), to Claude as an MCP server. Everything
+it creates on LinkedIn starts as a draft, so nothing spends money until I
+explicitly turn it on.
 
 Work one step at a time, run commands for me where you can, and wait for my
 confirmation before moving on.
 
 1. Register the MCP server:
-   - In Claude Code: claude mcp add liam -- node <abs repo path>/packages/mcp/dist/index.js
+   - In Claude Code: claude mcp add adwarp -- node <abs repo path>/packages/mcp/dist/index.js
    - For Claude Desktop or another MCP client, add {"command": "node", "args":
      ["<abs repo path>/packages/mcp/dist/index.js"]} under mcpServers in its
      config, and tell me where that config file lives on my machine.
-2. Confirm the liam tools load, then show me one read-only call working, for
+2. Confirm the adwarp tools load, then show me one read-only call working, for
    example list_ad_accounts or a last_30_days performance summary.
 
 Only if step 1 has nothing to point at yet, do the one-time install first:
-clone https://github.com/stan-default/liam, run "pnpm install" and
+clone https://github.com/adwarp-dev/adwarp, run "pnpm install" and
 "pnpm -r build", put the clientId and clientSecret from my LinkedIn developer
 app (Advertising API product, redirect URL http://localhost:53682/callback)
 in ~/.liads/config.json, then run "node packages/cli/dist/index.js auth login"

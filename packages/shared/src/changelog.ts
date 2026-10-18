@@ -44,7 +44,10 @@ export interface ChangeEvent {
   ts: string;
   /** Which ad platform the entity lives on. Absent on pre-multi-platform lines. */
   platform?: AdPlatform;
-  /** Who/what made the change. */
+  /**
+   * Who/what made the change. "liam" marks a change this tool captured itself; the value
+   * predates the Adwarp rename and stays frozen so existing journals keep parsing.
+   */
   source: "liam" | "manual";
   /** create = entity made; update = field(s) changed; note = freeform annotation. */
   kind: "create" | "update" | "note";

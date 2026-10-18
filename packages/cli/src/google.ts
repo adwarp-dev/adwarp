@@ -23,8 +23,8 @@ const pctf = (x: number) => `${(x * 100).toFixed(2)}%`;
 const money = (x: number) => x.toFixed(2);
 
 /**
- * The `liam google ...` command tree. Kept in its own module so the LinkedIn
- * CLI stays readable; both trees hang off the same `liam` binary because they
+ * The `adwarp google ...` command tree. Kept in its own module so the LinkedIn
+ * CLI stays readable; both trees hang off the same `adwarp` binary because they
  * share the change journal and, increasingly, the same weekly question.
  */
 export function registerGoogleCommands(program: Command): void {
