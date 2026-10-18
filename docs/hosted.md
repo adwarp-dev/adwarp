@@ -26,10 +26,10 @@ The original address, `https://liam-mcp.vercel.app/api/mcp`, still works and ser
 
 ## Connect
 
-Do the [LinkedIn app setup](./linkedin-app.md) and the [build and authenticate step](./install.md#build-and-authenticate) once. LinkedIn's OAuth consent has to happen in your browser, so minting the token is the only local step. Then print the ready-to-run connect command:
+Do the [LinkedIn app setup](./linkedin-app.md) and the [authenticate step](./install.md#authenticate) once. LinkedIn's OAuth consent has to happen in your browser, so minting the token is the only local step. Then print the ready-to-run connect command:
 
 ```bash
-node packages/cli/dist/index.js auth export --mcp
+npx -y adwarp auth export --mcp
 # claude mcp add --transport http adwarp https://mcp.adwarp.dev/api/mcp \
 #   --header "X-Liads-Client-Id: ..." \
 #   --header "X-Liads-Client-Secret: ..." \
@@ -61,7 +61,7 @@ The clean split for teams: your MCP client's config holds the credentials (the h
 
 Run your own instance so credentials never touch shared infrastructure, and so you also get a private, environment-configured tenant.
 
-1. Get your environment values locally: `node packages/cli/dist/index.js auth export`.
+1. Get your environment values locally: `npx -y adwarp auth export`.
 2. Deploy `apps/web` to Vercel, with the project Root Directory set to `apps/web`.
 3. In the Vercel project settings, add the environment variables that `auth export` printed (`LIADS_CLIENT_ID`, `LIADS_CLIENT_SECRET`, `LIADS_REFRESH_TOKEN`, `LIADS_LINKEDIN_VERSION`) plus a strong `MCP_AUTH_TOKEN`. In the Deployment Protection settings, disable Vercel Authentication for production (or add a protection-bypass secret), otherwise MCP clients cannot reach the endpoint.
 4. Your MCP endpoint is `https://<your-app>.vercel.app/api/mcp`. Connect with the secret in the header:
