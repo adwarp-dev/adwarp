@@ -57,8 +57,8 @@ export default function Privacy() {
             </li>
           </ul>
           <p>
-            Adwarp is operated by Default (default.com). There is no sign-up, no user account, and no
-            profile. We do not know who you are unless you email us.
+            Adwarp is operated by its maintainer, Stan Rymkiewicz. There is no sign-up, no user
+            account, and no profile. We do not know who you are unless you contact us.
           </p>
         </section>
 
@@ -192,7 +192,11 @@ export default function Privacy() {
           <p className="kicker">Contact</p>
           <h2>Questions, or a request about your data.</h2>
           <p>
-            Email <a href="mailto:stan@default.com">stan@default.com</a>. Because we hold no user
+            Open an issue on{" "}
+            <a href={`${REPO}/issues`} target="_blank" rel="noreferrer">
+              github.com/adwarp-dev/adwarp/issues
+            </a>
+            , and never paste credentials there. Because we hold no user
             accounts and no stored personal data, most requests resolve to deleting your local{" "}
             <code>~/.liads</code> directory and revoking the OAuth grant, both of which are entirely
             in your hands. If this policy changes, the date at the top of the page changes with it,

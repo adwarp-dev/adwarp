@@ -45,7 +45,8 @@ export default function Terms() {
           <h2>An ad manager you run against your own accounts.</h2>
           <p>
             Adwarp creates and reports on advertising campaigns on LinkedIn and Google Ads. It is
-            operated by Default (default.com). The source is published under the MIT licence at{" "}
+            operated by its maintainer, Stan Rymkiewicz. The source is published under the MIT licence
+            at{" "}
             <a href={REPO} target="_blank" rel="noreferrer">
               github.com/adwarp-dev/adwarp
             </a>
@@ -128,10 +129,9 @@ export default function Terms() {
             change means you accept it.
           </p>
           <p>
-            Questions about these terms: <a href="mailto:stan@default.com">stan@default.com</a>.
-            Bugs and feature requests are better raised as an issue on{" "}
-            <a href={REPO} target="_blank" rel="noreferrer">
-              GitHub
+            Questions about these terms, bugs and feature requests: open an issue on{" "}
+            <a href={`${REPO}/issues`} target="_blank" rel="noreferrer">
+              github.com/adwarp-dev/adwarp/issues
             </a>
             .
           </p>
