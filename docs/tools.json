@@ -1703,6 +1703,45 @@
     }
   },
   {
+    "name": "update_ad",
+    "platform": "linkedin",
+    "hosted": true,
+    "description": "Change a single ad's (creative's) status in place: PAUSED stops it serving, ACTIVE starts it serving, ARCHIVED retires it. Use PAUSED to stop an ad without touching the rest of its ad group. Accepts a numeric creative id or a full urn:li:sponsoredCreative URN. Setting ACTIVE starts spend, so set it only when the user explicitly asks to turn the ad on, never as a side effect of another request. An ACTIVE ad still only serves while its campaign (ad group) is ACTIVE. LinkedIn refuses to pause an ad that is still in review. Pass dryRun=true to preview the patch without sending it.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "accountId": {
+          "type": "string",
+          "description": "Numeric ad account id; defaults to the configured account"
+        },
+        "creativeId": {
+          "type": "string",
+          "description": "Numeric creative (ad) id or a full urn:li:sponsoredCreative URN"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "ACTIVE",
+            "PAUSED",
+            "ARCHIVED"
+          ],
+          "description": "PAUSED stops the ad serving. ACTIVE starts it serving and spending: set it only when the user explicitly asks. ARCHIVED retires it."
+        },
+        "dryRun": {
+          "type": "boolean",
+          "default": false,
+          "description": "Return the patch without sending it"
+        }
+      },
+      "required": [
+        "creativeId",
+        "status"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  },
+  {
     "name": "update_campaign",
     "platform": "linkedin",
     "hosted": true,

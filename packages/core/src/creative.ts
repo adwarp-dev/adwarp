@@ -1,7 +1,7 @@
 import { LinkedInApiError, type LinkedInClient, type TokenProvider } from "./http.js";
-import type { SponsoredImageCreativeInput } from "./schemas.js";
+import type { AdStatus, AdUpdateInput, SponsoredImageCreativeInput } from "./schemas.js";
 import { uploadImage } from "./resources/images.js";
-import { createInlineImageCreative, deleteCreative, getCreative } from "./resources/creatives.js";
+import { createInlineImageCreative, deleteCreative, getCreative, setCreativeStatus } from "./resources/creatives.js";
 import { creativeUrn } from "./urns.js";
 
 export interface DraftCreativeResult {
@@ -106,4 +106,32 @@ export async function deleteAd(
     }
   }
   return { creativeId: urn, postUrn, postDeleted };
+}
+
+export interface AdUpdateResult {
+  /** The ad's full urn:li:sponsoredCreative URN. */
+  creativeId: string;
+  intendedStatus: AdStatus;
+  /** True when dryRun: the patch was built and returned but NOT sent. */
+  dryRun?: boolean;
+  /** The PARTIAL_UPDATE $set payload (returned on a dry run). */
+  patch?: Record<string, unknown>;
+}
+
+/**
+ * Pause, resume, or archive a single ad by patching the creative's
+ * `intendedStatus`. A creative's status is independent of its campaign's, but a
+ * campaign that is not ACTIVE still keeps an ACTIVE ad from serving. LinkedIn
+ * refuses (400) to pause a creative that is still in review. With dryRun the
+ * patch is returned but not sent.
+ */
+export async function updateAd(
+  client: LinkedInClient,
+  input: AdUpdateInput & { accountId: string },
+): Promise<AdUpdateResult> {
+  const urn = input.creativeId.startsWith("urn:") ? input.creativeId : creativeUrn(input.creativeId);
+  const patch = { intendedStatus: input.status };
+  if (input.dryRun) return { creativeId: urn, intendedStatus: input.status, dryRun: true, patch };
+  await setCreativeStatus(client, input.accountId, urn, input.status);
+  return { creativeId: urn, intendedStatus: input.status };
 }

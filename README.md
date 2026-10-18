@@ -32,7 +32,7 @@ handles today, roughly in the order a campaign comes together:
   public Ad Library: copy, formats, and EU targeting metadata for any company)
 - "How did retargeting do last month vs the month before?" (trend report with deltas)
 - "Which ads should I pause this week?" (account rollup with top/bottom performers and
-  flags)
+  flags, then pauses the ads you pick, leaving the rest of each ad group running)
 - "Rewrite the copy on the losing ad." (delete + recreate as a fresh draft; LinkedIn
   ignores edits to a live ad's post)
 - "Did the new headline actually help?" (change journal + before/after lift)
@@ -169,7 +169,7 @@ MCP can never drift apart.
 
 The drafts-first safety rule is enforced at creation: campaign groups, campaigns, and
 creatives default to `DRAFT` status, and going live is always an explicit request (a
-`status` of `ACTIVE`, or `campaigns update --status ACTIVE --apply`). On Google, no
+`status` of `ACTIVE`, `campaigns update --status ACTIVE --apply`, or `ad resume --apply`). On Google, no
 create schema can express an enabled status at all. Every write also passes through one HTTP chokepoint that appends to a
 local change journal (`~/.adwarp/changelog.jsonl`) for later lift analysis.
 
@@ -472,8 +472,10 @@ See [skills/README.md](./skills/README.md) for details and conventions.
 - **Campaigns:** `create_campaign_group`, `create_campaign`, `create_text_ad`, `create_image_ad`;
   `list_campaigns` (the account structure: campaign groups and their ad groups, **drafts
   included**, unlike reporting which only shows entities with spend), `list_ads`, `delete_ad`
-  (removes the creative and best-effort its Direct Sponsored Content post). LinkedIn's editor
-  ignores post edits on a live ad, so to change copy you recreate: `delete_ad` + `create_image_ad`.
+  (removes the creative and best-effort its Direct Sponsored Content post), `update_ad`
+  (pause, resume, or archive a single ad; `ACTIVE` starts spend, so it is set only on an
+  explicit request). LinkedIn's editor ignores post edits on a live ad, so to change copy you
+  recreate: `delete_ad` + `create_image_ad`.
 - **Orchestrator:** `launch_from_brief` (audience + group + campaign + draft creatives in one call)
 - **Reporting:** `performance_summary` (account rollup + top/bottom + flags), `get_performance`
   (per-entity KPIs at any level), `performance_trend` (weekly/monthly with deltas). KPIs: CTR,
@@ -519,6 +521,9 @@ adwarp conversions list                   # account conversions (pick one to tra
 adwarp campaigns list [--group <id>] [--all]   # campaign groups + ad groups, drafts included
 adwarp ad list <campaignId>               # ads in an ad group (id, status, name), drafts included
 adwarp ad delete <creativeId>             # delete an ad (creative + its DSC post)
+adwarp ad pause <creativeId> [--apply]    # pause a single ad, previews unless --apply
+adwarp ad resume <creativeId> [--apply]   # set an ad ACTIVE again (starts spend), previews unless --apply
+adwarp ad archive <creativeId> [--apply]  # archive an ad, previews unless --apply
 adwarp report summary [-p <period>]       # account rollup: totals, top performers, flags
 adwarp report perf <level> [--parent <id>] # per-entity KPI rows
 adwarp report trend <level> <id> [-b weekly|monthly]  # trend with deltas

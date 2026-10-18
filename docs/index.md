@@ -20,7 +20,7 @@ Once Adwarp is connected, you talk to your assistant in plain language. These ar
 - "Launch a draft campaign for that audience, $100/day, tracking the demo-booked conversion." The campaign group, campaign, and draft ads are created in a single call.
 - "What ads is HubSpot running right now, and what offers are they pushing?" Adwarp reads the public Ad Library: copy, formats, and EU targeting metadata for any company.
 - "How did retargeting do last month compared to the month before?" You get a trend report with deltas.
-- "Which ads should I pause this week?" You get an account rollup with top and bottom performers and flags.
+- "Which ads should I pause this week?" You get an account rollup with top and bottom performers and flags. Name the ads to pause and Adwarp pauses each of them, leaving the rest of the ad group running.
 - "Rewrite the copy on the losing ad." Adwarp deletes the ad and recreates it as a fresh draft, because LinkedIn ignores edits to a live ad's post.
 - "Did the new headline actually help?" The change journal measures before and after lift.
 

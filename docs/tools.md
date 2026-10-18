@@ -39,6 +39,7 @@ Talk in plain language ("VPs of demand gen at SaaS companies in the US") and Adw
 - `list_campaigns`: the account structure, campaign groups and their ad groups, with drafts included, unlike reporting, which only shows entities with spend.
 - `list_ads`: the ads in an ad group, drafts included.
 - `delete_ad`: removes the creative and, best effort, its Direct Sponsored Content post.
+- `update_ad`: pauses, resumes, or archives a single ad by setting its `status` to `PAUSED`, `ACTIVE`, or `ARCHIVED`, without touching the rest of its ad group. Setting `ACTIVE` starts spend, so the assistant sets it only when you explicitly ask. An `ACTIVE` ad serves only while its ad group is active, and LinkedIn refuses to pause an ad that is still in review. Pass `dryRun` first to preview the patch.
 
 LinkedIn's editor ignores post edits on a live ad, so to change copy you recreate it: `delete_ad` plus `create_image_ad`.
 

@@ -48,6 +48,9 @@ adwarp campaigns get <campaignId>         # an ad group's status, name, and curr
 adwarp campaigns update <campaignId> ... [--apply]   # change an ad group in place, previews unless --apply
 adwarp ad list <campaignId>               # ads in an ad group (id, status, name), drafts included
 adwarp ad delete <creativeId>             # delete an ad (creative and its Direct Sponsored Content post)
+adwarp ad pause <creativeId> [--apply]    # pause a single ad, previews unless --apply
+adwarp ad resume <creativeId> [--apply]   # set an ad ACTIVE again (starts spend), previews unless --apply
+adwarp ad archive <creativeId> [--apply]  # archive an ad, previews unless --apply
 adwarp report summary [-p <period>]       # account rollup: totals, top performers, flags
 adwarp report perf <level> [--parent <id>] [-p <period>]   # per-entity metric rows
 adwarp report trend <level> <id> [-b weekly|monthly] [-p <period>]   # trend with deltas

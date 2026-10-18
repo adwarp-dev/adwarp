@@ -440,8 +440,10 @@ adwarp launch --brief examples/brief.json            # creates DRAFTS only`}</pr
                     <code>create_campaign_group</code>, <code>create_campaign</code>,{" "}
                     <code>create_text_ad</code>, <code>create_image_ad</code>,{" "}
                     <code>list_campaigns</code> (drafts included, unlike reporting),{" "}
-                    <code>list_ads</code>, <code>delete_ad</code>. LinkedIn ignores post edits on
-                    a live ad, so to change copy you recreate: delete plus create.
+                    <code>list_ads</code>, <code>delete_ad</code>, <code>update_ad</code> (pause,
+                    resume, or archive a single ad; ACTIVE starts spend, so it is set only on an
+                    explicit request). LinkedIn ignores post edits on a live ad, so to change copy
+                    you recreate: delete plus create.
                   </td>
                 </tr>
                 <tr>
@@ -505,6 +507,9 @@ adwarp conversions list                   # account conversions (pick one to tra
 adwarp campaigns list [--group <id>]      # campaign groups + ad groups, drafts included
 adwarp ad list <campaignId>               # ads in an ad group, drafts included
 adwarp ad delete <creativeId>             # delete an ad (creative + its DSC post)
+adwarp ad pause <creativeId> [--apply]    # pause a single ad, previews unless --apply
+adwarp ad resume <creativeId> [--apply]   # set an ad ACTIVE again (starts spend), previews unless --apply
+adwarp ad archive <creativeId> [--apply]  # archive an ad, previews unless --apply
 adwarp report summary [-p <period>]       # account rollup: totals, top performers, flags
 adwarp report perf <level> [--parent <id>] # per-entity KPI rows
 adwarp report trend <level> <id> [-b weekly|monthly]  # trend with deltas

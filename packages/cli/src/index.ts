@@ -31,6 +31,9 @@ import {
   listCampaigns,
   listCreatives,
   deleteAd,
+  updateAd,
+  getCreative,
+  type AdStatus,
   getCampaign,
   updateCampaign,
   adSegmentUrn,
@@ -583,6 +586,40 @@ ad
     const res = await deleteAd(linkedinAds.client, accountId, creativeId);
     console.log(`Deleted ${res.creativeId}` + (res.postUrn ? ` (post ${res.postUrn}${res.postDeleted ? " deleted" : " left in place"})` : ""));
   });
+
+/** `ad pause|resume|archive`: set a single ad's status. Previews by default, like `campaigns update`. */
+function adStatusCommand(name: string, status: AdStatus, description: string) {
+  ad
+    .command(`${name} <creativeId>`)
+    .description(`${description} Previews by default; add --apply to send.`)
+    .option("--account <accountId>", "ad account id (defaults to config)")
+    .option("--apply", `actually ${name} the ad (otherwise just preview the patch)`)
+    .action(async (creativeId, opts) => {
+      const linkedinAds = await createLinkedInAds();
+      const accountId = opts.account ?? (await requireDefaultAccountId());
+      const res = await updateAd(linkedinAds.client, { accountId, creativeId, status, dryRun: !opts.apply });
+      if (!res.dryRun) {
+        console.log(`Set ad ${res.creativeId} to ${res.intendedStatus}.`);
+        return;
+      }
+      // Name the ad and its current status, so the preview shows what would change.
+      try {
+        const c = await getCreative(linkedinAds.client, accountId, res.creativeId);
+        console.log(`${res.creativeId}\t${String(c.intendedStatus ?? "")}\t${String(c.name ?? "") || "(unnamed)"}`);
+        if (status === "ACTIVE" && c.intendedStatus === "DRAFT") {
+          console.log("This ad is a DRAFT: ACTIVE submits it for LinkedIn review, and it serves once approved.");
+        }
+      } catch (e) {
+        console.log(`(could not read the ad: ${e instanceof Error ? e.message : e})`);
+      }
+      console.log(`\nDRY RUN, nothing sent. Patch: ${JSON.stringify(res.patch)}`);
+      if (status === "ACTIVE") console.log("ACTIVE starts the ad serving and spending while its ad group is active.");
+      console.log(`Re-run with --apply to ${name} it.`);
+    });
+}
+adStatusCommand("pause", "PAUSED", "Pause a single ad (sets it PAUSED) so it stops serving.");
+adStatusCommand("resume", "ACTIVE", "Resume an ad (sets it ACTIVE), which starts spend.");
+adStatusCommand("archive", "ARCHIVED", "Archive an ad (sets it ARCHIVED).");
 
 program.command("creative-status <ids>")
   .description("Read remote creative jobs without visiting LinkedIn; comma-separated ad IDs")
