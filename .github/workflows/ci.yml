@@ -27,3 +27,25 @@ jobs:
             exit 1
           fi
       - run: pnpm -r typecheck
+      - name: Pack the npm package and test it from a clean install
+        run: |
+          cd packages/adwarp
+          pnpm pack --pack-destination "$RUNNER_TEMP"
+          node scripts/smoke.mjs "$RUNNER_TEMP"/adwarp-*.tgz
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      # Only the smoke test's MCP client; the image builds its own copy.
+      - run: pnpm install --frozen-lockfile --filter adwarp
+      - run: docker build -t adwarp .
+      - name: Start the image with docker run and list its tools over MCP
+        run: node packages/adwarp/scripts/smoke.mjs --docker adwarp
