@@ -27,7 +27,7 @@ Adwarp hard-codes 3 house rules, because all 3 default the wrong way in the Goog
 - Physical presence only. "US" means people in the US, not people anywhere who searched about it.
 - Manual CPC to start. Smart bidding with no conversion history spends unpredictably. Switch in the UI once there is data.
 
-Google has no draft status, so campaigns, ad groups, and ads are created paused, and no create schema can express any other status. There is no activate tool. Activation is a human step in the Google Ads UI.
+Google has no draft status, so campaigns, ad groups, and ads are created paused, and no create schema can express any other status. There is no Google Ads activate tool. Activation is a human step in the Google Ads UI.
 
 ## Setup
 
