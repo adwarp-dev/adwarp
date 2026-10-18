@@ -275,7 +275,7 @@ export const LaunchFromBriefSchema = z.object({
   /** Existing conversion ids to associate with the campaign. */
   conversionIds: z.array(z.string()).optional(),
   /** Or select an existing conversion by name (resolved to its id). */
-  conversionName: z.string().optional().describe("e.g. 'Default Meeting Booked - Insight Tag'"),
+  conversionName: z.string().optional().describe("e.g. 'Demo Booked - Insight Tag'"),
   /** Ad rotation for the campaign. Omit for LinkedIn's default (OPTIMIZED). */
   creativeSelection: CreativeSelectionSchema.optional(),
   creatives: z.array(z.union([TextAdCreativeSchema.omit({ accountId: true, campaignId: true }), SponsoredImageCreativeSchema.omit({ accountId: true, campaignId: true })])).optional(),

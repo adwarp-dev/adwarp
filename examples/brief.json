@@ -17,7 +17,7 @@
       "organizationUrn": "urn:li:organization:REPLACE_WITH_ORG_ID",
       "commentary": "The fastest way to put your GTM data to work. See how teams automate routing, enrichment, and outbound in one place.",
       "headline": "Automate your go-to-market motion",
-      "clickUri": "https://www.default.com",
+      "clickUri": "https://example.com",
       "status": "DRAFT"
     }
   ]
