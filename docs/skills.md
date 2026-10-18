@@ -12,32 +12,32 @@ Analysis and monitoring skills are read-only. The operating skills create drafts
 
 | Skill | Ask it | What you get |
 | --- | --- | --- |
-| `liam-spend` | "Analyze my spend" | budget concentration, wasted spend, reallocation moves |
-| `liam-performance` | "How are my ads doing?" | winners, losers, fatigue, actions |
-| `liam-leads` | "Which ads drive leads, which don't?" | drivers, a pause list, copy angle patterns |
-| `liam-competitors` | "What is `<company>` running?" | an Ad Library teardown and gaps |
+| `adwarp-spend` | "Analyze my spend" | budget concentration, wasted spend, reallocation moves |
+| `adwarp-performance` | "How are my ads doing?" | winners, losers, fatigue, actions |
+| `adwarp-leads` | "Which ads drive leads, which don't?" | drivers, a pause list, copy angle patterns |
+| `adwarp-competitors` | "What is `<company>` running?" | an Ad Library teardown and gaps |
 
 ## Monitor
 
 | Skill | Ask it | What you get |
 | --- | --- | --- |
-| `liam-weekly` | "Weekly snapshot" | a fixed-format week-over-week digest, schedule-friendly |
-| `liam-health` | "Anything on fire?" | silent-unless-fire daily guardrails, 1 line when all is clear |
+| `adwarp-weekly` | "Weekly snapshot" | a fixed-format week-over-week digest, schedule-friendly |
+| `adwarp-health` | "Anything on fire?" | silent-unless-fire daily guardrails, 1 line when all is clear |
 
 ## Operate
 
 | Skill | Ask it | What you get |
 | --- | --- | --- |
-| `liam-launch` | "Launch a campaign" | a brief turned into a confirmed draft, with house guardrails applied |
-| `liam-experiments` | "Did that change help?" | hypothesis logging plus before and after lift |
-| `liam-audiences` | "Audit my audiences" | health, dry-run uploads, a Salesforce refresh loop |
-| `liam-account-audit` | "Is my account set up right?" | a hygiene scorecard and fix list |
+| `adwarp-launch` | "Launch a campaign" | a brief turned into a confirmed draft, with house guardrails applied |
+| `adwarp-experiments` | "Did that change help?" | hypothesis logging plus before and after lift |
+| `adwarp-audiences` | "Audit my audiences" | health, dry-run uploads, a Salesforce refresh loop |
+| `adwarp-account-audit` | "Is my account set up right?" | a hygiene scorecard and fix list |
 
 ## Google Ads
 
 | Skill | Ask it | What you get |
 | --- | --- | --- |
-| `gads-launch` | "Launch a Google search campaign for..." | keyword research with volume and bid ranges, house guardrails, a server-side dry run, a confirmed paused campaign |
+| `adwarp-gads-launch` | "Launch a Google search campaign for..." | keyword research with volume and bid ranges, house guardrails, a server-side dry run, a confirmed paused campaign |
 
 ## Install
 
@@ -47,5 +47,7 @@ Analysis and monitoring skills are read-only. The operating skills create drafts
 ```
 
 Symlinks keep the skills in lockstep with the repo, so a `git pull` updates them in place. Restart your Claude Code session afterwards so it discovers the new skills. Set `CLAUDE_SKILLS_DIR` to install somewhere other than `~/.claude/skills`.
+
+Installed the skills before the rename? The old `liam-*` and `gads-launch` names stay in the repo as links to the renamed skills, so your install keeps working. Run `./skills/install.sh` again to switch it to the `adwarp-*` names.
 
 To build your own playbook for the [hosted endpoint](./hosted.md#put-a-skill-on-top), copy a skill and swap in your defaults. Credentials never belong in a skill file.

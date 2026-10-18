@@ -1,33 +1,33 @@
 ---
-name: liam-competitors
-description: Research any company's LinkedIn ads through Liam's Ad Library integration and synthesize how their account is run. Messaging themes, offers and CTAs, format mix, cadence, EU impression and targeting data, plus gaps worth exploiting. Single competitor or side-by-side. Use for "what ads is X running", "research competitors", "competitor ad teardown", "compare our ads to theirs".
+name: adwarp-competitors
+description: Research any company's LinkedIn ads through Adwarp's Ad Library integration and synthesize how their account is run. Messaging themes, offers and CTAs, format mix, cadence, EU impression and targeting data, plus gaps worth exploiting. Single competitor or side-by-side. Use for "what ads is X running", "research competitors", "competitor ad teardown", "compare our ads to theirs".
 ---
 
-# Liam: competitor ad research
+# Adwarp: competitor ad research
 
 The deliverable is a strategy read, never the ad list itself. Read the copy, formats,
 targeting, and cadence, then explain how the competitor runs their account and what
 that means for the user's own ads.
 
-## How to reach Liam
+## How to reach Adwarp
 
-Prefer the `liam` MCP tool `inspect_competitor_ads` if loaded. Otherwise the CLI:
-`liam competitor ads <advertiser>` (or `node <liam-repo>/packages/cli/dist/index.js
+Prefer the Adwarp MCP tool `inspect_competitor_ads` if loaded. Otherwise the CLI:
+`adwarp competitor ads <advertiser>` (or `npx -y adwarp
 competitor ads ...`). No ad-account access is needed; this reads the public LinkedIn
 Ad Library.
 
 ## Getting the right ads
 
 - **Name plus company id.** Name searches include unrelated advertisers. Supply both
-  advertiser name and verified numeric companyId. The API searches by name and Liam
+  advertiser name and verified numeric companyId. The API searches by name and Adwarp
   filters the returned advertiser URL before queuing any creative work. Example:
-  `liam competitor ads Ramp --company-id 1406226 --max 100 --copy-max 10 --json`.
+  `adwarp competitor ads Ramp --company-id 1406226 --max 100 --copy-max 10 --json`.
   Total reported is the broad API query total, not an exact-company or active-ad count.
 - **Engines.** `api` returns metadata. `auto` adds cached copy/screenshots from a remote
   creative worker or queues missing ads. Local scraping is disabled, including fallback.
-  Configure LIADS_CREATIVE_WORKER_URL and LIADS_CREATIVE_WORKER_TOKEN on the CLI/MCP host.
+  Configure ADWARP_CREATIVE_WORKER_URL and ADWARP_CREATIVE_WORKER_TOKEN on the CLI/MCP host.
 - **Coverage.** Read up to 10 sampled creatives. Pending work is asynchronous: use
-  `get_competitor_creatives` with IDs, or `liam creative-status id1,id2`, to check it.
+  `get_competitor_creatives` with IDs, or `adwarp creative-status id1,id2`, to check it.
   Status reads never visit LinkedIn or enqueue more work. Poll at reasonable intervals.
   Do not rerun discovery just to wait for copy. Report collection dates, sample coverage,
   missing copy, and whether a screenshot is a preview rather than a complete video.

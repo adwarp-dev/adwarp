@@ -51,7 +51,7 @@ const BRIEF = {
   campaignName: "RevOps automation - Search",
   dailyBudget: 150,
   cpcBid: 12,
-  finalUrl: "https://default.com/platform",
+  finalUrl: "https://www.example.com/product",
   conversionActionNames: ["Salesforce Opp (Zapier)"],
   negativeKeywords: [{ text: "jobs", matchType: "BROAD" }],
   adGroups: [
@@ -201,7 +201,7 @@ test("responsive search ads are shaped the way Google expects", async () => {
   assert.equal(rsa.descriptions.length, 2);
   assert.equal(rsa.path1, "platform");
   assert.equal(second.ad.responsiveSearchAd.path1, undefined, "empty paths are omitted, not sent as ''");
-  assert.deepEqual(first.ad.finalUrls, ["https://default.com/platform"]);
+  assert.deepEqual(first.ad.finalUrls, ["https://www.example.com/product"]);
 });
 
 test("targeting constants resolve rather than being hard-coded", async () => {

@@ -36,7 +36,7 @@ creates drafts, and nothing spends until you activate it.
   presence geo targeting, Manual CPC. Plus keyword research with volume, competition, and
   top-of-page bid ranges; conversion-action lookup; account structure; and GAQL reporting at
   campaign, ad group, ad, keyword, and search-term level. CLI `adwarp google ...`, MCP `gads_*`,
-  skill `gads-launch`.
+  skill `adwarp-gads-launch`.
 
 ## Planned
 

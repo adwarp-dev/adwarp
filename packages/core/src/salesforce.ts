@@ -25,7 +25,7 @@ export async function soql<T = Record<string, unknown>>(
 
 /**
  * Phase 3 helper: pull email addresses for accounts flagged in Salesforce, to feed
- * a matched audience. Customize the SOQL to Default's schema (field/list names).
+ * a matched audience. Customize the SOQL to your org's schema (field and list names).
  */
 export async function emailsForFlaggedAccounts(flagField: string): Promise<string[]> {
   const records = await soql<{ Email?: string }>(

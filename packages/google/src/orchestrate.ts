@@ -10,8 +10,8 @@ import type { SearchCampaignBriefInput, KeywordInput } from "./schemas.js";
  *
  * These are the two settings that quietly waste the most B2B budget on Google,
  * and both default the wrong way in the UI. They are constants, not options,
- * for the same reason Adwarp has no activate tool: the guardrail is worth more
- * than the flexibility.
+ * for the same reason Google campaigns can only be switched on in the Google Ads UI:
+ * the guardrail is worth more than the flexibility.
  */
 export const NETWORK_SETTINGS = {
   targetGoogleSearch: true,
