@@ -1,0 +1,114 @@
+name: Release
+
+# Runs on a version tag pushed from main, after `pnpm set-version <x.y.z>` has merged:
+#   git tag v0.2.0 && git push origin v0.2.0
+# Publishes the npm package, creates the GitHub release, publishes server.json to the
+# official MCP Registry, and rebuilds adwarp.dev. Every publish step skips work that is
+# already done, so a failed run can be re-run as is.
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: write # create the GitHub release
+  id-token: write # npm trusted publishing and the MCP Registry's GitHub login
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+env:
+  MCP_PUBLISHER_VERSION: v1.8.1
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+      - name: npm 11.5.1 or newer, for trusted publishing
+        run: npm install -g npm@^11.5.1
+
+      - name: Check the tag is on main and matches the release version
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "::error::$GITHUB_REF_NAME does not point at a commit on main."
+            exit 1
+          fi
+          PACKAGE_VERSION=$(node -p "require('./packages/adwarp/package.json').version")
+          if [ "$VERSION" != "$PACKAGE_VERSION" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match packages/adwarp/package.json ($PACKAGE_VERSION). Run 'pnpm set-version $VERSION' and merge that first."
+            exit 1
+          fi
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - run: pnpm install --frozen-lockfile
+      # Also checks that package.json, @liads/shared and server.json agree on the version.
+      - run: pnpm -r build
+      - run: pnpm -r typecheck
+      - name: Pack the npm package and test it from a clean install
+        run: |
+          mkdir -p "$RUNNER_TEMP/pkg"
+          cd packages/adwarp
+          pnpm pack --pack-destination "$RUNNER_TEMP/pkg"
+          node scripts/smoke.mjs "$RUNNER_TEMP/pkg/adwarp-$VERSION.tgz"
+
+      # Uses npm trusted publishing (OIDC) when it is configured for the package,
+      # and falls back to the NPM_TOKEN secret otherwise.
+      - name: Publish to npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if npm view "adwarp@$VERSION" version > /dev/null 2>&1; then
+            echo "adwarp@$VERSION is already on npm."
+          else
+            npm publish "$RUNNER_TEMP/pkg/adwarp-$VERSION.tgz" --access public
+          fi
+
+      - name: Create the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
+            echo "The $GITHUB_REF_NAME release already exists."
+            exit 0
+          fi
+          # A hand-written summary in .github/release-notes/<tag>.md goes above the
+          # generated list of merged pull requests.
+          NOTES=".github/release-notes/$GITHUB_REF_NAME.md"
+          set -- "$GITHUB_REF_NAME" "$RUNNER_TEMP/pkg/adwarp-$VERSION.tgz" \
+            --verify-tag --title "Adwarp $VERSION" --generate-notes
+          if [ -f "$NOTES" ]; then set -- "$@" --notes-file "$NOTES"; fi
+          gh release create "$@"
+
+      - name: Publish to the MCP Registry
+        run: |
+          if curl -sf -o /dev/null "https://registry.modelcontextprotocol.io/v0.1/servers/io.github.adwarp-dev%2Fadwarp/versions/$VERSION"; then
+            echo "io.github.adwarp-dev/adwarp $VERSION is already in the MCP Registry."
+            exit 0
+          fi
+          curl -sSfL "https://github.com/modelcontextprotocol/registry/releases/download/$MCP_PUBLISHER_VERSION/mcp-publisher_linux_amd64.tar.gz" | tar xz mcp-publisher
+          ./mcp-publisher login github-oidc
+          ./mcp-publisher publish
+
+      - name: Rebuild adwarp.dev
+        env:
+          WEBSITE_DEPLOY_HOOK: ${{ secrets.WEBSITE_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$WEBSITE_DEPLOY_HOOK" ]; then
+            echo "::warning::WEBSITE_DEPLOY_HOOK is not set, so adwarp.dev was not rebuilt."
+            exit 0
+          fi
+          curl -sSf -X POST "$WEBSITE_DEPLOY_HOOK" > /dev/null
+          echo "Triggered an adwarp.dev rebuild."

@@ -1,0 +1,95 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.adwarp-dev/adwarp",
+  "title": "Adwarp",
+  "description": "Open-source ad agent for LinkedIn Ads and Google Ads. Drafts campaigns, audiences and reports.",
+  "websiteUrl": "https://adwarp.dev",
+  "repository": {
+    "url": "https://github.com/adwarp-dev/adwarp",
+    "source": "github",
+    "id": "1269596073"
+  },
+  "version": "0.2.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "adwarp",
+      "version": "0.2.0",
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      },
+      "packageArguments": [
+        {
+          "type": "positional",
+          "value": "mcp",
+          "description": "Starts the MCP server on stdio"
+        }
+      ],
+      "environmentVariables": [
+        {
+          "name": "LIADS_CLIENT_ID",
+          "description": "LinkedIn app Client ID. Leave unset to use ~/.liads from adwarp auth login",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "LIADS_CLIENT_SECRET",
+          "description": "LinkedIn app Client Secret. Leave unset to use ~/.liads",
+          "isRequired": false,
+          "isSecret": true
+        },
+        {
+          "name": "LIADS_REFRESH_TOKEN",
+          "description": "Refresh token from adwarp auth login. Leave unset to use ~/.liads",
+          "isRequired": false,
+          "isSecret": true
+        },
+        {
+          "name": "LIADS_DEFAULT_ACCOUNT_ID",
+          "description": "LinkedIn ad account used when a call omits one",
+          "isRequired": false,
+          "isSecret": false
+        }
+      ]
+    }
+  ],
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.adwarp.dev/api/mcp",
+      "headers": [
+        {
+          "name": "X-Liads-Client-Id",
+          "description": "Your LinkedIn app Client ID",
+          "isRequired": true,
+          "isSecret": false
+        },
+        {
+          "name": "X-Liads-Client-Secret",
+          "description": "Your LinkedIn app Client Secret",
+          "isRequired": true,
+          "isSecret": true
+        },
+        {
+          "name": "X-Liads-Refresh-Token",
+          "description": "Refresh token from adwarp auth login",
+          "isRequired": true,
+          "isSecret": true
+        },
+        {
+          "name": "X-Liads-Account-Id",
+          "description": "LinkedIn ad account used when a call omits one",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "X-Liads-Linkedin-Version",
+          "description": "LinkedIn API version pin (YYYYMM)",
+          "isRequired": false,
+          "isSecret": false
+        }
+      ]
+    }
+  ]
+}
