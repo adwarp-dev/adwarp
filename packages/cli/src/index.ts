@@ -63,7 +63,7 @@ program
     await startStdioServer();
   });
 
-/** The public hosted MCP endpoint (see README "Hosted MCP" section). */
+/** The public hosted MCP endpoint (see docs/hosted.md, published at adwarp.dev/docs/hosted). */
 const HOSTED_MCP_URL = "https://mcp.adwarp.dev/api/mcp";
 
 const auth = program.command("auth").description("Authentication");
@@ -97,7 +97,7 @@ auth
       if (env.ADWARP_LINKEDIN_VERSION) headers.push(`--header "X-Adwarp-Linkedin-Version: ${env.ADWARP_LINKEDIN_VERSION}"`);
       console.log(["claude mcp add --transport http adwarp", url, ...headers].join(" \\\n  "));
       console.warn(
-        "! This command carries your app secret and refresh token. Your credentials ride along on every call to that server, so only point it at a deployment you trust, or self-host (see the README).",
+        "! This command carries your app secret and refresh token. Your credentials ride along on every call to that server, so only point it at a deployment you trust, or self-host: https://adwarp.dev/docs/hosted#self-host-on-vercel",
       );
       return;
     }

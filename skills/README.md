@@ -46,7 +46,7 @@ switches it on in Campaign Manager. Google campaigns can only be switched on in 
 
 ## Install
 
-Prerequisite: Adwarp set up and authenticated (see the repo README's Install section).
+Prerequisite: Adwarp set up and authenticated (see the [install guide](https://adwarp.dev/docs/install)).
 
 ```bash
 ./skills/install.sh          # symlinks each skill into ~/.claude/skills

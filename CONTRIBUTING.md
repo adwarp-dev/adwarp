@@ -18,7 +18,8 @@ pnpm -r typecheck
 - `packages/adwarp`: the npm package `adwarp`, which bundles the CLI and the MCP server. Test
   a change the way users get it with `pnpm pack` in that folder, then
   `node scripts/smoke.mjs <tarball>`.
-- `apps/web`: Next.js app hosting the MCP over HTTP (Vercel).
+- `apps/web`: Next.js app hosting the MCP over HTTP (Vercel). It has no pages: its old paths
+  redirect to adwarp.dev, which renders the docs from `docs/` on `main`.
 
 ## Conventions
 

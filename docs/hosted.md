@@ -74,3 +74,5 @@ claude mcp add --transport http adwarp https://<your-app>.vercel.app/api/mcp \
 ```
 
 Requests carrying `MCP_AUTH_TOKEN` use the environment credentials (your tenant). Requests carrying the `X-Adwarp-Linkedin-*` headers use the caller's credentials instead, so a single self-hosted instance can serve your whole team, each member on their own LinkedIn app.
+
+The app serves only the endpoint. Its other paths, such as `/` and `/docs`, redirect to adwarp.dev.

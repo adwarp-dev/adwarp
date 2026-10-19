@@ -20,7 +20,12 @@ RUN pnpm install --frozen-lockfile --filter "adwarp..." \
   && cd packages/adwarp && pnpm pack --pack-destination /out
 
 FROM node:22-slim
-LABEL io.modelcontextprotocol.server.name="io.github.adwarp-dev/adwarp"
+LABEL io.modelcontextprotocol.server.name="io.github.adwarp-dev/adwarp" \
+  org.opencontainers.image.title="Adwarp" \
+  org.opencontainers.image.url="https://adwarp.dev" \
+  org.opencontainers.image.documentation="https://adwarp.dev/docs/install#run-it-in-docker" \
+  org.opencontainers.image.source="https://github.com/adwarp-dev/adwarp" \
+  org.opencontainers.image.licenses="MIT"
 COPY --from=build /out/ /tmp/adwarp/
 RUN npm install -g --no-audit --no-fund /tmp/adwarp/*.tgz \
   && rm -rf /tmp/adwarp \

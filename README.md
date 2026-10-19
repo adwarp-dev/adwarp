@@ -1,5 +1,10 @@
 # Adwarp
 
+[![npm](https://img.shields.io/npm/v/adwarp)](https://www.npmjs.com/package/adwarp)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
+
+[Website](https://adwarp.dev) · [Docs](https://adwarp.dev/docs) · [Install guide](https://adwarp.dev/docs/install) · [npm package](https://www.npmjs.com/package/adwarp)
+
 **Adwarp** (formerly Liam) is the open-source ad agent for LinkedIn Ads and Google Ads.
 Create campaigns by talking to Claude (MCP) or from a CLI. Built for go-to-market teams
 who want to spin up many campaigns from a contact list and a brief, then add creative
@@ -146,6 +151,8 @@ Then write `~/.adwarp/google.json`:
 
 `loginCustomerId` is the manager account and is only needed when you reach the
 target account through one. Run `adwarp google auth login` and you are set.
+[Set up Google Ads](https://adwarp.dev/docs/google-ads-setup) in the docs has the same
+steps, plus the `ADWARP_GOOGLE_*` environment variables.
 
 ## Packages
 
@@ -154,7 +161,7 @@ target account through one. Run `adwarp google auth login` and you are set.
 - `@adwarp/google`: Google Ads REST client, GAQL reads, atomic mutate builder, Search campaign creation.
 - `@adwarp/mcp`: MCP server (stdio for local; reused by the hosted app). **Primary interface.**
 - `@adwarp/cli`: the `adwarp` CLI over the same engines, for scripted batch runs.
-- `@adwarp/web`: Next.js app that hosts the MCP over HTTP on Vercel.
+- `@adwarp/web`: Next.js app that hosts the MCP over HTTP on Vercel, at `https://mcp.adwarp.dev/api/mcp`. It serves no pages: its other paths redirect to adwarp.dev.
 - `adwarp`: the published npm package. Bundles the CLI and the MCP server behind the `adwarp`, `adwarp-mcp` and `liam` commands.
 
 ## How it works
@@ -177,6 +184,12 @@ local change journal (`~/.adwarp/changelog.jsonl`) for later lift analysis.
 (restli encoding, required fields, DMP audience flow) learned from live testing.
 
 ## Install
+
+The [install guide](https://adwarp.dev/docs/install) on adwarp.dev has these steps too, with
+a setup page for each client: [Claude Code](https://adwarp.dev/docs/clients/claude-code),
+[Claude Desktop](https://adwarp.dev/docs/clients/claude-desktop),
+[Cursor](https://adwarp.dev/docs/clients/cursor), [Codex](https://adwarp.dev/docs/clients/codex)
+and the [CLI](https://adwarp.dev/docs/clients/cli).
 
 There are two ways to install Adwarp:
 
@@ -251,7 +264,7 @@ claude mcp add adwarp -- npx -y adwarp mcp
 
 `adwarp mcp` and the `adwarp-mcp` command start the same server. Prefer Docker? The root
 `Dockerfile` builds an image of the same server; see
-[Run it in Docker](./docs/install.md#run-it-in-docker).
+[Run it in Docker](https://adwarp.dev/docs/install#run-it-in-docker).
 
 Ask for something read-only to confirm it works: "List my ad accounts" or "How did my
 account do in the last 30 days?"
@@ -268,7 +281,8 @@ is **multi-tenant, bring-your-own-credentials**: you pass your LinkedIn develope
 details as request headers, and every call runs against *your* app and *your* ad account.
 The server holds no state for you: credentials are used in memory to call LinkedIn and
 never logged or persisted. The original address, `https://liam-mcp.vercel.app/api/mcp`,
-still works and serves the same endpoint, so existing connections need no change.
+still works and serves the same endpoint, so existing connections need no change. The
+[hosted endpoint docs](https://adwarp.dev/docs/hosted) have the full reference.
 
 | Header | Value | Required? |
 | --- | --- | --- |
@@ -336,7 +350,8 @@ claude mcp add --transport http adwarp https://<your-app>.vercel.app/api/mcp \
 
 Requests carrying `MCP_AUTH_TOKEN` use the env credentials (your tenant). Requests
 carrying the `X-Adwarp-Linkedin-*` headers above use the caller's credentials instead, so one
-self-hosted instance can serve your whole team, each member on their own LinkedIn app.
+self-hosted instance can serve your whole team, each member on their own LinkedIn app. The app
+serves only the endpoint. Its other paths, such as `/` and `/docs`, redirect to adwarp.dev.
 
 ### Option 2: install the terminal CLI
 
@@ -454,9 +469,13 @@ Operate:
 
 Installed them before the rename? The old `liam-*` and `gads-launch` names still work, and
 running `./skills/install.sh` again switches you to the `adwarp-*` names.
-See [skills/README.md](./skills/README.md) for details and conventions.
+Each skill has its own page in the [skills docs](https://adwarp.dev/docs/skills). See
+[skills/README.md](./skills/README.md) for the conventions for adding a skill.
 
 ## Tools (MCP)
+
+The [tool reference](https://adwarp.dev/docs/tools) lists every tool with its inputs and
+whether it works on the hosted endpoint.
 
 - **Accounts:** `list_ad_accounts`
 - **Targeting:** `list_targeting_facets`, `search_targeting` (typeahead a facet for entity URNs),
@@ -504,7 +523,8 @@ Structured targeting uses short facet names mapped to entity URNs (resolve URNs 
 
 ## CLI reference
 
-All commands also work via `npx -y adwarp <cmd>`.
+All commands also work via `npx -y adwarp <cmd>`. The [CLI docs](https://adwarp.dev/docs/cli)
+have the full list, including the Google Ads commands.
 
 ```
 adwarp auth login                         # OAuth, stores tokens in ~/.adwarp
@@ -575,12 +595,12 @@ Local config lives in `~/.adwarp/config.json` (mode 0600, never in the repo):
 | `defaultConversionName` | Conversion auto-selected for new campaigns when none is given |
 | `mcpAuthToken` | Bearer secret for the hosted MCP endpoint |
 
-Hosted equivalents are the `ADWARP_LINKEDIN_*` env vars plus `MCP_AUTH_TOKEN` (see [Configuration](./docs/config.md)).
+Hosted equivalents are the `ADWARP_LINKEDIN_*` env vars plus `MCP_AUTH_TOKEN` (see [Configuration](https://adwarp.dev/docs/config)).
 OAuth tokens are stored separately in `~/.adwarp/credentials.json`.
 
 Coming from Liam? Every name from before the rename still works: the `~/.liads` folder, the
 `LIADS_*` and `GADS_*` variables, and the `X-Liads-*` headers. See
-[Names from before the rename](./docs/config.md#names-from-before-the-rename).
+[Names from before the rename](https://adwarp.dev/docs/config#names-from-before-the-rename).
 
 ## Salesforce integration
 
@@ -604,8 +624,18 @@ adwarp audience from-salesforce -n "Q3 target accounts" \
 
 ## Docs
 
-The full documentation lives in [`docs/`](./docs) as plain Markdown, 1 file per topic, each
-with `title`, `description`, and `order` front matter. Edit those files when behavior changes.
+The docs are at [adwarp.dev/docs](https://adwarp.dev/docs):
+[Install](https://adwarp.dev/docs/install),
+[Create a LinkedIn app](https://adwarp.dev/docs/linkedin-app),
+[Hosted endpoint](https://adwarp.dev/docs/hosted), [Tools](https://adwarp.dev/docs/tools),
+[Skills](https://adwarp.dev/docs/skills), [CLI](https://adwarp.dev/docs/cli),
+[Change journal](https://adwarp.dev/docs/journal), [Safety](https://adwarp.dev/docs/safety)
+and [Configuration](https://adwarp.dev/docs/config).
+
+Their source is [`docs/`](./docs) in this repo, as plain Markdown, 1 file per topic, each
+with `title`, `description`, and `order` front matter. The website reads those files from
+`main`, so edit them when behavior changes. Links between doc files stay relative
+(`./install.md`), and the website turns them into its own page links.
 
 [`docs/tools.json`](./docs/tools.json) lists every MCP tool with its description, input
 schema, platform (`linkedin` or `google`), and whether it works on the hosted endpoint
