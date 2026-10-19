@@ -29,8 +29,9 @@ export * from "./report.js";
 // Change journal + lift comparison (local JSONL store).
 export * from "./changelog.js";
 
-// Salesforce reader (Phase 3 foundation)
+// CRM readers: Salesforce (Phase 3 foundation) and HubSpot, each feeding matched audiences
 export * from "./salesforce.js";
+export * from "./hubspot.js";
 
 // Competitor ad intelligence: official API and remote creative worker.
 export * from "./adLibrary.js";

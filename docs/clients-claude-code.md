@@ -1,7 +1,7 @@
 ---
 title: Claude Code
 description: "Add Adwarp to Claude Code as a local MCP server or through the hosted endpoint, then check that it works."
-order: 13
+order: 14
 ---
 
 Claude Code runs Adwarp as a local MCP server with every tool, or connects to the hosted endpoint for the LinkedIn tools. Either way, [create a LinkedIn app](./linkedin-app.md) and [authenticate](./install.md#authenticate) first.

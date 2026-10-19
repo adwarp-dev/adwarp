@@ -23,11 +23,15 @@ export const LEGACY_ENV_NAMES = {
   ADWARP_CREATIVE_WORKER_TOKEN: "LIADS_CREATIVE_WORKER_TOKEN",
 } as const;
 
-export type EnvName = keyof typeof LEGACY_ENV_NAMES;
+/** Variables added after the rename. They have no older name to fall back to. */
+export const ENV_NAMES_SINCE_RENAME = ["ADWARP_HUBSPOT_TOKEN"] as const;
+
+export type EnvName = keyof typeof LEGACY_ENV_NAMES | (typeof ENV_NAMES_SINCE_RENAME)[number];
 
 /** Reads an Adwarp environment variable, falling back to its pre-rename name. */
 export function env(name: EnvName): string | undefined {
-  return nonEmpty(process.env[name]) ?? nonEmpty(process.env[LEGACY_ENV_NAMES[name]]);
+  const legacy = (LEGACY_ENV_NAMES as Record<string, string | undefined>)[name];
+  return nonEmpty(process.env[name]) ?? (legacy ? nonEmpty(process.env[legacy]) : undefined);
 }
 
 function nonEmpty(value: string | undefined): string | undefined {

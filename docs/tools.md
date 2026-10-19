@@ -23,6 +23,7 @@ Talk in plain language ("VPs of demand gen at SaaS companies in the US") and Adw
 
 - `upload_audience_csv`: cleans a CSV and uploads it as a matched audience. It normalizes column names, drops non-matcher columns, hashes emails, and converts company domains to website URLs. Contact and company lists are both supported.
 - `audience_from_salesforce`: a SOQL query to a matched audience. See [Salesforce](./salesforce.md).
+- `audience_from_hubspot`: a HubSpot list, or a CRM search by property filters, to a matched audience of contacts or companies. Pass `dryRun` first to see the counts and a masked sample. Local only. See [HubSpot](./hubspot.md).
 - `get_audience_status`: matching status and resolved size.
 
 ## Conversions

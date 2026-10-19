@@ -1,7 +1,7 @@
 ---
 title: Cursor
 description: "Add Adwarp to Cursor with 1 click or 1 config entry, then check that it works."
-order: 16
+order: 17
 ---
 
 Cursor runs Adwarp as a local MCP server with every tool, including the Google Ads tools. [Create a LinkedIn app](./linkedin-app.md) and [authenticate](./install.md#authenticate) first.

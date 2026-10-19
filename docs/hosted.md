@@ -49,11 +49,12 @@ These are by design, because they need local resources. Run them through the [lo
 
 - `upload_audience_csv` reads a CSV path on the server, not on your machine.
 - `audience_from_salesforce` needs your local `sf` CLI.
+- `audience_from_hubspot` is not registered on the hosted endpoint. Its HubSpot token would come from a server environment variable, so any caller could read that HubSpot account's contacts.
 - `inspect_competitor_ads` returns Ad Library metadata only, unless the server is configured with the [remote creative worker](https://github.com/adwarp-dev/adwarp/tree/main/services/creative-worker). Nothing launches a browser.
 - The change journal and lift tools (`log_ad_change`, `list_ad_changes`, `compute_lift`) need the local `~/.adwarp/changelog.jsonl`. Journaling is off on hosted deploys, which have a read-only filesystem.
 - The Google Ads `gads_*` tools are not registered on the hosted endpoint at all. It serves many callers, each with their own LinkedIn credentials, while Google credentials would come from shared server environment variables. Exposing them would let any caller operate the server's Google Ads account.
 
-[tools.json](./tools.json) says which tools work here. `hosted` is `true` for a tool that works on the hosted endpoint, and `hostedSupport` is `full`, `limited` or `none`. The endpoint registers every LinkedIn tool, but `upload_audience_csv`, `audience_from_salesforce` and the 3 journal tools need your machine, so they are `hosted: false`. `inspect_competitor_ads` is `limited`. `hostedNote` says why.
+[tools.json](./tools.json) says which tools work here. `hosted` is `true` for a tool that works on the hosted endpoint, and `hostedSupport` is `full`, `limited` or `none`. The endpoint registers every LinkedIn tool except `audience_from_hubspot`. That tool, `upload_audience_csv`, `audience_from_salesforce` and the 3 journal tools need your machine, so all 6 are `hosted: false`. `inspect_competitor_ads` is `limited`. `hostedNote` says why.
 
 ## Put a skill on top
 

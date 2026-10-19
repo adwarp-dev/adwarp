@@ -1,6 +1,6 @@
 ---
 name: adwarp-audiences
-description: Audit and operate LinkedIn matched audiences with Adwarp. Inventory and health checks (stuck matching, under 300 members, stale, orphaned), disciplined CSV uploads with dry runs, and the Salesforce-to-audience refresh loop. Use for "audit my audiences", "audience status", "upload this list", "refresh the audience from Salesforce", "why isn't this audience serving".
+description: Audit and operate LinkedIn matched audiences with Adwarp. Inventory and health checks (stuck matching, under 300 members, stale, orphaned), disciplined CSV uploads with dry runs, and the Salesforce-to-audience and HubSpot-to-audience refresh loops. Use for "audit my audiences", "audience status", "upload this list", "refresh the audience from Salesforce", "build an audience from HubSpot", "why isn't this audience serving".
 ---
 
 # Adwarp: audience ops
@@ -12,8 +12,9 @@ it is in, and how lists get in and stay fresh.
 ## How to reach Adwarp
 
 Prefer the Adwarp MCP tools if loaded: `get_audience_status`, `upload_audience_csv`,
-`audience_from_salesforce`, `list_campaigns`, `list_ad_changes`. CLI: `adwarp audience
-status <segmentId>`, `adwarp audience upload`, `adwarp audience from-salesforce`.
+`audience_from_salesforce`, `audience_from_hubspot`, `list_campaigns`, `list_ad_changes`.
+CLI: `adwarp audience status <segmentId>`, `adwarp audience upload`, `adwarp audience
+from-salesforce`, `adwarp audience from-hubspot`.
 
 ## Inventory
 
@@ -52,9 +53,19 @@ campaign's targeting happens at campaign creation or in Campaign Manager. Retire
 old segment from the inventory once the swap is done. Suggest journaling the swap
 (`log_ad_change`) so lift analysis can see it.
 
+## The HubSpot loop
+
+`audience_from_hubspot` turns a HubSpot list (its members) or a CRM search (property
+filters, all ANDed) into a matched audience of contacts or companies, with a read-only
+private app token on the user's machine. It is local only. Run it with `dryRun: true`
+first and show the counts (read, valid, skipped with reasons) and the masked sample
+before uploading. Prefer a list when the user keeps one: it has no result cap, while a
+search stops above 10,000 records. Refreshing works like Salesforce: re-run
+it for a fresh segment, report the new segment id, swap it in, and journal the swap.
+
 ## Report format
 
 - **Verdict:** 1 line on overall audience health.
 - **Table:** audience, status, size, age, attached campaigns, flag.
-- **Actions:** refreshes to run (with the SOQL or CSV source), attachments or
+- **Actions:** refreshes to run (with the SOQL, HubSpot list or CSV source), attachments or
   retirements, anything blocked waiting on LinkedIn matching.

@@ -1,7 +1,7 @@
 ---
 title: Claude Desktop
 description: "Add Adwarp to Claude Desktop's MCP config, restart the app, and check that it works."
-order: 14
+order: 15
 ---
 
 Claude Desktop runs Adwarp as a local MCP server with every tool, including the Google Ads tools. [Create a LinkedIn app](./linkedin-app.md) and [authenticate](./install.md#authenticate) first.

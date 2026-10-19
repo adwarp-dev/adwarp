@@ -13,7 +13,8 @@ pnpm + TypeScript monorepo:
   math every platform shares. Anything here must be true of both platforms; anything true
   of only one belongs in that platform's package.
 - `packages/core` — the LinkedIn engine. No UI. Owns the LinkedIn REST client, every
-  resource module, audience hashing, targeting, conversions, and the Salesforce reader.
+  resource module, audience hashing, targeting, conversions, and the Salesforce and
+  HubSpot readers.
 - `packages/google` — the Google Ads engine. Same shape as core: config and auth, one HTTP
   chokepoint, thin typed resource modules over GAQL, zod schemas reused as MCP inputs.
 - `packages/mcp` — MCP server. `src/tools.ts` (LinkedIn) and `src/googleTools.ts`
@@ -53,14 +54,16 @@ modules are thin typed wrappers over `LinkedInClient.request()`.
   `core/src/schemas.ts` and are reused as MCP tool input schemas (`Schema.shape`). Add or
   change a field there first, then thread it through the resource module.
 - **Secrets never enter the repo.** Local credentials live in `~/.adwarp/` (LinkedIn:
-  `config.json` + `credentials.json`; Google: `google.json` + `google-credentials.json`,
-  all mode 0600). Hosted credentials are `ADWARP_LINKEDIN_*` / `ADWARP_GOOGLE_*` env vars, or
+  `config.json` + `credentials.json`; Google: `google.json` + `google-credentials.json`;
+  HubSpot: `hubspot.json`, all mode 0600). Hosted credentials are `ADWARP_LINKEDIN_*` / `ADWARP_GOOGLE_*` env vars, or
   per-request `X-Adwarp-Linkedin-*` headers for bring-your-own-credentials callers. The config layer resolves
   request context first, then env, then files. Never log header credentials.
 - **The hosted MCP does not expose the Google tools**, and must not start doing so. That
   endpoint is multi-tenant over per-request LinkedIn credentials while Google credentials
   would come from shared server env vars, so exposing them would let any caller operate the
-  server's Google Ads account. `registerTools(server, { google: false })` in the web route.
+  server's Google Ads account. The same holds for `audience_from_hubspot`, whose token
+  would come from a server env var: `registerTools(server, { google: false, hubspot: false })`
+  in the web route.
 - **Every name says adwarp, and every pre-rename name keeps working.** Adwarp was Liam, and
   its internal names used `liads` and `gads`. Read env vars through `env()` in
   `@adwarp/shared`, whose `LEGACY_ENV_NAMES` table maps each `ADWARP_*` name to its
@@ -206,3 +209,32 @@ change by initializing the MCP endpoint and listing tools (see README).
 `core/src/salesforce.ts` shells out to the authenticated `sf` CLI (`sf data query --json`).
 No new credentials; reuses the user's existing `sf` login. Read-only. `audienceFromSalesforce`
 turns a SOQL email query into a matched-audience DMP segment (reuses `uploadAudienceFromEmails`).
+
+## HubSpot
+
+`core/src/hubspot.ts` reads HubSpot with a private app access token the user creates in their
+own account (`ADWARP_HUBSPOT_TOKEN`, else `{ "accessToken" }` in `hubspot.json` in the Adwarp
+folder). Read-only scopes: `crm.objects.contacts.read`, `crm.objects.companies.read`,
+`crm.lists.read`. No OAuth, local only (never registered on the hosted endpoint).
+`audienceFromHubSpot` turns a list's members or a CRM search into rows, runs them through
+`cleanAudienceRows` (the CSV cleaner) and uploads with `uploadCleanedAudience` (the CSV upload),
+so contacts leave only as SHA256 hashes. `previewHubSpotAudience` is the dry run: no LinkedIn
+call, emails masked in the sample. Verified against HubSpot's docs on 2026-10-18, not yet
+against a live portal:
+
+- **Version is pinned** (`2026-09`, date-based, in `HUBSPOT_API_VERSION`). HubSpot moved from
+  v3 paths to `/crm/objects/2026-09/...` and `/crm/lists/2026-09/...` in March 2026; legacy v3
+  paths stop being supported in September 2027, and each date version gets 18 months.
+- **Search** is `POST /crm/objects/2026-09/{contacts|companies}/search`: `filterGroups[].filters[]`
+  of `{ propertyName, operator, value | values | highValue }`, 200 per page, cursor in
+  `paging.next.after`, at most 10,000 results per query (paging past it is a 400, so Adwarp
+  refuses up front from `total`), 5 requests per second, up to 6 filters per group.
+- **Lists:** `GET /crm/lists/2026-09/{listId}` gives `list.objectTypeId` (`0-1` contacts, `0-2`
+  companies); `GET .../{listId}/memberships` pages `results[].recordId`. Records then come from
+  `POST /crm/objects/2026-09/{type}/batch/read`, 100 ids per call, which answers 207 when some
+  ids no longer exist.
+- **Limits:** private apps get 100 requests per 10 seconds on Free and Starter (190 above).
+  The client paces under both and retries 429 / 5xx with the shared policy.
+- **Change journal:** audience creation goes through `createLinkedInAds()` like Salesforce, so
+  it is captured exactly as Salesforce audiences are. The journal only tracks campaign groups,
+  campaigns and creatives, so DMP segment creation is not journaled for either source.

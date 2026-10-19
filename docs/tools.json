@@ -1,5 +1,93 @@
 [
   {
+    "name": "audience_from_hubspot",
+    "platform": "linkedin",
+    "hosted": false,
+    "hostedSupport": "none",
+    "hostedNote": "Not registered on the hosted endpoint. Run it on the local MCP server or the CLI.",
+    "description": "Build a matched audience from HubSpot contacts or companies. Pass exactly 1 source: a HubSpot listId (its members), or filters for a CRM search (all ANDed). Reads every page, cleans the records like a CSV upload, and uploads only SHA256 email hashes for contacts (name and website for companies). Pass dryRun=true first: it returns counts and a masked sample and uploads nothing. Needs a HubSpot private app token on this machine (ADWARP_HUBSPOT_TOKEN or ~/.adwarp/hubspot.json); matching takes up to 48h.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "accountId": {
+          "type": "string",
+          "description": "LinkedIn ad account id; defaults to config defaultAccountId"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Audience/segment name"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "contact",
+            "company"
+          ],
+          "description": "contact or company. With listId it defaults to the list's object type; with filters it defaults to contact."
+        },
+        "listId": {
+          "type": "string",
+          "pattern": "^\\d+$",
+          "description": "HubSpot list id (the ILS list id). Pass this or filters, not both."
+        },
+        "filters": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "property": {
+                "type": "string",
+                "minLength": 1,
+                "description": "HubSpot property internal name, e.g. lifecyclestage"
+              },
+              "operator": {
+                "type": "string",
+                "enum": [
+                  "EQ",
+                  "NEQ",
+                  "LT",
+                  "LTE",
+                  "GT",
+                  "GTE",
+                  "BETWEEN",
+                  "IN",
+                  "NOT_IN",
+                  "HAS_PROPERTY",
+                  "NOT_HAS_PROPERTY",
+                  "CONTAINS_TOKEN",
+                  "NOT_CONTAINS_TOKEN"
+                ]
+              },
+              "value": {
+                "type": "string",
+                "description": "Value to compare. IN and NOT_IN take a comma-separated list, BETWEEN takes 'low,high', HAS_PROPERTY and NOT_HAS_PROPERTY take none."
+              }
+            },
+            "required": [
+              "property",
+              "operator"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1,
+          "maxItems": 6,
+          "description": "CRM search filters, all ANDed (HubSpot allows up to 6 per group). Pass this or listId, not both."
+        },
+        "dryRun": {
+          "type": "boolean",
+          "default": false,
+          "description": "Return counts and a masked sample without uploading anything"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  },
+  {
     "name": "audience_from_salesforce",
     "platform": "linkedin",
     "hosted": false,

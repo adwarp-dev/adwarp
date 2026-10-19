@@ -271,6 +271,55 @@ export const SalesforceAudienceSchema = z.object({
 });
 export type SalesforceAudienceInput = z.infer<typeof SalesforceAudienceSchema>;
 
+/** HubSpot CRM search operators, as HubSpot's search API names them. */
+export const HubSpotFilterOperatorSchema = z.enum([
+  "EQ",
+  "NEQ",
+  "LT",
+  "LTE",
+  "GT",
+  "GTE",
+  "BETWEEN",
+  "IN",
+  "NOT_IN",
+  "HAS_PROPERTY",
+  "NOT_HAS_PROPERTY",
+  "CONTAINS_TOKEN",
+  "NOT_CONTAINS_TOKEN",
+]);
+
+export const HubSpotFilterSchema = z.object({
+  property: z.string().min(1).describe("HubSpot property internal name, e.g. lifecyclestage"),
+  operator: HubSpotFilterOperatorSchema,
+  value: z
+    .string()
+    .optional()
+    .describe("Value to compare. IN and NOT_IN take a comma-separated list, BETWEEN takes 'low,high', HAS_PROPERTY and NOT_HAS_PROPERTY take none."),
+});
+export type HubSpotFilter = z.infer<typeof HubSpotFilterSchema>;
+
+export const HubSpotAudienceSchema = z.object({
+  accountId: z.string().optional().describe("LinkedIn ad account id; defaults to config defaultAccountId"),
+  name: z.string().min(1).describe("Audience/segment name"),
+  type: z
+    .enum(["contact", "company"])
+    .optional()
+    .describe("contact or company. With listId it defaults to the list's object type; with filters it defaults to contact."),
+  listId: z
+    .string()
+    .regex(/^\d+$/, "listId is the numeric HubSpot list id")
+    .optional()
+    .describe("HubSpot list id (the ILS list id). Pass this or filters, not both."),
+  filters: z
+    .array(HubSpotFilterSchema)
+    .min(1)
+    .max(6)
+    .optional()
+    .describe("CRM search filters, all ANDed (HubSpot allows up to 6 per group). Pass this or listId, not both."),
+  dryRun: z.boolean().default(false).describe("Return counts and a masked sample without uploading anything"),
+});
+export type HubSpotAudienceInput = z.infer<typeof HubSpotAudienceSchema>;
+
 export const AdLibraryScanSchema = z.object({
   advertiser: z.string().optional().describe("Competitor/advertiser display name (accountOwner)"),
   companyId: z.string().optional().describe("Numeric LinkedIn company id, more precise than name"),
