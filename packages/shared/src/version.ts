@@ -3,4 +3,4 @@
  * server version. Must match packages/adwarp/package.json, which the npm
  * package build checks.
  */
-export const VERSION = "0.3.0";
+export const VERSION = "0.4.0";

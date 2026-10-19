@@ -1,6 +1,6 @@
 {
   "name": "adwarp",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Open-source ad agent for LinkedIn Ads and Google Ads. Drafts campaigns, audiences and reports from Claude Code, Cursor, Codex or other MCP clients that can run a local server.",
   "keywords": [
     "mcp",
