@@ -89,7 +89,7 @@ async function guard(req: Request): Promise<Response> {
     return new Response(
       JSON.stringify({
         error: "unauthorized",
-        hint: "Send Authorization: Bearer <MCP_AUTH_TOKEN>, or bring your own LinkedIn app via X-Adwarp-Linkedin-Client-Id / X-Adwarp-Linkedin-Client-Secret / X-Adwarp-Linkedin-Refresh-Token headers (see docs/hosted.md).",
+        hint: "Send Authorization: Bearer <MCP_AUTH_TOKEN>, or bring your own LinkedIn app via X-Adwarp-Linkedin-Client-Id / X-Adwarp-Linkedin-Client-Secret / X-Adwarp-Linkedin-Refresh-Token headers (see https://adwarp.dev/docs/hosted).",
       }),
       { status: 401, headers: { "content-type": "application/json" } },
     );
