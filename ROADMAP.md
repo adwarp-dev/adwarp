@@ -28,7 +28,7 @@ creates drafts, and nothing spends until you activate it.
   themes and how the account is run from the result. CLI `competitor ads`, MCP `inspect_competitor_ads`.
 - **Delivery**: local CLI, local MCP server, and a hosted MCP on Vercel that accepts your own
   LinkedIn app credentials as headers, so nothing needs deploying to use it.
-- **Google Ads (Search)**: paused-only Search campaign creation from a brief — budget,
+- **Google Ads (Search)**: paused-only Search campaign creation from a brief: budget,
   campaign, geo/language targeting, ad groups, keywords, and responsive search ads, all in a
   single atomic `googleAds:mutate` that either lands whole or not at all. Every write is
   validated server-side first (`validateOnly`), which is a true dry run. House rules are

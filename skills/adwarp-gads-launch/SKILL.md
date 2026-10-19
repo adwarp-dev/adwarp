@@ -39,7 +39,7 @@ ads, and there is no campaign-group level.
 ## Step 1: gather the brief
 
 Required before anything is created: campaign name, daily budget, landing URL,
-the ad groups, and for each ad group its keywords and at least one responsive
+the ad groups, and for each ad group its keywords and at least 1 responsive
 search ad. Ask for what is missing rather than inventing it.
 
 Name ad groups so the angle is legible (theme, match type, persona), because
@@ -58,7 +58,7 @@ costs $60 a click.
 
 - Quote the bid range against the user's proposed max CPC. If the bid range sits
   above it, say so plainly: the keyword will not serve.
-- Default to EXACT and PHRASE for B2B. BROAD without a strong negative list is
+- Start with EXACT and PHRASE for B2B. BROAD without a strong negative list is
   how Google budgets disappear.
 - Propose negatives from what the research surfaces (jobs, salary, free, course,
   tutorial, competitor brand terms the user does not want to bid on).

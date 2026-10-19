@@ -44,7 +44,7 @@ the end rather than skipping it silently.
 
 ## Report format
 
-- **Scorecard:** area, verdict (pass / flag / fail), one line of evidence.
+- **Scorecard:** area, verdict (pass / flag / fail), 1 line of evidence.
 - **Fix list:** ranked by impact, each with the concrete step and rough effort.
 - **Manual checklist:** everything only visible in Campaign Manager, phrased so the
   user can verify each item in under a minute.

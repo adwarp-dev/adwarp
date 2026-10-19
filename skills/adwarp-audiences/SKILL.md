@@ -17,7 +17,7 @@ status <segmentId>`, `adwarp audience upload`, `adwarp audience from-salesforce`
 
 ## Inventory
 
-Adwarp has no list-all-segments call, so assemble the inventory honestly from three
+Adwarp has no list-all-segments call, so assemble the inventory honestly from 3
 sources: the change journal (`list_ad_changes` records every segment Adwarp created,
 with dates), campaign targeting where `list_campaigns` exposes attached audiences,
 and the user's own knowledge. Say explicitly when the inventory may be incomplete.
@@ -46,7 +46,7 @@ company lists. Warn on anything under 300 rows: it will never serve.
 ## The Salesforce loop
 
 `audience_from_salesforce` turns a SOQL email query (via the authed `sf` CLI) into a
-matched audience in one step. Refreshing means re-running the query, which produces a
+matched audience in 1 step. Refreshing means re-running the query, which produces a
 fresh segment: report the new segment id, and note that swapping it into an existing
 campaign's targeting happens at campaign creation or in Campaign Manager. Retire the
 old segment from the inventory once the swap is done. Suggest journaling the swap
@@ -54,7 +54,7 @@ old segment from the inventory once the swap is done. Suggest journaling the swa
 
 ## Report format
 
-- **Verdict:** one line on overall audience health.
+- **Verdict:** 1 line on overall audience health.
 - **Table:** audience, status, size, age, attached campaigns, flag.
 - **Actions:** refreshes to run (with the SOQL or CSV source), attachments or
   retirements, anything blocked waiting on LinkedIn matching.

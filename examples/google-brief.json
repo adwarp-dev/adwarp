@@ -1,5 +1,5 @@
 {
-  "campaignName": "RevOps automation — Search",
+  "campaignName": "RevOps automation - Search",
   "dailyBudget": 150,
   "cpcBid": 12,
   "finalUrl": "https://example.com/platform",
@@ -32,7 +32,7 @@
   ],
   "adGroups": [
     {
-      "name": "RevOps automation — exact",
+      "name": "RevOps automation - exact",
       "cpcBid": 15,
       "keywords": [
         {
@@ -72,7 +72,7 @@
       ]
     },
     {
-      "name": "Lead routing — exact",
+      "name": "Lead routing - exact",
       "keywords": [
         {
           "text": "lead routing software",

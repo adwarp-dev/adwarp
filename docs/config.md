@@ -38,7 +38,7 @@ A hosted deploy reads environment variables instead of files:
 | `ADWARP_NO_CHANGELOG` | set to `1` to turn off change journal auto-capture |
 | `ADWARP_CREATIVE_WORKER_URL`, `ADWARP_CREATIVE_WORKER_TOKEN` | the [remote creative worker](https://github.com/adwarp-dev/adwarp/tree/main/services/creative-worker) for competitor ad copy |
 
-Google Ads settings use `ADWARP_GOOGLE_*` variables, listed in [Google Ads](./google-ads.md).
+Google Ads settings use `ADWARP_GOOGLE_*` variables, listed in [Google Ads environment variables](./google-ads.md#environment-variables).
 
 ## Names from before the rename
 

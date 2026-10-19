@@ -82,10 +82,11 @@ export default function Docs() {
           </p>
           <p>
             Everything Adwarp creates starts as a <b>draft</b>. Nothing spends until you explicitly
-            ask for a campaign to go live or switch it on yourself in Campaign Manager.
+            ask Adwarp to set a campaign or an ad ACTIVE, or switch it on yourself in Campaign
+            Manager.
           </p>
           <h3>Hierarchy mapping</h3>
-          <p>LinkedIn names its levels differently than Google or Meta.</p>
+          <p>LinkedIn names its levels differently from other ad platforms.</p>
           <div className="tblwrap">
             <table className="tbl">
               <thead>
@@ -172,7 +173,7 @@ export default function Docs() {
                 <tr>
                   <td>LinkedIn Ad Library</td>
                   <td>competitor ad metadata via the official API</td>
-                  <td>Optional (the browser scraper works without it)</td>
+                  <td>Only for competitor ads, which have no browser fallback</td>
                 </tr>
               </tbody>
             </table>
@@ -314,8 +315,8 @@ claude mcp add adwarp -- node /abs/path/adwarp/packages/mcp/dist/index.js
           <p>
             All by design, they need local resources: <code>upload_audience_csv</code> reads a CSV
             path on the server, <code>audience_from_salesforce</code> needs your local{" "}
-            <code>sf</code> CLI, competitor-ads scraping falls back to API-only metadata (no
-            browser), and the change journal and lift tools need the local{" "}
+            <code>sf</code> CLI, competitor ads return Ad Library metadata only unless the server
+            has the remote creative worker, and the change journal and lift tools need the local{" "}
             <code>~/.liads/changelog.jsonl</code>. Run those through the local MCP server or the
             CLI.
           </p>
@@ -465,8 +466,9 @@ adwarp launch --brief examples/brief.json            # creates DRAFTS only`}</pr
                   <td>Competitor intel</td>
                   <td>
                     <code>inspect_competitor_ads</code>: read any company&apos;s ads from the
-                    LinkedIn Ad Library. Engines: <code>api</code> (metadata, works hosted),{" "}
-                    <code>scraper</code> (ad copy via local browser), <code>auto</code> (both).
+                    LinkedIn Ad Library. Engines: <code>api</code> (metadata only) and <code>auto</code> (also queues
+                    ad copy and screenshots on the optional remote creative worker). Nothing
+                    launches a local browser.
                   </td>
                 </tr>
                 <tr>
@@ -657,8 +659,10 @@ adwarp lift <level> <id> [-w <days>]      # before vs after performance per reco
           <h2>The safety rules.</h2>
           <ul>
             <li>
-              Every campaign and creative is created DRAFT or PAUSED. Activation is a separate,
-              explicit step you take in Campaign Manager.
+              Every campaign and creative is created DRAFT or PAUSED. Going live is always an
+              explicit request: <code>update_campaign</code> and <code>update_ad</code> set a
+              campaign or a single ad ACTIVE only when you ask for it, or you switch it on yourself
+              in Campaign Manager. Google campaigns are switched on in the Google Ads UI.
             </li>
             <li>
               Matched-audience matching takes up to 48 hours, and a campaign needs about 300

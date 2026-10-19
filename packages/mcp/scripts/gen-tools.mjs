@@ -13,7 +13,7 @@ import { fileURLToPath } from "node:url";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
-import { registerTools } from "../dist/tools.js";
+import { HOSTED_LIMITS, registerTools } from "../dist/tools.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const OUT = join(ROOT, "docs", "tools.json");
@@ -52,16 +52,40 @@ if (!/registerTools\([^)]*\{\s*google:\s*false\s*\}\s*\)/.test(route)) {
 
 // Same registration as the stdio entry point (src/index.ts): every tool.
 const all = await listTools();
-const hosted = new Set((await listTools(HOSTED_OPTIONS)).map((t) => t.name));
+const registeredHosted = new Set((await listTools(HOSTED_OPTIONS)).map((t) => t.name));
+
+for (const name of Object.keys(HOSTED_LIMITS)) {
+  if (!registeredHosted.has(name)) {
+    throw new Error(`HOSTED_LIMITS in packages/mcp/src/tools.ts names ${name}, which the hosted endpoint does not register.`);
+  }
+}
+
+/**
+ * Whether a tool works on the hosted endpoint: "full", "limited" (works, with less)
+ * or "none" (not registered there, or registered but needs local resources).
+ */
+function hostedSupport(name) {
+  if (!registeredHosted.has(name)) {
+    return { support: "none", note: "Not registered on the hosted endpoint. Run it on the local MCP server or the CLI." };
+  }
+  const limit = HOSTED_LIMITS[name];
+  return limit ? { support: limit.support, note: limit.note } : { support: "full" };
+}
 
 const byName = (a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
-const entries = all.sort(byName).map((t) => ({
-  name: t.name,
-  platform: t.name.startsWith("gads_") ? "google" : "linkedin",
-  hosted: hosted.has(t.name),
-  description: t.description ?? "",
-  inputSchema: t.inputSchema,
-}));
+const entries = all.sort(byName).map((t) => {
+  const { support, note } = hostedSupport(t.name);
+  return {
+    name: t.name,
+    platform: t.name.startsWith("gads_") ? "google" : "linkedin",
+    hosted: support !== "none",
+    hostedSupport: support,
+    ...(note ? { hostedNote: note } : {}),
+    description: t.description ?? "",
+    inputSchema: t.inputSchema,
+  };
+});
 
+const works = entries.filter((e) => e.hosted).length;
 await writeFile(OUT, `${JSON.stringify(entries, null, 2)}\n`);
-console.log(`Wrote ${relative(ROOT, OUT)}: ${entries.length} tools (${hosted.size} hosted).`);
+console.log(`Wrote ${relative(ROOT, OUT)}: ${entries.length} tools (${registeredHosted.size} registered hosted, ${works} work hosted).`);

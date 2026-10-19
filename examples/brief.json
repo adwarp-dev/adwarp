@@ -1,7 +1,7 @@
 {
   "accountId": "REPLACE_WITH_AD_ACCOUNT_ID",
-  "campaignGroupName": "Q3 ABM — Enterprise",
-  "campaignName": "Enterprise target accounts — feed",
+  "campaignGroupName": "Q3 ABM - Enterprise",
+  "campaignName": "Enterprise target accounts - feed",
   "audience": {
     "name": "Q3 target accounts",
     "csvPath": "./examples/contacts.csv",

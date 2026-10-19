@@ -21,7 +21,7 @@ Ad Library.
 - **Name plus company id.** Name searches include unrelated advertisers. Supply both
   advertiser name and verified numeric companyId. The API searches by name and Adwarp
   filters the returned advertiser URL before queuing any creative work. Example:
-  `adwarp competitor ads Ramp --company-id 1406226 --max 100 --copy-max 10 --json`.
+  `adwarp competitor ads <advertiser> --company-id <id> --max 100 --copy-max 10 --json`.
   Total reported is the broad API query total, not an exact-company or active-ad count.
 - **Engines.** `api` returns metadata. `auto` adds cached copy/screenshots from a remote
   creative worker or queues missing ads. Local scraping is disabled, including fallback.
@@ -32,7 +32,7 @@ Ad Library.
   Do not rerun discovery just to wait for copy. Report collection dates, sample coverage,
   missing copy, and whether a screenshot is a preview rather than a complete video.
   Screenshot paths require worker authentication; do not put tokens in URLs or reports.
-- **Cache.** The worker adds a seven-day creative cache automatically. Existing temporary
+- **Cache.** The worker adds a 7-day creative cache automatically. Existing temporary
   JSON exports are not imported automatically. Repeated ad IDs reuse jobs and cached results.
 - **Blocks and outages.** If the worker is blocked, stop. Do not probe LinkedIn via another
   browser, curl, fetch, proxy or network. Never override worker limits, clear its state or
@@ -60,13 +60,13 @@ snippets):
 
 ## Comparing several competitors
 
-Run each pull separately, then produce one comparison: a table across the dimensions
+Run each pull separately, then produce 1 comparison: a table across the dimensions
 above, then a strategic read of who spends hardest, whose positioning overlaps the
 user's, and which offer types nobody in the set is running.
 
 ## Report format
 
-- **How they run it:** one paragraph per competitor summarizing the account strategy.
+- **How they run it:** 1 paragraph per competitor summarizing the account strategy.
 - **Dimension findings:** themes, offers, formats, spotlight, cadence, targeting, each
   with example ads quoted.
 - **So what:** implications for the user's own account. Over-used angles to avoid,

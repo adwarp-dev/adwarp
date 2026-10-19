@@ -1,6 +1,6 @@
 ---
 name: adwarp-weekly
-description: A compact weekly LinkedIn ads snapshot from Adwarp. Last 7 days vs the 7 before, biggest movers, new ads shipped, health flags, and up to three actions, in the same format every week. Use for "weekly snapshot", "how did ads do this week", "Monday ads report", or on a schedule (scheduled agents, /loop, cron).
+description: A compact weekly LinkedIn ads snapshot from Adwarp. Last 7 days vs the 7 before, biggest movers, new ads shipped, health flags, and up to 3 actions, in the same format every week. Use for "weekly snapshot", "how did ads do this week", "Monday ads report", or on a schedule (scheduled agents, /loop, cron).
 ---
 
 # Adwarp: weekly snapshot
@@ -10,7 +10,7 @@ glance, short enough to read in a Slack message. Target under 40 lines of output
 
 ## How to reach Adwarp
 
-Prefer the Adwarp MCP tools if they are loaded. This skill wants two exact 7-day
+Prefer the Adwarp MCP tools if they are loaded. This skill wants 2 exact 7-day
 windows, so use `get_performance` with explicit `startDate`/`endDate` (YYYY-MM-DD):
 the last 7 full days, and the 7 before those. On the CLI, `adwarp report summary -p
 last_7_days` plus `adwarp report trend <level> <id> -b weekly` approximates it. Also pull
@@ -27,7 +27,7 @@ movers are wanted, and `list_ad_changes` for what was changed this week. Read-on
    `list_ads`), and journaled changes (`list_ad_changes`) so the reader connects moves
    to outcomes.
 4. **Flags:** ACTIVE campaigns with zero delivery, audiences still matching or under
-   300 members, creatives with CTR down two-plus weeks running, conversion counts
+   300 members, creatives with CTR down 2-plus weeks running, conversion counts
    likely still lagging for the last 2 days.
 5. **Do this week:** at most 3 actions, imperative, each tied to a number above.
 
@@ -38,7 +38,7 @@ movers are wanted, and `list_ad_changes` for what was changed this week. Read-on
 - No verdicts on entities below the volume floor; skip them silently here (the deep
   dives are adwarp-performance and adwarp-leads, and the snapshot should say so only when
   something big warrants it).
-- If the week was quiet, say it in one line and keep the snapshot short rather than
+- If the week was quiet, say it in 1 line and keep the snapshot short rather than
   inflating noise into findings.
 
 ## Report format

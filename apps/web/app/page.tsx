@@ -64,7 +64,7 @@ const USE_CASES: Array<{ q: string; note: string }> = [
     note: "Campaign group, ad group, and draft ads in one call, conversion attached.",
   },
   {
-    q: "What ads is HubSpot running, and what offers are they pushing?",
+    q: "What ads is our biggest competitor running, and what offers are they pushing?",
     note: "Reads any company's ads from the public Ad Library: copy, formats, EU targeting.",
   },
   {

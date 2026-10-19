@@ -103,7 +103,7 @@ export async function oauthLogin(provider: OauthProvider, store: CredentialStore
         return;
       }
       if (returnedState !== state) {
-        res.end("<h2>State mismatch — possible CSRF. Aborted.</h2>");
+        res.end("<h2>State mismatch, possible CSRF. Aborted.</h2>");
         server.close();
         reject(new Error("OAuth state mismatch"));
         return;

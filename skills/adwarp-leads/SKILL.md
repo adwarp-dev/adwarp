@@ -5,7 +5,7 @@ description: Rank which LinkedIn ads actually drive leads and which burn budget 
 
 # Adwarp: lead drivers and duds
 
-Split every ad in scope into four buckets (drivers, promising, non-converters, too
+Split every ad in scope into 4 buckets (drivers, promising, non-converters, too
 early) and say what to do with each. The pause list with dollar amounts is usually the
 most valuable output.
 
@@ -36,7 +36,7 @@ on converting entities).
 - **Promising:** 1-2 conversions at good efficiency, or strong CTR with spend still
   below the judgment floor. Watch, do not scale yet.
 - **Non-converters:** zero conversions with spend at or above ~2x the account average
-  cost per conversion. This is the pause list. Sum the wasted spend into one figure.
+  cost per conversion. This is the pause list. Sum the wasted spend into 1 figure.
 - **Too early:** under ~1,000 impressions or trivial spend. No verdict.
 
 ## Caveats to state
@@ -45,7 +45,7 @@ on converting entities).
 - LinkedIn mixes post-click and view-through conversions depending on setup; a
   retargeting ad can look like a driver while merely tailgating other touches. Flag
   suspiciously high conversion rates on tiny click counts.
-- One conversion is an anecdote. Never crown a winner on fewer than 3.
+- 1 conversion is an anecdote. Never crown a winner on fewer than 3.
 
 ## Angle patterns
 
@@ -59,7 +59,7 @@ what to kill.
 - **Headline:** conversion total, account average cost per conversion, and the wasted
   spend figure from the pause list.
 - **Drivers table:** name, campaign, conversions, cost per conversion, CTR.
-- **Pause list:** name, campaign, spend burned, impressions. One line each on why.
+- **Pause list:** name, campaign, spend burned, impressions. 1 line each on why.
 - **Angle read:** converting angles vs dead angles, if names permit.
 - **Actions:** scale/shift suggestions plus refresh candidates. On LinkedIn, changing
   copy means recreate, not edit (`delete_ad` + `create_image_ad`, drafts only). Only

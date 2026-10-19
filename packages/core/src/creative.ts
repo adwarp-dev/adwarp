@@ -29,7 +29,7 @@ export async function createSponsoredImageDraft(
       creativeId: "",
       status: input.status,
       pendingImage: true,
-      note: "No image supplied — campaign is ready; add the creative with an image when available.",
+      note: "No image supplied. The campaign is ready; add the creative with an image when available.",
     };
   }
 

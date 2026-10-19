@@ -4,7 +4,7 @@ description: "Every tool the Adwarp MCP server exposes, grouped by area, plus th
 order: 5
 ---
 
-The MCP server exposes the tools below. [tools.json](./tools.json) is the complete, generated list: every tool's name, description, input JSON Schema, platform (`linkedin` or `google`), and whether the hosted endpoint registers it. It is built from the server's own registration code with `pnpm gen:tools`, and CI fails when it drifts.
+The MCP server exposes the tools below. [tools.json](./tools.json) is the complete, generated list: every tool's name, description, input JSON Schema, platform (`linkedin` or `google`), and whether it works on the hosted endpoint (`hosted`, `hostedSupport` and `hostedNote`, as in [Hosted limitations](./hosted.md#hosted-limitations)). It is built from the server's own registration code with `pnpm gen:tools`, and CI fails when it drifts.
 
 ## Accounts
 

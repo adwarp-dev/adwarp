@@ -5,7 +5,7 @@ description: Full performance review of a LinkedIn ads account via Adwarp. KPIs 
 
 # Adwarp: performance review
 
-Produce a review a growth lead could act on in ten minutes: verdict, winners, losers,
+Produce a review a growth lead could act on in 10 minutes: verdict, winners, losers,
 watchlist, actions. Every claim grounded in a number.
 
 ## How to reach Adwarp
@@ -17,7 +17,7 @@ at 90 days; for custom windows use the MCP tools with `startDate`/`endDate`. Rea
 
 ## Scope
 
-Default to the whole account over `last_30_days`. If the user names a campaign group,
+Cover the whole account over `last_30_days` by default. If the user names a campaign group,
 campaign, or period, scope to it. If total conversions in the window are under ~10,
 widen to `last_90_days` and say you did.
 
@@ -48,7 +48,7 @@ cost per conversion varies too much to benchmark honestly).
 
 - **Significance floor:** no winner/loser verdicts on creatives under ~1,000 impressions
   or ~3 conversions. Bucket them as "too early".
-- **Fatigue:** CTR falling two or more consecutive weeks on unchanged creative and
+- **Fatigue:** CTR falling 2 or more consecutive weeks on unchanged creative and
   targeting means the creative is wearing out. The fix on LinkedIn is recreate, not
   edit: Campaign Manager ignores post edits, so copy changes are `delete_ad` +
   `create_image_ad` (as new drafts).
@@ -58,7 +58,7 @@ cost per conversion varies too much to benchmark honestly).
 
 ## Report format
 
-- **Verdict:** one paragraph. Direction, the single biggest problem, the single
+- **Verdict:** 1 paragraph. Direction, the single biggest problem, the single
   biggest win.
 - **Scoreboard:** spend, impressions, CTR, CPC, conversions, cost per conversion, each
   with the week-over-week or period-over-period delta.
