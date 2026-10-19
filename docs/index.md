@@ -4,7 +4,7 @@ description: "The open-source ad agent for LinkedIn Ads and Google Ads. Create c
 order: 1
 ---
 
-Adwarp (formerly Liam) is the open-source ad agent for LinkedIn Ads and Google Ads. You describe the campaign in plain language and Adwarp drafts the audience, the ad groups, and the ads, from Claude or any MCP client, or from a CLI. It covers creation, matched audiences (including building one straight from Salesforce), conversion selection, performance reporting, competitor ad intelligence, and a change journal with before and after lift.
+Adwarp (formerly Liam) is the open-source ad agent for LinkedIn Ads and Google Ads. You describe the campaign in plain language and Adwarp drafts the audience, the ad groups, and the ads, from Claude Code, Claude Desktop, Cursor, Codex, or other MCP clients that can run a local server, or from a CLI. It covers creation, matched audiences (including building one straight from Salesforce), conversion selection, performance reporting, competitor ad intelligence, and a change journal with before and after lift.
 
 Everything Adwarp creates starts switched off. LinkedIn entities are created as drafts and Google Ads entities as paused. A LinkedIn campaign goes live only when you explicitly ask Adwarp to turn it on or switch it on yourself in Campaign Manager, and Google campaigns can only be switched on in the Google Ads UI.
 

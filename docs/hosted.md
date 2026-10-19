@@ -39,7 +39,7 @@ npx -y adwarp auth export --mcp
 #   --header "X-Adwarp-Linkedin-Account-Id: ..."
 ```
 
-Any MCP client that supports custom headers works the same way. For clients without native HTTP transport, use `npx mcp-remote <url> --header "X-Adwarp-Linkedin-Client-Id: ..."` and so on. Verify with a read-only call ("list my ad accounts"). From then on the connection is just a URL plus headers, usable from machines that never cloned the repo.
+Other MCP clients that can send custom headers connect the same way. For clients without native HTTP transport, use `npx mcp-remote <url> --header "X-Adwarp-Linkedin-Client-Id: ..."` and so on. Verify with a read-only call ("list my ad accounts"). From then on the connection is just a URL plus headers, usable from machines that never cloned the repo.
 
 Know the trade-off: your client secret and refresh token travel with every request to that server, so only point them at a deployment you trust, or self-host the identical endpoint (below). The same scopes that manage ads can also switch them on, so treat these credentials like an ad account password.
 

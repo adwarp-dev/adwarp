@@ -194,7 +194,8 @@ and the [CLI](https://adwarp.dev/docs/clients/cli).
 There are two ways to install Adwarp:
 
 1. **[As an MCP server](#option-1-install-as-an-mcp-server)**, registered with Claude
-   Code, Claude Desktop, Cursor, or any MCP client, so you create campaigns by talking
+   Code, Claude Desktop, Cursor, Codex, or other MCP clients that can run a local server,
+   so you create campaigns by talking
    to your assistant. Run it locally, or skip the always-on install entirely and
    [connect to the hosted endpoint with your own credentials](#hosted-mcp-connect-with-your-own-credentials-nothing-to-deploy).
 2. **[As a terminal CLI](#option-2-install-the-terminal-cli)**, a global `adwarp` command
@@ -252,7 +253,7 @@ Register the server with your MCP client; it reads the `~/.adwarp` credentials f
 claude mcp add adwarp -- npx -y adwarp mcp
 ```
 
-**Claude Desktop, Cursor, or any MCP client**, in its MCP config JSON:
+**Claude Desktop, Cursor, or other MCP clients that can run a local server**, in the client's MCP config JSON:
 
 ```json
 {
@@ -305,7 +306,7 @@ npx -y adwarp auth export --mcp
 #   --header "X-Adwarp-Linkedin-Account-Id: …"
 ```
 
-Any MCP client that supports custom headers works the same way (for clients without
+Other MCP clients that can send custom headers connect the same way (for clients without
 native HTTP transport: `npx mcp-remote <url> --header "X-Adwarp-Linkedin-Client-Id: …" …`).
 Verify with a read-only call ("list my ad accounts"), and from then on the connection is
 just a URL plus headers, usable from machines that never cloned this repo.

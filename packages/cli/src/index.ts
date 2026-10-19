@@ -57,7 +57,7 @@ registerGoogleCommands(program);
 // Same server as the adwarp-mcp command, so an MCP client config can be `npx -y adwarp mcp`.
 program
   .command("mcp")
-  .description("Start the MCP server on stdio, for Claude Code, Claude Desktop, Cursor, or any MCP client")
+  .description("Start the MCP server on stdio, for Claude Code, Claude Desktop, Cursor, Codex, or other MCP clients that can run a local server")
   .action(async () => {
     const { startStdioServer } = await import("@adwarp/mcp/server");
     await startStdioServer();
