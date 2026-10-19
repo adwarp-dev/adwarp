@@ -32,7 +32,10 @@ pnpm + TypeScript monorepo:
   the env-credential tenant gated by a `MCP_AUTH_TOKEN` bearer, and bring-your-own
   credentials callers who send `X-Adwarp-Linkedin-*` headers (client id/secret + refresh token,
   optional account id/version), parsed by `requestCredentialsFromHeaders` and activated per
-  request via `withRequestCredentials` (core/config.ts, AsyncLocalStorage).
+  request via `withRequestCredentials` (core/config.ts, AsyncLocalStorage). It serves no
+  pages: `next.config.mjs` permanently redirects `/`, `/docs`, `/docs/*`, `/privacy` and
+  `/terms` to adwarp.dev. The website is a separate repo that renders `docs/*.md` from `main`,
+  so keep links between doc files relative (`./install.md`).
 
 Data flow: every tool/command builds a client via `createLinkedInAds()` (core/client.ts), which
 loads config + an auto-refreshing token provider, then calls a resource module. Resource

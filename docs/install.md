@@ -1,12 +1,12 @@
 ---
 title: Install
-description: "Install Adwarp from npm, authenticate with LinkedIn, and register the local MCP server with Claude Code, Claude Desktop, Cursor, or any MCP client."
+description: "Install Adwarp from npm, authenticate with LinkedIn, and register the local MCP server with Claude Code, Claude Desktop, Cursor, Codex, or other MCP clients that can run a local server."
 order: 3
 ---
 
 There are 2 ways to run Adwarp:
 
-1. As an MCP server, registered with Claude Code, Claude Desktop, Cursor, or any MCP client, so you create campaigns by talking to your assistant. Run it locally (this page), or skip the always-on install and [connect to the hosted endpoint](./hosted.md) with your own credentials.
+1. As an MCP server, registered with Claude Code, Claude Desktop, Cursor, Codex, or other MCP clients that can run a local server, so you create campaigns by talking to your assistant. Run it locally (this page), or skip the always-on install and [connect to the hosted endpoint](./hosted.md) with your own credentials.
 2. As a terminal CLI, a global `adwarp` command for your terminal, scripts, or cron. See [CLI](./cli.md).
 
 Both come from the same npm package, `adwarp`, and both start the same way: [create a LinkedIn app](./linkedin-app.md), then authenticate as below. They read the same `~/.adwarp` credentials, so you can do both.
@@ -36,7 +36,7 @@ Claude Code:
 claude mcp add adwarp -- npx -y adwarp mcp
 ```
 
-Claude Desktop, Cursor, or any other MCP client, in its MCP config JSON:
+Claude Desktop, Cursor, or other MCP clients that can run a local server, in the client's MCP config JSON:
 
 ```json
 {
