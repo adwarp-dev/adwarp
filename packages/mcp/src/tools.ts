@@ -12,10 +12,13 @@ import {
   TargetingSpecSchema,
   uploadAudienceFromFile,
   audienceFromSalesforce,
+  audienceFromHubSpot,
+  previewHubSpotAudience,
   listConversions,
   getDmpSegment,
   requireDefaultAccountId,
   SalesforceAudienceSchema,
+  HubSpotAudienceSchema,
   createCampaignGroup,
   createCampaign,
   updateCampaign,
@@ -71,6 +74,13 @@ export interface RegisterToolsOptions {
    * operate whichever Google Ads account the server is configured with.
    */
   google?: boolean;
+  /**
+   * Also register `audience_from_hubspot`. On by default for the local stdio
+   * server, OFF on the hosted handler for the same reason as Google: its token
+   * would come from a server environment variable, so on a multi-tenant
+   * endpoint any caller could read the deploy owner's HubSpot contacts.
+   */
+  hubspot?: boolean;
 }
 
 const JOURNAL_NOTE =
@@ -199,6 +209,25 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
       }
     },
   );
+
+  if (options.hubspot ?? true) {
+    server.tool(
+      "audience_from_hubspot",
+      "Build a matched audience from HubSpot contacts or companies. Pass exactly 1 source: a HubSpot listId (its members), or filters for a CRM search (all ANDed). Reads every page, cleans the records like a CSV upload, and uploads only SHA256 email hashes for contacts (name and website for companies). Pass dryRun=true first: it returns counts and a masked sample and uploads nothing. Needs a HubSpot private app token on this machine (ADWARP_HUBSPOT_TOKEN or ~/.adwarp/hubspot.json); matching takes up to 48h.",
+      HubSpotAudienceSchema.shape,
+      async (args) => {
+        try {
+          const input = HubSpotAudienceSchema.parse(args);
+          if (input.dryRun) return ok(await previewHubSpotAudience(input));
+          const linkedinAds = await createLinkedInAds();
+          const accountId = input.accountId ?? (await requireDefaultAccountId());
+          return ok(await audienceFromHubSpot(linkedinAds.client, linkedinAds.getToken, { ...input, accountId }));
+        } catch (e) {
+          return fail(e);
+        }
+      },
+    );
+  }
 
   server.tool(
     "list_conversions",

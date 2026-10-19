@@ -1,7 +1,7 @@
 ---
 title: CLI
 description: "Run Adwarp from your terminal with no AI client: install the adwarp command, check that it works, and put it on a schedule."
-order: 17
+order: 18
 ---
 
 Every capability of the MCP server is also an `adwarp` command, for your terminal, scripts and cron. It needs no AI client. [Create a LinkedIn app](./linkedin-app.md) first.

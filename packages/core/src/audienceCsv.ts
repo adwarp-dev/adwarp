@@ -82,6 +82,15 @@ function detectType(headers: string[]): AudienceType {
 /** Parse + normalize a CSV into LinkedIn's matched-audience format. */
 export function cleanAudienceCsv(text: string, opts: { type?: AudienceType } = {}): CleanedCsv {
   const parsed = parse(text, { columns: true, skip_empty_lines: true, trim: true }) as Record<string, string>[];
+  return cleanAudienceRows(parsed, opts);
+}
+
+/**
+ * Normalize already-parsed rows (header -> value) into LinkedIn's matched-audience
+ * format. The CSV path and CRM sources such as HubSpot share this, so every list
+ * is cleaned the same way whatever it came from.
+ */
+export function cleanAudienceRows(parsed: Record<string, string>[], opts: { type?: AudienceType } = {}): CleanedCsv {
   const headers = parsed.length ? Object.keys(parsed[0]!) : [];
   if (headers.length === 0) throw new Error("CSV has no header row.");
 

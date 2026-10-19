@@ -15,7 +15,7 @@ campaigns can only be switched on in the Google Ads UI.
 
 > Unofficial and not affiliated with or endorsed by LinkedIn or Google.
 
-> Covers creation, matched audiences (including building one straight from Salesforce),
+> Covers creation, matched audiences (including building one straight from Salesforce or HubSpot),
 > conversion selection, performance reporting/insights, competitor ad intelligence, and a
 > change journal with before/after lift. See [ROADMAP.md](./ROADMAP.md) for what's shipped
 > and what's planned next.
@@ -31,6 +31,8 @@ handles today, roughly in the order a campaign comes together:
   company domains to URLs)
 - "Build an audience from Salesforce: every contact on an account flagged as a target."
   (SOQL straight to a matched audience)
+- "Turn our HubSpot target accounts list into a LinkedIn audience." (a HubSpot list or search
+  straight to a matched audience of contacts or companies)
 - "Launch a draft campaign for that audience, $100/day, tracking the demo-booked
   conversion." (campaign group + campaign + draft ads in one call)
 - "What ads is our biggest competitor running right now, and what offers are they pushing?" (reads the
@@ -157,7 +159,7 @@ steps, plus the `ADWARP_GOOGLE_*` environment variables.
 ## Packages
 
 - `@adwarp/shared`: the platform-neutral layer: OAuth, credential stores, retry policy, the change journal, period and KPI math.
-- `@adwarp/core`: LinkedIn REST client, resource modules, CSV + SHA256 hashing, Salesforce reader.
+- `@adwarp/core`: LinkedIn REST client, resource modules, CSV + SHA256 hashing, Salesforce and HubSpot readers.
 - `@adwarp/google`: Google Ads REST client, GAQL reads, atomic mutate builder, Search campaign creation.
 - `@adwarp/mcp`: MCP server (stdio for local; reused by the hosted app). **Primary interface.**
 - `@adwarp/cli`: the `adwarp` CLI over the same engines, for scripted batch runs.
@@ -318,6 +320,7 @@ so treat these credentials like an ad account password.
 
 Hosted limitations (all by design, they need local resources): `upload_audience_csv`
 reads a CSV path on the server, `audience_from_salesforce` needs your local `sf` CLI,
+`audience_from_hubspot` is not registered there (its HubSpot token stays on your machine),
 competitor-ads scraping falls back to API-only metadata (no browser), and the change
 journal / lift tools need the local `~/.adwarp/changelog.jsonl`. Run those through the
 local MCP server or CLI.
@@ -461,7 +464,7 @@ Operate:
 
 - **adwarp-launch**, "launch a campaign": brief to confirmed draft with house guardrails applied
 - **adwarp-experiments**, "did that change help": hypothesis logging plus before/after lift
-- **adwarp-audiences**, "audit my audiences": health, dry-run uploads, Salesforce refresh loop
+- **adwarp-audiences**, "audit my audiences": health, dry-run uploads, Salesforce and HubSpot refresh loops
 - **adwarp-account-audit**, "is my account set up right": hygiene scorecard and fix list
 
 ```bash
@@ -485,7 +488,8 @@ whether it works on the hosted endpoint.
   estimates reach before building the campaign.
 - **Audiences:** `upload_audience_csv` (auto-cleans the CSV: normalizes column names, drops
   non-matcher columns, hashes emails, converts company domains to website URLs; supports both
-  contact and company lists), `audience_from_salesforce` (SOQL to matched audience), `get_audience_status`
+  contact and company lists), `audience_from_salesforce` (SOQL to matched audience),
+  `audience_from_hubspot` (HubSpot list or search to matched audience, local only), `get_audience_status`
 - **Conversions:** `list_conversions` (select an existing insight-tag conversion to track).
   `create_campaign` and `launch_from_brief` accept `conversionIds` or `conversionName`, and
   fall back to `defaultConversionName` from config.
@@ -537,6 +541,8 @@ adwarp targeting estimate <facet> <urns…> # audience size for one facet's URNs
 adwarp audience upload -n <name> -f <csv> # clean + upload a CSV as a matched audience
 adwarp audience upload -n <name> -f <csv> --dry-run   # preview the cleaned CSV, no upload
 adwarp audience from-salesforce -n <name> -q "<SOQL>"   # Salesforce query -> matched audience
+adwarp audience from-hubspot -n <name> --list <id> [--dry-run]   # HubSpot list -> matched audience
+adwarp audience from-hubspot -n <name> --filter <prop>:<op>:<value> [-t company]   # HubSpot search -> matched audience
 adwarp audience status <segmentId>        # matching status + resolved size
 adwarp conversions list                   # account conversions (pick one to track)
 adwarp campaigns list [--group <id>] [--all]   # campaign groups + ad groups, drafts included
@@ -597,7 +603,9 @@ Local config lives in `~/.adwarp/config.json` (mode 0600, never in the repo):
 | `mcpAuthToken` | Bearer secret for the hosted MCP endpoint |
 
 Hosted equivalents are the `ADWARP_LINKEDIN_*` env vars plus `MCP_AUTH_TOKEN` (see [Configuration](https://adwarp.dev/docs/config)).
-OAuth tokens are stored separately in `~/.adwarp/credentials.json`.
+OAuth tokens are stored separately in `~/.adwarp/credentials.json`. A HubSpot private app
+token, for [HubSpot audiences](https://adwarp.dev/docs/hubspot), goes in `~/.adwarp/hubspot.json` (mode 0600)
+or `ADWARP_HUBSPOT_TOKEN`.
 
 Coming from Liam? Every name from before the rename still works: the `~/.liads` folder, the
 `LIADS_*` and `GADS_*` variables, and the `X-Liads-*` headers. See
@@ -615,6 +623,24 @@ result into a matched audience, closing the loop from "accounts flagged in Sales
 adwarp audience from-salesforce -n "Q3 target accounts" \
   -q "SELECT Email FROM Contact WHERE Account.Target_List__c = true AND Email != null"
 ```
+
+## HubSpot integration
+
+Adwarp reads HubSpot with a private app access token you create in your own HubSpot account,
+with 3 read-only scopes: `crm.objects.contacts.read`, `crm.objects.companies.read` and
+`crm.lists.read`. Put the token in `~/.adwarp/hubspot.json` as `{ "accessToken": "..." }`
+(mode 0600) or in `ADWARP_HUBSPOT_TOKEN`. `audience_from_hubspot` (and
+`adwarp audience from-hubspot`) take a HubSpot list id or CRM search filters, read every
+page, and turn the contacts or companies into a matched audience through the same cleaning
+and hashing as a CSV upload, so only email hashes leave your machine. It runs locally only.
+Example:
+
+```
+adwarp audience from-hubspot -n "Q3 target accounts" --list 123 --dry-run
+adwarp audience from-hubspot -n "Marketing qualified leads" --filter lifecyclestage:EQ:marketingqualifiedlead
+```
+
+See [HubSpot audiences](https://adwarp.dev/docs/hubspot) for creating the private app and the limits.
 
 ## Safety
 

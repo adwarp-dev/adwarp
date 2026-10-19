@@ -41,6 +41,7 @@ adwarp targeting estimate <facet> <urns...>   # audience size for 1 facet's URNs
 adwarp audience upload -n <name> -f <csv> [-t contact|company]   # clean and upload a CSV as a matched audience
 adwarp audience upload -n <name> -f <csv> --dry-run   # preview the cleaned CSV, no upload
 adwarp audience from-salesforce -n <name> -q "<SOQL>" [--email-field <column>]   # Salesforce query to matched audience
+adwarp audience from-hubspot -n <name> (--list <id> | --filter <prop>:<op>:<value> ...) [-t contact|company] [--dry-run]   # HubSpot list or search to matched audience
 adwarp audience status <segmentId>        # matching status and resolved size
 adwarp conversions list                   # account conversions (pick 1 to track)
 adwarp campaigns list [--group <id>] [--all]   # campaign groups and ad groups, drafts included

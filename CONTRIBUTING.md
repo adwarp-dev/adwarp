@@ -12,7 +12,7 @@ pnpm -r typecheck
 
 ## Layout
 
-- `packages/core`: LinkedIn REST client, OAuth, resource modules, audience hashing, Salesforce reader.
+- `packages/core`: LinkedIn REST client, OAuth, resource modules, audience hashing, Salesforce and HubSpot readers.
 - `packages/mcp`: MCP server. `src/tools.ts` registers tools; `src/index.ts` is the stdio entry.
 - `packages/cli`: the `adwarp` CLI (also installed as `liam`, the legacy alias).
 - `packages/adwarp`: the npm package `adwarp`, which bundles the CLI and the MCP server. Test

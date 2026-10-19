@@ -35,7 +35,7 @@ switches it on in Campaign Manager. Google campaigns can only be switched on in 
 | --- | --- | --- |
 | `adwarp-launch` | "Launch a campaign for..." | Brief gathering, reach estimate, house guardrails, confirmed draft creation, activation handoff |
 | `adwarp-experiments` | "Did that change help?" | Hypothesis logging, before/after lift, honest verdicts with confounds stated |
-| `adwarp-audiences` | "Audit my audiences" | Inventory, health (stuck, small, stale, orphaned), dry-run uploads, Salesforce refresh loop |
+| `adwarp-audiences` | "Audit my audiences" | Inventory, health (stuck, small, stale, orphaned), dry-run uploads, Salesforce and HubSpot refresh loops |
 | `adwarp-account-audit` | "Is my account set up right?" | Hygiene scorecard: naming, conversions, toggles, overlap, UTMs, plus a ranked fix list |
 
 **Google Ads**

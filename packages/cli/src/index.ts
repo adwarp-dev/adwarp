@@ -14,6 +14,10 @@ import {
   searchTargeting,
   estimateAudience,
   audienceFromSalesforce,
+  audienceFromHubSpot,
+  previewHubSpotAudience,
+  parseHubSpotFilter,
+  type HubSpotFilter,
   listConversions,
   performanceSummary,
   getPerformance,
@@ -169,6 +173,49 @@ audience
     });
     console.log(`Fetched ${res.fetchedFromSalesforce} emails from Salesforce.`);
     console.log(`Segment ${res.segmentId}, status ${res.status} (${res.uploaded} uploaded).`);
+    res.warnings.forEach((w: string) => console.warn(`! ${w}`));
+  });
+
+const collect = (value: string, previous: string[]) => [...previous, value];
+
+audience
+  .command("from-hubspot")
+  .description("Build a matched audience from HubSpot contacts or companies: a list, or CRM search filters")
+  .requiredOption("-n, --name <name>", "Audience name")
+  .option("--list <id>", "HubSpot list id (its members become the audience)")
+  .option("--filter <prop:op:value>", "CRM search filter, repeatable and ANDed, e.g. lifecyclestage:EQ:customer", collect, [])
+  .option("-t, --type <type>", "contact|company (defaults to the list's type, or contact for filters)")
+  .option("-a, --account <id>", "Ad account id (defaults to config defaultAccountId)")
+  .option("--dry-run", "Show counts and a masked sample without uploading")
+  .action(async (opts: { name: string; list?: string; filter: string[]; type?: "contact" | "company"; account?: string; dryRun?: boolean }) => {
+    if (opts.type && opts.type !== "contact" && opts.type !== "company") {
+      throw new Error(`--type must be contact or company, got "${opts.type}".`);
+    }
+    const filters: HubSpotFilter[] | undefined = opts.filter.length ? opts.filter.map(parseHubSpotFilter) : undefined;
+    const input = { name: opts.name, type: opts.type, listId: opts.list, filters };
+    const reasons = (r: Record<string, number>) =>
+      Object.entries(r).map(([k, v]) => `${k} ${v}`).join(", ");
+    if (opts.dryRun) {
+      const p = await previewHubSpotAudience(input);
+      const from = p.source.kind === "list" ? `list ${p.source.listId} "${p.source.listName}"` : "search";
+      console.log(`HubSpot ${from} (${p.audienceType})`);
+      console.log(`read: ${p.read} | valid: ${p.valid} | skipped: ${p.skipped}${p.skipped ? ` (${reasons(p.skippedReasons)})` : ""}`);
+      p.warnings.forEach((w: string) => console.warn(`! ${w}`));
+      if (p.sample.length) {
+        console.log("\nsample:");
+        console.log(p.columns.join(","));
+        p.sample.forEach((row) => console.log(p.columns.map((c) => row[c] ?? "").join(",")));
+      }
+      return;
+    }
+    const linkedinAds = await createLinkedInAds();
+    const res = await audienceFromHubSpot(linkedinAds.client, linkedinAds.getToken, {
+      ...input,
+      accountId: opts.account ?? (await requireDefaultAccountId()),
+    });
+    console.log(`Read ${res.read} ${res.audienceType === "contact" ? "contacts" : "companies"} from HubSpot.`);
+    console.log(`Segment ${res.segmentId} (${res.audienceType}), status ${res.status} (${res.uploaded} uploaded).`);
+    if (res.skipped) console.log(`Skipped ${res.skipped}: ${reasons(res.skippedReasons)}.`);
     res.warnings.forEach((w: string) => console.warn(`! ${w}`));
   });
 

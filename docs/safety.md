@@ -1,7 +1,7 @@
 ---
 title: Safety
 description: "The rules Adwarp follows so nothing spends without you: drafts-first creation, audience limits, and where secrets live."
-order: 12
+order: 13
 ---
 
 - Every LinkedIn campaign and creative is created as a DRAFT by default, and every Google Ads campaign, ad group, and ad as PAUSED. On LinkedIn, going live is always an explicit request: you ask Adwarp to set a campaign or a single ad ACTIVE, or switch it on yourself in Campaign Manager. On Google, no create schema can express an enabled status, so activation happens in the Google Ads UI.

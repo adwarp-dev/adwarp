@@ -16,6 +16,8 @@ Local config lives in `~/.adwarp/config.json` (mode 0600, never in the repo). OA
 
 Google Ads has its own files in the same folder: `~/.adwarp/google.json` and `~/.adwarp/google-credentials.json`. See [Google Ads](./google-ads.md).
 
+HubSpot audiences read a private app token from `~/.adwarp/hubspot.json` (mode 0600), as `{ "accessToken": "..." }`. See [HubSpot audiences](./hubspot.md).
+
 ## Hosted equivalents
 
 A hosted deploy reads environment variables instead of files:
@@ -34,6 +36,7 @@ A hosted deploy reads environment variables instead of files:
 
 | Variable | Purpose |
 | --- | --- |
+| `ADWARP_HUBSPOT_TOKEN` | HubSpot private app token for [HubSpot audiences](./hubspot.md), used instead of `~/.adwarp/hubspot.json` |
 | `ADWARP_CHANGELOG_PATH` | override the change journal path |
 | `ADWARP_NO_CHANGELOG` | set to `1` to turn off change journal auto-capture |
 | `ADWARP_CREATIVE_WORKER_URL`, `ADWARP_CREATIVE_WORKER_TOKEN` | the [remote creative worker](https://github.com/adwarp-dev/adwarp/tree/main/services/creative-worker) for competitor ad copy |

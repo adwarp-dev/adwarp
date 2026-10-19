@@ -1,7 +1,7 @@
 ---
 title: Codex
 description: "Add Adwarp to the Codex CLI with 1 command, then check that it works."
-order: 15
+order: 16
 ---
 
 The Codex CLI runs Adwarp as a local MCP server with every tool, including the Google Ads tools. [Create a LinkedIn app](./linkedin-app.md) and [authenticate](./install.md#authenticate) first.

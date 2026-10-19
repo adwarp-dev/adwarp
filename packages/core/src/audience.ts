@@ -13,7 +13,7 @@ import {
   RECOMMENDED_MIN_ROWS,
   type SegmentType,
 } from "./resources/dmpSegments.js";
-import { cleanAudienceCsv, cleanedToCsv, type AudienceType } from "./audienceCsv.js";
+import { cleanAudienceCsv, cleanedToCsv, type AudienceType, type CleanedCsv } from "./audienceCsv.js";
 
 /** Normalize (trim + lowercase) and SHA256-hash an email, per LinkedIn's spec. */
 export function hashEmail(email: string): string {
@@ -22,12 +22,17 @@ export function hashEmail(email: string): string {
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
+/** Whether a raw value is shaped like an email address, the check every upload applies. */
+export function isValidEmail(email: string): boolean {
+  return !!email && EMAIL_RE.test(email);
+}
+
 /** Validate, normalize, SHA256-hash, and dedupe a list of raw emails. */
 export function hashAndDedupeEmails(emails: string[]): { hashes: string[]; total: number; skipped: number } {
   const seen = new Set<string>();
   let skipped = 0;
   for (const email of emails) {
-    if (!email || !EMAIL_RE.test(email)) {
+    if (!isValidEmail(email)) {
       skipped += 1;
       continue;
     }
@@ -139,14 +144,7 @@ async function uploadHashedAudience(
   const warnings = [...(input.preWarnings ?? [])];
 
   if (hashes.length === 0) throw new Error("No valid emails to upload.");
-  if (hashes.length > MAX_SEGMENT_ROWS) {
-    throw new Error(`List has ${hashes.length} emails; LinkedIn caps a single upload at ${MAX_SEGMENT_ROWS}.`);
-  }
-  if (hashes.length < RECOMMENDED_MIN_ROWS) {
-    warnings.push(
-      `Only ${hashes.length} valid emails. LinkedIn recommends >= ${RECOMMENDED_MIN_ROWS} and needs ~300 matched members to serve. Match rates run ~30-60%, so a small list may never become targetable.`,
-    );
-  }
+  warnings.push(...audienceSizeWarnings("contact", hashes.length));
   if (skipped > 0) warnings.push(`Skipped ${skipped} rows with missing/invalid emails.`);
 
   return uploadCsvToSegment(client, getToken, {
@@ -165,6 +163,27 @@ async function uploadHashedAudience(
 const RECOMMENDED_MIN_COMPANIES = 1000;
 
 /**
+ * LinkedIn's list-size rules for a matched audience of `rows` valid rows: throws
+ * above the per-upload cap, and returns a warning below the recommended minimum.
+ * Uploads and dry runs both apply it, so a preview fails where the upload would.
+ */
+export function audienceSizeWarnings(type: AudienceType, rows: number): string[] {
+  const unit = type === "contact" ? "emails" : "companies";
+  if (rows > MAX_SEGMENT_ROWS) {
+    throw new Error(`List has ${rows} ${unit}; LinkedIn caps a single upload at ${MAX_SEGMENT_ROWS}.`);
+  }
+  if (type === "contact" && rows < RECOMMENDED_MIN_ROWS) {
+    return [
+      `Only ${rows} valid emails. LinkedIn recommends >= ${RECOMMENDED_MIN_ROWS} and needs ~300 matched members to serve. Match rates run ~30-60%, so a small list may never become targetable.`,
+    ];
+  }
+  if (type === "company" && rows < RECOMMENDED_MIN_COMPANIES) {
+    return [`Only ${rows} companies. LinkedIn recommends >= ${RECOMMENDED_MIN_COMPANIES}.`];
+  }
+  return [];
+}
+
+/**
  * Clean a CSV (fix column names, drop non-matcher columns, turn domains into
  * website URLs) and upload it as the right list type (auto-detected, or forced
  * via `type`). Contacts are hashed; companies upload name + website.
@@ -177,7 +196,21 @@ export async function uploadAudienceFromFile(
   const text = await readFile(input.csvPath, "utf8");
   const clean = cleanAudienceCsv(text, { type: input.type });
   if (clean.rowCount === 0) throw new Error("No usable rows after cleaning the CSV.");
+  return uploadCleanedAudience(client, getToken, { accountId: input.accountId, name: input.name, clean });
+}
 
+/**
+ * Upload a list that has already been cleaned (by cleanAudienceCsv or
+ * cleanAudienceRows) as the matching segment type. Contacts are SHA256-hashed
+ * and deduped, so only hashes leave the machine; companies upload name +
+ * website. Shared by CSV files and CRM sources, so they upload the same way.
+ */
+export async function uploadCleanedAudience(
+  client: LinkedInClient,
+  getToken: TokenProvider,
+  input: { accountId: string; name: string; clean: CleanedCsv },
+): Promise<AudienceUploadResult & { audienceType: AudienceType }> {
+  const { clean } = input;
   if (clean.type === "contact") {
     const { hashes, total, skipped } = hashAndDedupeEmails(clean.rows.map((r) => r.email ?? ""));
     const res = await uploadHashedAudience(client, getToken, {
@@ -192,10 +225,8 @@ export async function uploadAudienceFromFile(
   }
 
   // company
-  const warnings = [...clean.warnings];
-  if (clean.rowCount < RECOMMENDED_MIN_COMPANIES) {
-    warnings.push(`Only ${clean.rowCount} companies. LinkedIn recommends >= ${RECOMMENDED_MIN_COMPANIES}.`);
-  }
+  if (clean.rowCount === 0) throw new Error("No companies to upload.");
+  const warnings = [...clean.warnings, ...audienceSizeWarnings("company", clean.rowCount)];
   const res = await uploadCsvToSegment(client, getToken, {
     accountId: input.accountId,
     name: input.name,

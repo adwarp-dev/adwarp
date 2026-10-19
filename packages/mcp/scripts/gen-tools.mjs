@@ -20,7 +20,7 @@ const OUT = join(ROOT, "docs", "tools.json");
 const HOSTED_ROUTE = join(ROOT, "apps", "web", "app", "api", "[transport]", "route.ts");
 
 /** What the hosted route passes to registerTools. Checked against the route below. */
-const HOSTED_OPTIONS = { google: false };
+const HOSTED_OPTIONS = { google: false, hubspot: false };
 
 /** Registers tools on a fresh server, connects a client in memory, and returns tools/list. */
 async function listTools(options) {
@@ -43,9 +43,9 @@ async function listTools(options) {
 
 // The hosted set is only right while the route still registers with HOSTED_OPTIONS.
 const route = await readFile(HOSTED_ROUTE, "utf8");
-if (!/registerTools\([^)]*\{\s*google:\s*false\s*\}\s*\)/.test(route)) {
+if (!/registerTools\([^)]*\{\s*google:\s*false,\s*hubspot:\s*false\s*\}\s*\)/.test(route)) {
   throw new Error(
-    `${relative(ROOT, HOSTED_ROUTE)} no longer calls registerTools(server, { google: false }). ` +
+    `${relative(ROOT, HOSTED_ROUTE)} no longer calls registerTools(server, { google: false, hubspot: false }). ` +
       "Update HOSTED_OPTIONS in packages/mcp/scripts/gen-tools.mjs to match it.",
   );
 }

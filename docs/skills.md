@@ -30,7 +30,7 @@ Analysis and monitoring skills are read-only. The operating skills create drafts
 | --- | --- | --- |
 | `adwarp-launch` | "Launch a campaign" | a brief turned into a confirmed draft, with house guardrails applied |
 | `adwarp-experiments` | "Did that change help?" | hypothesis logging plus before and after lift |
-| `adwarp-audiences` | "Audit my audiences" | health, dry-run uploads, a Salesforce refresh loop |
+| `adwarp-audiences` | "Audit my audiences" | health, dry-run uploads, Salesforce and HubSpot refresh loops |
 | `adwarp-account-audit` | "Is my account set up right?" | a hygiene scorecard and fix list |
 
 ## Google Ads
