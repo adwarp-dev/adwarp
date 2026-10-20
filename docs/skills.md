@@ -8,6 +8,8 @@ The [skills directory](https://github.com/adwarp-dev/adwarp/tree/main/skills) sh
 
 Analysis and monitoring skills are read-only. The operating skills create drafts (or paused Google entities) only, after confirmation.
 
+Want skills anyone on your team can run without Adwarp installed? The [paid ads skills](./paid-ads-skills.md) are 12 more for LinkedIn Ads and Google Ads that work from a CSV export, and pull live data through Adwarp when it's connected.
+
 ## Analyze
 
 | Skill | Ask it | What you get |
