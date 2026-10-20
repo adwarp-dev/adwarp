@@ -7,6 +7,10 @@ the caveats to state, and a fixed report format. They work over the Adwarp MCP t
 when registered, and fall back to the `adwarp` CLI, so they run anywhere Adwarp is
 installed and authenticated.
 
+The 12 skills in [adwarp-dev/paid-ads-skills](https://github.com/adwarp-dev/paid-ads-skills)
+also run from a CSV export with no Adwarp install, which makes them the ones to share with
+a team. The Google Ads account audit lives there, not here.
+
 The analysis and monitoring skills are read-only against your ad account. The ones
 that write (adwarp-launch, adwarp-gads-launch, and adwarp-experiments when it recreates an ad)
 create drafts or paused entities only, after explicit confirmation. On LinkedIn, a

@@ -476,6 +476,11 @@ running `./skills/install.sh` again switches you to the `adwarp-*` names.
 Each skill has its own page in the [skills docs](https://adwarp.dev/docs/skills). See
 [skills/README.md](./skills/README.md) for the conventions for adding a skill.
 
+For skills that also run without Adwarp, from a CSV export, see
+[adwarp-dev/paid-ads-skills](https://github.com/adwarp-dev/paid-ads-skills): 12 skills for
+LinkedIn Ads and Google Ads, including the Google Ads account audit
+([docs](https://adwarp.dev/docs/skills/paid-ads)).
+
 ## Tools (MCP)
 
 The [tool reference](https://adwarp.dev/docs/tools) lists every tool with its inputs and
