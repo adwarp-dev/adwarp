@@ -15,7 +15,7 @@ Adwarp is unofficial and not affiliated with or endorsed by LinkedIn or Google.
 Once Adwarp is connected, you talk to your assistant in plain language. These are requests it handles today, roughly in the order a campaign comes together:
 
 - "How many VPs of demand gen at US SaaS companies can we reach?" Adwarp resolves the targeting facets and estimates reach before any money is involved.
-- "Upload this CSV as a matched audience." Adwarp cleans the columns, hashes emails, and converts company domains to URLs.
+- "Upload this CSV as a matched audience." Adwarp cleans the columns, hashes emails, keeps names, companies and titles for LinkedIn's people match, and converts company domains to URLs.
 - "Build an audience from Salesforce: every contact on an account flagged as a target." A SOQL query goes straight to a matched audience.
 - "Turn our HubSpot target accounts list into a LinkedIn audience." A HubSpot list or search becomes a matched audience of contacts or companies.
 - "Launch a draft campaign for that audience, $100/day, tracking the demo-booked conversion." The campaign group, campaign, and draft ads are created in a single call.

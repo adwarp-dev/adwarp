@@ -27,8 +27,8 @@ handles today, roughly in the order a campaign comes together:
 
 - "How many VPs of demand gen at US SaaS companies can we reach?" (resolves targeting
   facets, estimates reach before any money is involved)
-- "Upload this CSV as a matched audience." (auto-cleans columns, hashes emails, converts
-  company domains to URLs)
+- "Upload this CSV as a matched audience." (auto-cleans columns, hashes emails, keeps names,
+  companies and titles for LinkedIn's people match, converts company domains to URLs)
 - "Build an audience from Salesforce: every contact on an account flagged as a target."
   (SOQL straight to a matched audience)
 - "Turn our HubSpot target accounts list into a LinkedIn audience." (a HubSpot list or search

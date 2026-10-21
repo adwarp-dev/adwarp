@@ -178,7 +178,7 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
 
   server.tool(
     "upload_audience_csv",
-    "Clean a CSV at csvPath and upload it as a matched-audience DMP segment. Auto-detects contact (email) vs company (account) lists, normalizes column names, drops non-matcher columns, hashes emails, and converts company domains to website URLs. Requires the Audiences product; matching takes up to 48h.",
+    "Clean a CSV at csvPath and upload it as a matched-audience DMP segment. Auto-detects contact (email, or first and last name) vs company (account) lists, normalizes column names, drops non-matcher columns, hashes emails, and converts company domains to website URLs. Contact lists keep first name, last name, company, title and country for LinkedIn's people match, which raises the match rate on work emails; a row with no valid email but a first and last name matches on name. Requires the Audiences product; matching takes up to 48h.",
     {
       accountId: z.string().optional(),
       name: z.string(),
