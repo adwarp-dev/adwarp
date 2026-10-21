@@ -159,6 +159,35 @@ async function uploadHashedAudience(
   });
 }
 
+/**
+ * Render a cleaned contact list with people-match columns as LinkedIn's upload
+ * CSV: the email SHA256-hashed, the name, company, title and country as plain
+ * text. A row whose email is invalid stays in as a name match when it has a
+ * first and last name. Deduped on the email hash, or on name + company.
+ */
+export function contactListCsv(clean: CleanedCsv): { csvText: string; uploaded: number; skipped: number; nameOnly: number } {
+  const esc = (v: string) => (/[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
+  const seen = new Set<string>();
+  const lines: string[] = [];
+  let skipped = 0;
+  let nameOnly = 0;
+  for (const r of clean.rows) {
+    const row = { ...r };
+    if (isValidEmail(row.email ?? "")) row.email = hashEmail(row.email!);
+    else delete row.email;
+    if (!row.email && !(row.firstname && row.lastname)) {
+      skipped += 1;
+      continue;
+    }
+    const key = row.email ?? `name:${[row.firstname, row.lastname, row.employeecompany ?? ""].join("|").toLowerCase()}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    if (!row.email) nameOnly += 1;
+    lines.push(clean.columns.map((c) => esc(row[c] ?? "")).join(","));
+  }
+  return { csvText: `${clean.columns.join(",")}\n${lines.join("\n")}\n`, uploaded: lines.length, skipped, nameOnly };
+}
+
 /** Min recommended rows for a company list (contacts use RECOMMENDED_MIN_ROWS). */
 const RECOMMENDED_MIN_COMPANIES = 1000;
 
@@ -186,7 +215,8 @@ export function audienceSizeWarnings(type: AudienceType, rows: number): string[]
 /**
  * Clean a CSV (fix column names, drop non-matcher columns, turn domains into
  * website URLs) and upload it as the right list type (auto-detected, or forced
- * via `type`). Contacts are hashed; companies upload name + website.
+ * via `type`). Contact emails are hashed, with any name, company, title and
+ * country columns kept for LinkedIn's people match; companies upload name + website.
  */
 export async function uploadAudienceFromFile(
   client: LinkedInClient,
@@ -201,9 +231,11 @@ export async function uploadAudienceFromFile(
 
 /**
  * Upload a list that has already been cleaned (by cleanAudienceCsv or
- * cleanAudienceRows) as the matching segment type. Contacts are SHA256-hashed
- * and deduped, so only hashes leave the machine; companies upload name +
- * website. Shared by CSV files and CRM sources, so they upload the same way.
+ * cleanAudienceRows) as the matching segment type. Contact emails are
+ * SHA256-hashed and deduped, so an email-only list sends only hashes; name,
+ * company, title and country columns go as plain text, as LinkedIn requires.
+ * Companies upload name + website. Shared by CSV files and CRM sources, so
+ * they upload the same way.
  */
 export async function uploadCleanedAudience(
   client: LinkedInClient,
@@ -212,14 +244,33 @@ export async function uploadCleanedAudience(
 ): Promise<AudienceUploadResult & { audienceType: AudienceType }> {
   const { clean } = input;
   if (clean.type === "contact") {
-    const { hashes, total, skipped } = hashAndDedupeEmails(clean.rows.map((r) => r.email ?? ""));
-    const res = await uploadHashedAudience(client, getToken, {
+    if (clean.columns.length === 1 && clean.columns[0] === "email") {
+      const { hashes, total, skipped } = hashAndDedupeEmails(clean.rows.map((r) => r.email ?? ""));
+      const res = await uploadHashedAudience(client, getToken, {
+        accountId: input.accountId,
+        name: input.name,
+        hashes,
+        total,
+        skipped,
+        preWarnings: clean.warnings,
+      });
+      return { ...res, audienceType: "contact" };
+    }
+
+    const list = contactListCsv(clean);
+    if (list.uploaded === 0) throw new Error("No contacts with a valid email or a first and last name to upload.");
+    const warnings = [...clean.warnings, ...audienceSizeWarnings("contact", list.uploaded)];
+    if (list.skipped > 0) warnings.push(`Skipped ${list.skipped} rows with no valid email and no first and last name.`);
+    if (list.nameOnly > 0) warnings.push(`${list.nameOnly} contacts have no valid email and will match on name only.`);
+    const res = await uploadCsvToSegment(client, getToken, {
       accountId: input.accountId,
       name: input.name,
-      hashes,
-      total,
-      skipped,
-      preWarnings: clean.warnings,
+      csvText: list.csvText,
+      type: "USER_LIST_UPLOAD",
+      uploaded: list.uploaded,
+      totalRows: clean.rowCount,
+      skipped: list.skipped,
+      warnings,
     });
     return { ...res, audienceType: "contact" };
   }

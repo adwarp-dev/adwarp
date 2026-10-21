@@ -6,7 +6,10 @@ import { parse } from "csv-parse/sync";
  * isn't a matcher, and turns company domains into website URLs.
  *
  * Two list types:
- *  - contact (USER_LIST_UPLOAD): matched by email. Kept column: `email`.
+ *  - contact (USER_LIST_UPLOAD): matched by email, and by LinkedIn's people match
+ *    on name, company, title and country. Kept columns: `email`, `firstname`,
+ *    `lastname`, `employeecompany`, `title`, `country` when present. A row needs
+ *    an email or a first and last name.
  *  - company (COMPANY_LIST_UPLOAD): matched by website. Kept columns:
  *    `companyname`, `companywebsite` (full https:// URL, since LinkedIn matches
  *    accounts on the website URL), and `linkedincompanypageurl` (the LinkedIn
@@ -33,6 +36,20 @@ const LINKEDIN_PAGE_KEYS = new Set(
    "companylinkedin", "companylinkedinurl", "companylinkedinpage", "linkedincompanyurl",
    "linkedincompanypage", "linkedincompany"],
 );
+
+// Contact-list people-match columns. `name` is left out of the company keys here,
+// since on a contact list it is usually the person's name.
+const FIRST_NAME_KEYS = new Set(["firstname", "first", "fn", "givenname", "fname"]);
+const LAST_NAME_KEYS = new Set(["lastname", "last", "ln", "surname", "familyname", "lname"]);
+const EMPLOYEE_COMPANY_KEYS = new Set(
+  ["employeecompany", "company", "companyname", "accountname", "account", "organization", "organisation",
+   "employer", "currentcompany"],
+);
+const TITLE_KEYS = new Set(["title", "jobtitle", "position", "currenttitle"]);
+const COUNTRY_KEYS = new Set(["country", "countrycode"]);
+
+/** LinkedIn's length caps for the plain-text contact columns. */
+const CONTACT_MAX_LENGTH: Record<string, number> = { firstname: 35, lastname: 35, employeecompany: 50, title: 50 };
 
 /** Turn a domain or messy URL into a clean https:// website URL (or "" if not a domain). */
 export function toWebsiteUrl(raw: string): string {
@@ -75,6 +92,7 @@ function findHeader(headers: string[], keys: Set<string>): string | undefined {
 
 function detectType(headers: string[]): AudienceType {
   if (findHeader(headers, EMAIL_KEYS)) return "contact";
+  if (findHeader(headers, FIRST_NAME_KEYS) && findHeader(headers, LAST_NAME_KEYS)) return "contact";
   if (findHeader(headers, COMPANY_NAME_KEYS) || findHeader(headers, WEBSITE_KEYS)) return "company";
   throw new Error("Could not detect list type from columns. Pass an explicit type (contact|company).");
 }
@@ -99,11 +117,48 @@ export function cleanAudienceRows(parsed: Record<string, string>[], opts: { type
 
   if (type === "contact") {
     const emailCol = findHeader(headers, EMAIL_KEYS);
-    if (!emailCol) throw new Error("No email column found for a contact list.");
-    const rows = parsed.map((r) => ({ email: (r[emailCol] ?? "").trim().toLowerCase() })).filter((r) => r.email);
-    const dropped = headers.filter((h) => h !== emailCol);
+    const firstCol = findHeader(headers, FIRST_NAME_KEYS);
+    const lastCol = findHeader(headers, LAST_NAME_KEYS);
+    if (!emailCol && !(firstCol && lastCol)) {
+      throw new Error("No email column, or first and last name columns, found for a contact list.");
+    }
+    const sources: [string, string | undefined][] = [
+      ["email", emailCol],
+      ["firstname", firstCol],
+      ["lastname", lastCol],
+      ["employeecompany", findHeader(headers, EMPLOYEE_COMPANY_KEYS)],
+      ["title", findHeader(headers, TITLE_KEYS)],
+      ["country", findHeader(headers, COUNTRY_KEYS)],
+    ];
+    const kept = sources.filter((s): s is [string, string] => !!s[1]);
+    const columns = kept.map(([c]) => c);
+
+    let badCountry = 0;
+    const rows: Record<string, string>[] = [];
+    for (const r of parsed) {
+      const out: Record<string, string> = {};
+      for (const [col, header] of kept) {
+        let v = (r[header] ?? "").trim();
+        if (col === "email") v = v.toLowerCase();
+        if (col === "country" && v) {
+          // LinkedIn takes an ISO two-letter code only.
+          if (/^[a-z]{2}$/i.test(v)) v = v.toUpperCase();
+          else {
+            badCountry += 1;
+            v = "";
+          }
+        }
+        const max = CONTACT_MAX_LENGTH[col];
+        if (max && v.length > max) v = v.slice(0, max).trim();
+        if (v) out[col] = v;
+      }
+      if (out.email || (out.firstname && out.lastname)) rows.push(out);
+    }
+    const used = new Set(kept.map(([, h]) => h));
+    const dropped = headers.filter((h) => !used.has(h));
     if (dropped.length) warnings.push(`Dropped ${dropped.length} non-matcher column(s): ${dropped.join(", ")}.`);
-    return { type, columns: ["email"], rows, dropped, rowCount: rows.length, warnings };
+    if (badCountry) warnings.push(`${badCountry} country value(s) were not two-letter ISO codes and were left blank.`);
+    return { type, columns, rows, dropped, rowCount: rows.length, warnings };
   }
 
   // company
