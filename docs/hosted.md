@@ -58,7 +58,7 @@ These are by design, because they need local resources. Run them through the [lo
 
 ## Put a skill on top
 
-The clean split for teams: your MCP client's config holds the credentials (the headers above), and a small skill or system prompt holds your playbook: default ad account, naming conventions, standing exclusions, and house rules like "audience expansion always off". The [skills folder](https://github.com/adwarp-dev/adwarp/tree/main/skills) in the repo is a working example. Copy one, swap in your defaults, and your assistant drives the hosted tools with your rules. Credentials never belong in a skill file. See [Skills](./skills.md).
+The clean split for teams: your MCP client's config holds the credentials (the headers above), and a small skill or system prompt holds your playbook: default ad account, naming conventions, standing exclusions, and house rules like "audience expansion always off". The [paid ads skills](https://github.com/adwarp-dev/paid-ads-skills) are working examples. Copy one, swap in your defaults, and your assistant drives the hosted tools with your rules. Credentials never belong in a skill file. See [Skills](./skills.md).
 
 ## Self-host on Vercel
 

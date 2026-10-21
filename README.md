@@ -328,8 +328,8 @@ local MCP server or CLI.
 **Put a skill on top.** The clean split for teams: your MCP client's config holds the
 credentials (the headers above), and a small skill or system prompt holds your playbook:
 default ad account, naming conventions, standing exclusions, house rules like "audience
-expansion always off". The [`skills/`](./skills) folder in this repo is a working example;
-copy one, swap in your defaults, and your assistant drives the hosted tools with your
+expansion always off". The [paid ads skills](https://github.com/adwarp-dev/paid-ads-skills) are working
+examples; copy one, swap in your defaults, and your assistant drives the hosted tools with your
 rules. Credentials never belong in a skill file.
 
 #### Self-host the same endpoint on Vercel
@@ -440,46 +440,26 @@ before moving to the next step.
 If any step fails, show me the exact error and fix it with me before moving on.
 ```
 
-## Skills: playbooks on top of Adwarp
+## Skills
 
-The [`skills/`](./skills) directory ships ten portable agent skills that turn Adwarp's
-raw tools into opinionated workflows. Each encodes a methodology (what to pull, how to
-judge it, significance floors, caveats, a fixed report format) and works over MCP or
-the CLI. Analysis and monitoring skills are read-only; the operating skills create
-drafts only, after confirmation.
+The 17 [paid ads skills](https://github.com/adwarp-dev/paid-ads-skills) turn Adwarp's
+tools into playbooks: what to pull, how to judge it, the thresholds that matter, and a
+report that ends in ranked actions. They also run from a CSV export with no Adwarp install.
+Analysis skills only read; the ones that change an account create drafts or paused
+entities after you confirm.
 
-Analyze:
-
-- **adwarp-spend**, "analyze my spend": budget concentration, wasted spend, reallocation moves
-- **adwarp-performance**, "how are my ads doing": winners, losers, fatigue, actions
-- **adwarp-leads**, "which ads drive leads, which don't": drivers, pause list, angle patterns
-- **adwarp-competitors**, "what is `<company>` running": Ad Library teardown and gaps
-
-Monitor:
-
-- **adwarp-weekly**, "weekly snapshot": fixed-format week-over-week digest, schedule-friendly
-- **adwarp-health**, "anything on fire": silent-unless-fire daily guardrails, one line when all clear
-
-Operate:
-
-- **adwarp-launch**, "launch a campaign": brief to confirmed draft with house guardrails applied
-- **adwarp-experiments**, "did that change help": hypothesis logging plus before/after lift
-- **adwarp-audiences**, "audit my audiences": health, dry-run uploads, Salesforce and HubSpot refresh loops
-- **adwarp-account-audit**, "is my account set up right": hygiene scorecard and fix list
+- **LinkedIn Ads:** account audit, performance review, spend analysis, lead drivers,
+  pause rules, audience sizing, audience ops, ABM builder, guarded launch, Ad Library teardown
+- **Google Ads:** account audit, search campaign builder, search terms
+- **Both platforms:** weekly report, daily health check, experiment lift, budget pacing
 
 ```bash
-./skills/install.sh   # symlinks them into ~/.claude/skills (Claude Code personal skills)
+npx skills add adwarp-dev/paid-ads-skills
 ```
 
-Installed them before the rename? The old `liam-*` and `gads-launch` names still work, and
-running `./skills/install.sh` again switches you to the `adwarp-*` names.
-Each skill has its own page in the [skills docs](https://adwarp.dev/docs/skills). See
-[skills/README.md](./skills/README.md) for the conventions for adding a skill.
-
-For skills that also run without Adwarp, from a CSV export, see
-[adwarp-dev/paid-ads-skills](https://github.com/adwarp-dev/paid-ads-skills): 12 skills for
-LinkedIn Ads and Google Ads, including the Google Ads account audit
-([docs](https://adwarp.dev/docs/skills/paid-ads)).
+The 11 `adwarp-*` skills that used to live in [`skills/`](./skills) moved there under new
+names. Their folders now point to the new skills, so existing installs keep working. The
+full list of moves is in the [skills docs](https://adwarp.dev/docs/skills).
 
 ## Tools (MCP)
 

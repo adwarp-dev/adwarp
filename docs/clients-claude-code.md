@@ -32,10 +32,10 @@ Writes stay in your hands. Adwarp creates campaigns and ads as drafts, and pause
 
 ## Add the skills
 
-The skills turn the tools into playbooks for reporting, launches and audits. From a clone of the repo:
+The skills turn the tools into playbooks for audits, reporting, launches and pacing on LinkedIn Ads and Google Ads:
 
 ```bash
-./skills/install.sh
+npx skills add adwarp-dev/paid-ads-skills
 ```
 
-It links each skill into `~/.claude/skills`. Restart your Claude Code session so it finds them. See [Skills](./skills.md).
+Restart your Claude Code session so it finds them. See [Skills](./skills.md).
