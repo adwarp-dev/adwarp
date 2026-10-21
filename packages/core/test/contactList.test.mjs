@@ -63,6 +63,19 @@ test("contact lists keep the people-match columns under LinkedIn's names", () =>
   assert.ok(clean.warnings.some((w) => /1 country value\(s\) were not two-letter ISO codes/.test(w)));
 });
 
+test("an email address in a name, company or title column is blanked, since LinkedIn rejects the file", () => {
+  const clean = cleanAudienceRows([
+    { email: "kate@example.com", firstname: "kate.b@gmail.com", lastname: "", company: "Acme", title: "VP Sales @ Acme" },
+    { email: "", firstname: "Ann", lastname: "Lee", company: "ann@acme.io", title: "Head of Ops" },
+  ]);
+  assert.deepEqual(clean.rows, [
+    { email: "kate@example.com", employeecompany: "Acme", title: "VP Sales @ Acme" },
+    { firstname: "Ann", lastname: "Lee", title: "Head of Ops" },
+  ]);
+  assert.ok(clean.warnings.some((w) => /2 name, company or title value\(s\) held an email address/.test(w)));
+  assert.ok(!/@[^\s]+\./.test(contactListCsv(clean).csvText));
+});
+
 test("a list with names but no email column is a contact list, and `name` is not read as the company", () => {
   const clean = cleanAudienceCsv("firstname,lastname,name,title\nAda,Lovelace,Ada Lovelace,An extremely long job title that runs well past fifty characters\n");
   assert.equal(clean.type, "contact");
