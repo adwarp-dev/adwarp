@@ -65,7 +65,7 @@ The clean split for teams: your MCP client's config holds the credentials (the h
 Run your own instance so credentials never touch shared infrastructure, and so you also get a private, environment-configured tenant.
 
 1. Get your environment values locally: `npx -y adwarp auth export`.
-2. Deploy `apps/web` to Vercel, with the project Root Directory set to `apps/web`.
+2. Deploy `apps/web` to Vercel, with the project Root Directory set to `apps/web`. [Deploy to Vercel](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fadwarp-dev%2Fadwarp&root-directory=apps%2Fweb&project-name=adwarp-mcp&repository-name=adwarp-mcp&env=ADWARP_LINKEDIN_CLIENT_ID,ADWARP_LINKEDIN_CLIENT_SECRET,ADWARP_LINKEDIN_REFRESH_TOKEN,MCP_AUTH_TOKEN&envDescription=LinkedIn%20app%20values%20from%20npx%20-y%20adwarp%20auth%20export%20and%20a%20long%20random%20MCP_AUTH_TOKEN%20that%20your%20AI%20app%20sends%20as%20a%20bearer%20token.&envLink=https%3A%2F%2Fadwarp.dev%2Fdocs%2Fhosted%23self-host-on-vercel) does this in 1 click: it copies the repo into your GitHub account, sets the Root Directory and asks for the variables in step 3.
 3. In the Vercel project settings, add the environment variables that `auth export` printed (`ADWARP_LINKEDIN_CLIENT_ID`, `ADWARP_LINKEDIN_CLIENT_SECRET`, `ADWARP_LINKEDIN_REFRESH_TOKEN`, `ADWARP_LINKEDIN_VERSION`) plus a strong `MCP_AUTH_TOKEN`. In the Deployment Protection settings, disable Vercel Authentication for production (or add a protection-bypass secret), otherwise MCP clients cannot reach the endpoint.
 4. Your MCP endpoint is `https://<your-app>.vercel.app/api/mcp`. Connect with the secret in the header:
 
@@ -77,3 +77,7 @@ claude mcp add --transport http adwarp https://<your-app>.vercel.app/api/mcp \
 Requests carrying `MCP_AUTH_TOKEN` use the environment credentials (your tenant). Requests carrying the `X-Adwarp-Linkedin-*` headers use the caller's credentials instead, so a single self-hosted instance can serve your whole team, each member on their own LinkedIn app.
 
 The app serves only the endpoint. Its other paths, such as `/` and `/docs`, redirect to adwarp.dev.
+
+## Apps that run in the cloud
+
+Some AI apps run on a computer in their maker's cloud, so they can't reach a local server, and they add a custom MCP server with 1 secret instead of 3 headers. Point them at your own deployment with its `MCP_AUTH_TOKEN` as a bearer token. See the setup for [Meta Muse](./clients-muse.md) and [Grok Bot](./clients-grok.md).

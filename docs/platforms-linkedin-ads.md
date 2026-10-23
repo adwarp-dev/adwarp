@@ -1,7 +1,7 @@
 ---
 title: LinkedIn Ads
 description: "What Adwarp does on LinkedIn Ads, area by area, with the tools behind each one."
-order: 19
+order: 21
 ---
 
 Adwarp runs LinkedIn Ads through your own developer app, with tools for targeting, audiences, campaigns, reporting, competitor ads and the change journal. Everything it creates starts as a draft. A campaign or a single ad goes live only when you explicitly ask Adwarp to set it ACTIVE, or when you switch it on in Campaign Manager.
