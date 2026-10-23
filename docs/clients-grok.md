@@ -1,7 +1,7 @@
 ---
 title: Grok Bot
 description: "Connect xAI's Grok Bot to your own Adwarp endpoint with 1 header, then check that it works."
-order: 20
+order: 21
 ---
 
 Grok Bot, xAI's personal agent, runs on a cloud computer, so it can't start Adwarp on your machine or reach a server there. It connects over the internet to your own copy of the [hosted endpoint](./hosted.md) instead, and gets the LinkedIn tools that endpoint serves. The Google Ads tools need the local server, so they don't run in Grok yet.
