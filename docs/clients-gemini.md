@@ -8,7 +8,15 @@ Google's Gemini agent for the terminal is the Antigravity CLI, `agy`, which repl
 
 ## Add it to Antigravity CLI
 
-Antigravity CLI has no add command, so add this entry to `~/.gemini/config/mcp_config.json` for every project, or to `.agents/mcp_config.json` inside 1 project. If the file already has an `mcpServers` object, add the `adwarp` entry to it.
+1 command adds Adwarp for every project:
+
+```bash
+agy mcp add adwarp npx -y adwarp mcp
+```
+
+It writes the entry to `~/.gemini/config/mcp_config.json`. Run `agy mcp list`, or type `/mcp` inside a session, to check that `adwarp` is connected. The server reads the `~/.adwarp` credentials that `npx -y adwarp auth login` saved.
+
+To add it to 1 project instead, put the same entry in `.agents/mcp_config.json` there. If the file already has an `mcpServers` object, add the `adwarp` entry to it.
 
 ```json
 {
@@ -17,8 +25,6 @@ Antigravity CLI has no add command, so add this entry to `~/.gemini/config/mcp_c
   }
 }
 ```
-
-Then start a session with `agy`. Type `/mcp` to open the MCP manager, which shows whether `adwarp` is connected. The server reads the `~/.adwarp` credentials that `npx -y adwarp auth login` saved.
 
 Antigravity IDE takes the same entry: open MCP Servers from the agent panel, then Manage MCP Servers, then View raw config.
 
@@ -36,7 +42,17 @@ It writes the same entry to `~/.gemini/settings.json`. Run `gemini mcp list`, or
 
 Ask Gemini something read-only: "List my ad accounts" or "How did my account do in the last 30 days?"
 
-Writes stay in your hands. Adwarp creates campaigns and ads as drafts, and pauses, resumes or archives a single ad when you name it. It sets a campaign or an ad ACTIVE only when you explicitly ask. Gemini also asks before it runs a tool, unless you trust the server.
+Writes stay in your hands. Adwarp creates campaigns and ads as drafts, and pauses, resumes or archives a single ad when you name it. It sets a campaign or an ad ACTIVE only when you explicitly ask. Antigravity CLI and Gemini CLI also ask before they run a tool, unless you allow it.
+
+In print mode (`agy -p`), Antigravity CLI can't ask, so it denies Adwarp's tools until you allow them in `~/.gemini/antigravity-cli/settings.json`, 1 tool at a time:
+
+```json
+{
+  "permissions": {
+    "allow": ["mcp(adwarp/list_ad_accounts)"]
+  }
+}
+```
 
 ## The Gemini app
 
