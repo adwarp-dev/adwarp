@@ -28,7 +28,7 @@ See [Configuration](./config.md) for every field in `config.json`.
 
 ## Register the local MCP server
 
-Register the server with your MCP client. It reads the `~/.adwarp` credentials from the previous step. Each client also has its own page: [Claude Code](./clients-claude-code.md), [Claude Desktop](./clients-claude-desktop.md), [Codex](./clients-codex.md) and [Cursor](./clients-cursor.md).
+Register the server with your MCP client. It reads the `~/.adwarp` credentials from the previous step. Each client also has its own page: [Claude Code](./clients-claude-code.md), [Claude Desktop](./clients-claude-desktop.md), [Codex](./clients-codex.md), [Cursor](./clients-cursor.md) and [Gemini](./clients-gemini.md).
 
 Claude Code:
 

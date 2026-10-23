@@ -1,7 +1,7 @@
 ---
 title: Meta Muse
 description: "Connect Meta Muse to your own Adwarp endpoint with 1 bearer token, then check that it works."
-order: 19
+order: 20
 ---
 
 Meta Muse runs on a computer in Meta's cloud, so it can't start Adwarp on your machine or reach a server there. It connects over the internet to your own copy of the [hosted endpoint](./hosted.md) instead, and gets the LinkedIn tools that endpoint serves. The Google Ads tools need the local server, so they don't run in Muse yet.

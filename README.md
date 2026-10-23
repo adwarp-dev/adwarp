@@ -191,7 +191,7 @@ The [install guide](https://adwarp.dev/docs/install) on adwarp.dev has these ste
 a setup page for each client: [Claude Code](https://adwarp.dev/docs/clients/claude-code),
 [Claude Desktop](https://adwarp.dev/docs/clients/claude-desktop),
 [Cursor](https://adwarp.dev/docs/clients/cursor), [Codex](https://adwarp.dev/docs/clients/codex),
-the [CLI](https://adwarp.dev/docs/clients/cli), and, through your own endpoint, [Meta Muse](https://adwarp.dev/docs/clients/muse)
+[Gemini](https://adwarp.dev/docs/clients/gemini), the [CLI](https://adwarp.dev/docs/clients/cli), and, through your own endpoint, [Meta Muse](https://adwarp.dev/docs/clients/muse)
 and [Grok Bot](https://adwarp.dev/docs/clients/grok).
 
 There are two ways to install Adwarp:
