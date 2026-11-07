@@ -48,7 +48,8 @@ adwarp campaigns list [--group <id>] [--all]   # campaign groups and ad groups, 
 adwarp campaigns get <campaignId>         # an ad group's status, name, and current targeting
 adwarp campaigns update <campaignId> ... [--apply]   # change an ad group in place, previews unless --apply
 adwarp ad list <campaignId>               # ads in an ad group (id, status, name), drafts included
-adwarp ad delete <creativeId>             # delete an ad (creative and its Direct Sponsored Content post)
+adwarp ad create-post <campaignId> <post> [--name <name>]   # sponsor an existing post (a member's or a Page's) as a draft ad
+adwarp ad delete <creativeId>             # delete an ad (creative and its Direct Sponsored Content post, never a referenced post)
 adwarp ad pause <creativeId> [--apply]    # pause a single ad, previews unless --apply
 adwarp ad resume <creativeId> [--apply]   # set an ad ACTIVE again (starts spend), previews unless --apply
 adwarp ad archive <creativeId> [--apply]  # archive an ad, previews unless --apply
@@ -66,6 +67,8 @@ adwarp lift <level> <id> [-w <days>]      # before and after performance for eac
 Periods: `last_7_days`, `last_30_days`, `last_90_days`, `month_to_date`, `last_month`.
 
 `--account` defaults to `defaultAccountId` from [config](./config.md) where it applies.
+
+`ad create-post` takes the post's `urn:li:ugcPost:` or `urn:li:share:` URN, or a LinkedIn URL that contains one, and refuses `urn:li:activity:` URNs. It creates a DRAFT unless you pass `--status PAUSED` or `--status ACTIVE`. For a member's post (a thought leader ad), the member has to approve the sponsorship first. See [Thought leader ads](./tools.md#thought-leader-ads).
 
 Run `adwarp <command> --help` for every option of a command, for example the budget, bid, targeting, and rotation flags of `campaigns update`.
 

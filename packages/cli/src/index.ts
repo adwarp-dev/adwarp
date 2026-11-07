@@ -36,6 +36,10 @@ import {
   listCreatives,
   deleteAd,
   updateAd,
+  createPostAd,
+  parsePostUrn,
+  PostAdCreativeSchema,
+  campaignManagerCampaignLink,
   getCreative,
   type AdStatus,
   getCampaign,
@@ -624,8 +628,30 @@ ad
     for (const a of ads) console.log(`${a.id}\t${a.intendedStatus}\t${a.name || "(unnamed)"}`);
   });
 ad
+  .command("create-post <campaignId> <post>")
+  .description(
+    "Sponsor an existing post as an ad: a member's post (thought leader ad) or a Page post. <post> is a urn:li:ugcPost: or urn:li:share: URN, or a LinkedIn URL that contains one. Lands as a DRAFT.",
+  )
+  .option("--account <accountId>", "ad account id (defaults to config)")
+  .option("--name <name>", "ad name shown in Campaign Manager")
+  .option("--status <status>", "DRAFT | PAUSED | ACTIVE (ACTIVE starts spend once it serves)", "DRAFT")
+  .action(async (campaignId: string, post: string, opts: { account?: string; name?: string; status: string }) => {
+    const status = opts.status.toUpperCase();
+    if (status !== "DRAFT" && status !== "PAUSED" && status !== "ACTIVE") {
+      throw new Error(`--status must be DRAFT, PAUSED, or ACTIVE, got "${opts.status}".`);
+    }
+    const input = PostAdCreativeSchema.parse({ campaignId, postUrn: post, name: opts.name, status });
+    // Refuse an activity URN or a URL without a post URN before any LinkedIn call.
+    parsePostUrn(input.postUrn);
+    const linkedinAds = await createLinkedInAds();
+    const accountId = opts.account ?? (await requireDefaultAccountId());
+    const res = await createPostAd(linkedinAds.client, { ...input, accountId });
+    console.log(`Created ad ${res.creativeId} (${res.status}) sponsoring ${res.postUrn}.`);
+    console.log(`Review: ${campaignManagerCampaignLink(accountId, campaignId)}`);
+  });
+ad
   .command("delete <creativeId>")
-  .description("Delete an ad (creative + its Direct Sponsored Content post)")
+  .description("Delete an ad (creative + its Direct Sponsored Content post; a member's or organic Page post stays)")
   .option("--account <accountId>", "ad account id (defaults to config)")
   .action(async (creativeId, opts) => {
     const linkedinAds = await createLinkedInAds();

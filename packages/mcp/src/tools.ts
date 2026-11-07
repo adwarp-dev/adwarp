@@ -24,6 +24,8 @@ import {
   updateCampaign,
   createTextAdCreative,
   createSponsoredImageDraft,
+  createPostAd,
+  parsePostUrn,
   launchFromBrief,
   getPerformance,
   performanceSummary,
@@ -37,6 +39,7 @@ import {
   CampaignUpdateSchema,
   TextAdCreativeSchema,
   SponsoredImageCreativeSchema,
+  PostAdCreativeSchema,
   LaunchFromBriefSchema,
   scanCompetitorAds,
   AdLibraryScanSchema,
@@ -284,7 +287,7 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
 
   server.tool(
     "delete_ad",
-    "Delete an ad: removes the creative and (best-effort) the Direct Sponsored Content post behind it. Accepts a numeric creative id or a full urn:li:sponsoredCreative URN. Use for cleaning up drafts or replacing an ad whose copy must change (Campaign Manager's editor does not reflect post edits, so recreate instead).",
+    "Delete an ad: removes the creative and (best-effort) the Direct Sponsored Content post behind it. A post the ad only references, such as a member's post behind a thought leader ad or an organic Page post, stays in place. Accepts a numeric creative id or a full urn:li:sponsoredCreative URN. Use for cleaning up drafts or replacing an ad whose copy must change (Campaign Manager's editor does not reflect post edits, so recreate instead).",
     { accountId: z.string().optional(), creativeId: z.string() },
     async ({ accountId, creativeId }) => {
       try {
@@ -392,6 +395,24 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
         const linkedinAds = await createLinkedInAds();
         const input = SponsoredImageCreativeSchema.parse(args);
         return ok(await createSponsoredImageDraft(linkedinAds.client, linkedinAds.getToken, input));
+      } catch (e) {
+        return fail(e);
+      }
+    },
+  );
+
+  server.tool(
+    "create_post_ad",
+    "Sponsor a post that already exists as an ad, without posting anything new. Use it for thought leader ads (a member's post, e.g. a founder's) or to sponsor a post from your Page. postUrn takes the post's urn:li:ugcPost: or urn:li:share: URN, or a LinkedIn URL that contains one. urn:li:activity: URNs, and /posts/ links that carry only an activity id, are refused: LinkedIn's API has no documented way to resolve them, so copy the URN from the embed code of the post's Embed this post option instead. For a member's post, the member must approve the sponsorship in LinkedIn before you can sponsor it, and the API cannot send or approve that request. In Campaign Manager, browse existing content in the ad set, find the post under LinkedIn members, and click Request approval. LinkedIn emails the member, who approves or declines, and can approve all future requests or turn on auto-approval. You need super admin, content admin, or Sponsored Content poster access on the ad account's Page and creative manager or higher on the ad account. The post must be public and cannot be a repost. The campaign (ad group) must use an objective that supports this format: ENGAGEMENT is the one Adwarp has tested, and LinkedIn's Help also lists BRAND_AWARENESS and VIDEO_VIEW (video posts). The ad lands as a DRAFT by default. Set status ACTIVE only when the user explicitly asks.",
+    PostAdCreativeSchema.shape,
+    async (args) => {
+      try {
+        const input = PostAdCreativeSchema.parse(args);
+        // Refuse a bad URN before touching credentials or LinkedIn.
+        parsePostUrn(input.postUrn);
+        const linkedinAds = await createLinkedInAds();
+        const accountId = input.accountId ?? (await requireDefaultAccountId());
+        return ok(await createPostAd(linkedinAds.client, { ...input, accountId }));
       } catch (e) {
         return fail(e);
       }

@@ -30,9 +30,9 @@ export const CampaignTypeSchema = z.enum([
 ]);
 
 /**
- * LinkedIn campaign objective. Use ENGAGEMENT to sponsor another member's post
- * (thought-leader ads, e.g. boosting a CEO's post) — LinkedIn requires the
- * objective be ENGAGEMENT for that ad format.
+ * LinkedIn campaign objective. ENGAGEMENT is the objective Adwarp has tested for
+ * thought leader ads (sponsoring a member's post, e.g. a CEO's). LinkedIn's Help
+ * also lists BRAND_AWARENESS and VIDEO_VIEW (video posts) for that format.
  */
 export const ObjectiveTypeSchema = z.enum([
   "BRAND_AWARENESS",
@@ -91,7 +91,7 @@ export const CampaignInputSchema = z.object({
   name: z.string().min(1),
   type: CampaignTypeSchema.default("SPONSORED_UPDATES"),
   objectiveType: ObjectiveTypeSchema.optional().describe(
-    "Campaign objective. Required to be ENGAGEMENT to sponsor another member's post (thought-leader ads).",
+    "Campaign objective. For thought leader ads (sponsoring a member's post), ENGAGEMENT is the objective Adwarp has tested, and LinkedIn's Help also lists BRAND_AWARENESS and VIDEO_VIEW.",
   ),
   costType: z.enum(["CPC", "CPM", "CPV"]).default("CPM"),
   dailyBudget: MoneySchema.optional(),
@@ -193,6 +193,27 @@ export const SponsoredImageCreativeSchema = z.object({
   status: z.enum(["DRAFT", "ACTIVE", "PAUSED"]).default("DRAFT"),
 });
 export type SponsoredImageCreativeInput = z.infer<typeof SponsoredImageCreativeSchema>;
+
+/**
+ * Sponsor a post that already exists: a member's post (a thought leader ad) or a
+ * Page post. The creative references the post by URN, so nothing new is posted.
+ */
+export const PostAdCreativeSchema = z.object({
+  accountId: z.string().optional().describe("Numeric ad account id; defaults to the configured account"),
+  campaignId: z.string().describe("Numeric campaign (ad group) id the ad goes in"),
+  postUrn: z
+    .string()
+    .min(1)
+    .describe(
+      "The post's urn:li:ugcPost: or urn:li:share: URN, or a LinkedIn URL that contains one. urn:li:activity: URNs are refused.",
+    ),
+  name: z.string().optional().describe("Ad name shown in Campaign Manager"),
+  status: z
+    .enum(["DRAFT", "ACTIVE", "PAUSED"])
+    .default("DRAFT")
+    .describe("DRAFT unless the user explicitly asks for ACTIVE, which submits the ad for review and starts spend once it serves"),
+});
+export type PostAdCreativeInput = z.infer<typeof PostAdCreativeSchema>;
 
 /**
  * The statuses an existing ad (creative) can be switched to. PAUSED stops it
