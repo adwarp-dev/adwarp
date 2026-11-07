@@ -38,7 +38,7 @@ const fail = (e: unknown) => ({
 export function registerGoogleTools(server: McpServer): void {
   server.tool(
     "gads_list_accounts",
-    "List every Google Ads customer this login can reach. Run this first: it proves the OAuth client, developer token, and account access all work.",
+    "List every Google Ads customer this login can reach. Run this first: it proves the OAuth client, your Google Cloud project's API access, and account access all work.",
     {},
     async () => {
       try {

@@ -51,7 +51,7 @@ export function registerGoogleCommands(program: Command): void {
   const accounts = google.command("accounts").description("Accessible Google Ads accounts");
   accounts
     .command("list")
-    .description("Every customer this login can reach (proves the token and OAuth client work)")
+    .description("Every customer this login can reach (proves the OAuth client and your Cloud project's API access work)")
     .action(async () => {
       const googleAds = await createGoogleAds();
       for (const c of await listAccessibleCustomers(googleAds.client)) {

@@ -27,7 +27,7 @@ adwarp auth login
 adwarp accounts list
 ```
 
-It lists the ad accounts your app can reach. Set `defaultAccountId` in `~/.adwarp/config.json` so you can leave `--account` off. For Google Ads, `adwarp google accounts list` proves the developer token and the OAuth client work.
+It lists the ad accounts your app can reach. Set `defaultAccountId` in `~/.adwarp/config.json` so you can leave `--account` off. For Google Ads, `adwarp google accounts list` proves the OAuth client and your Google Cloud project's API access work.
 
 ## Change a single ad
 
