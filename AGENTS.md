@@ -25,7 +25,9 @@ pnpm + TypeScript monorepo:
   `@adwarp/*` packages with esbuild into `dist/cli.js` (`adwarp`, `liam`) and `dist/mcp.js`
   (`adwarp-mcp`). Third-party imports stay npm dependencies, and the build fails on one its
   package.json does not declare. `scripts/smoke.mjs` tests the packed tarball and the root
-  `Dockerfile`'s image. The release version lives in its package.json,
+  `Dockerfile`'s image. Glama ignores that `Dockerfile` and builds from its own admin
+  settings, which run `pnpm pack` here and start the `adwarp-mcp` bin (CONTRIBUTING.md, Glama
+  release), so renaming the package folder or that bin means updating them. The release version lives in its package.json,
   `packages/shared/src/version.ts` and the root `server.json` (the MCP Registry entry).
   `pnpm set-version <x.y.z>` sets all of them, and the build fails when they differ.
   Releases run from `.github/workflows/release.yml` on a `v*` tag; see CONTRIBUTING.md.

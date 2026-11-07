@@ -10,6 +10,8 @@
 # ADWARP_LINKEDIN_DEFAULT_ACCOUNT_ID. A ~/.liads folder or LIADS_* names from before the rename
 # work too.
 # Without them the server still starts and lists its tools.
+#
+# Glama does not build this file. Its build settings are in CONTRIBUTING.md (Glama release).
 
 FROM node:22-slim AS build
 RUN npm install -g pnpm@10

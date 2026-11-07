@@ -59,3 +59,140 @@ One-time setup for maintainers:
   `NPM_TOKEN` repository secret with publish rights works as a fallback.
 - `WEBSITE_DEPLOY_HOOK` repository secret: the Vercel deploy hook URL for the website project.
   Without it the workflow skips the rebuild with a warning.
+
+## Glama release
+
+Glama lists Adwarp at <https://glama.ai/mcp/servers/adwarp-dev/adwarp>. `glama.json` at the
+repo root names its maintainers, and that is the only field Glama reads from it. A Glama
+release is a container image Glama builds, scans and lets people deploy. It is separate from
+the npm and GitHub releases above, and nothing in this repo or the Release workflow creates
+one.
+
+Glama does not build the root `Dockerfile`. It generates its own from the settings on
+<https://glama.ai/mcp/servers/adwarp-dev/adwarp/admin/dockerfile>: it clones the repo into
+`/app`, runs the build steps there, and starts the CMD wrapped in `mcp-proxy`. The settings
+below build the same npm package as the root `Dockerfile` and install it globally, so Glama
+runs what `npx adwarp` installs, not the source checkout.
+
+**Node.js version:** `22`, the same as the root `Dockerfile`.
+
+**Build steps:**
+
+```json
+[
+  "pnpm install --frozen-lockfile --filter \"adwarp...\"",
+  "pnpm --filter \"adwarp...\" build",
+  "cd packages/adwarp && pnpm pack && npm install -g --no-audit --no-fund ./adwarp-*.tgz"
+]
+```
+
+Each step starts in `/app`, so the last one changes into `packages/adwarp` itself. The
+"Failed to create bin" warnings pnpm prints during install are expected: those bins point at
+`dist` files that the build step creates.
+
+**CMD arguments:**
+
+```json
+["adwarp-mcp"]
+```
+
+Glama adds `mcp-proxy` in front, so the CMD names only the server.
+
+**Placeholder parameters:**
+
+```json
+{}
+```
+
+The server starts and lists its tools without credentials, so the build test needs none.
+
+**Environment variables JSON schema:**
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "ADWARP_LINKEDIN_CLIENT_ID": {
+      "type": "string",
+      "description": "LinkedIn app Client ID. The LinkedIn tools need it with the client secret and refresh token."
+    },
+    "ADWARP_LINKEDIN_CLIENT_SECRET": {
+      "type": "string",
+      "description": "LinkedIn app Client Secret."
+    },
+    "ADWARP_LINKEDIN_REFRESH_TOKEN": {
+      "type": "string",
+      "description": "LinkedIn refresh token. Run adwarp auth login, then adwarp auth export to print it."
+    },
+    "ADWARP_LINKEDIN_DEFAULT_ACCOUNT_ID": {
+      "type": "string",
+      "description": "LinkedIn ad account used when a call omits one."
+    },
+    "ADWARP_LINKEDIN_VERSION": {
+      "type": "string",
+      "description": "LinkedIn API version pin (YYYYMM). Leave unset for the built-in version."
+    },
+    "ADWARP_GOOGLE_CLIENT_ID": {
+      "type": "string",
+      "description": "Google OAuth client ID. The Google Ads tools need it with the client secret, developer token and refresh token."
+    },
+    "ADWARP_GOOGLE_CLIENT_SECRET": {
+      "type": "string",
+      "description": "Google OAuth client secret."
+    },
+    "ADWARP_GOOGLE_DEVELOPER_TOKEN": {
+      "type": "string",
+      "description": "Google Ads API developer token."
+    },
+    "ADWARP_GOOGLE_REFRESH_TOKEN": {
+      "type": "string",
+      "description": "Google refresh token from adwarp google auth login."
+    },
+    "ADWARP_GOOGLE_LOGIN_CUSTOMER_ID": {
+      "type": "string",
+      "description": "Manager account ID, only when you reach the ad account through a manager."
+    },
+    "ADWARP_GOOGLE_DEFAULT_CUSTOMER_ID": {
+      "type": "string",
+      "description": "Google Ads account used when a call omits one."
+    },
+    "ADWARP_GOOGLE_API_VERSION": {
+      "type": "string",
+      "description": "Google Ads API version pin, for example v25. Leave unset for the built-in version."
+    },
+    "ADWARP_HUBSPOT_TOKEN": {
+      "type": "string",
+      "description": "HubSpot private app token for audience_from_hubspot."
+    },
+    "ADWARP_CREATIVE_WORKER_URL": {
+      "type": "string",
+      "description": "HTTPS URL of the optional remote creative worker for competitor ad copy. Set with its token."
+    },
+    "ADWARP_CREATIVE_WORKER_TOKEN": {
+      "type": "string",
+      "description": "Bearer token for the remote creative worker."
+    }
+  },
+  "required": []
+}
+```
+
+Nothing is required, and the schema has no `oneOf`, so any combination validates. A tool
+called without the credentials it needs returns an error naming them, and blank values count
+as unset. The `LIADS_*` and `GADS_*` names from before the rename still work and the schema
+does not reject them, but it lists only the current names. `MCP_AUTH_TOKEN` belongs to the
+hosted endpoint in `apps/web` and does nothing here.
+
+To publish a release:
+
+1. Merge what the release should contain to `main`. A commit with a `v*` tag keeps Glama, npm
+   and GitHub on the same code and version.
+2. In Glama's admin, sync the listing to that commit and apply the settings above.
+3. Click **Build**. The build test builds the image and starts the server. Check the test
+   once it passes.
+4. Create a release from the passing build (**Make Release** in the test list, or **Create
+   Release** on the test page), enter the version from `packages/adwarp/package.json`, and
+   publish it. **Build & Release** runs steps 3 and 4 together and picks the version itself.
+
+A new release replaces the previous one. Glama then runs its own checks on the image, and
+how those turn out is a separate result.
