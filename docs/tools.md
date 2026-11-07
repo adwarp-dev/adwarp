@@ -37,12 +37,25 @@ Talk in plain language ("VPs of demand gen at SaaS companies in the US") and Adw
 - `create_campaign_group`, `create_campaign`: create the LinkedIn campaign group and campaign (the ad group), as drafts.
 - `update_campaign`: change an existing campaign (the ad group) in place: targeting, name, status, budget, bid, bidding strategy, schedule, or ad rotation. Pass `dryRun` first to preview the patch.
 - `create_text_ad`, `create_image_ad`: create draft ads.
+- `create_post_ad`: sponsors a post that already exists, without posting anything new. Use it for thought leader ads, which sponsor a member's post, or for a post from your Page. Pass the post's `urn:li:ugcPost:` or `urn:li:share:` URN, or a LinkedIn URL that contains one. An `urn:li:activity:` URN is refused, because LinkedIn's API has no documented way to resolve it to a post URN. Copy the URN from the embed code of the post's Embed this post option instead. The ad lands as a draft.
 - `list_campaigns`: the account structure, campaign groups and their ad groups, with drafts included, unlike reporting, which only shows entities with spend.
 - `list_ads`: the ads in an ad group, drafts included.
-- `delete_ad`: removes the creative and, best effort, its Direct Sponsored Content post.
+- `delete_ad`: removes the creative and, best effort, its Direct Sponsored Content post. A post the ad only references, such as the member's post behind a thought leader ad or an organic Page post, stays in place.
 - `update_ad`: pauses, resumes, or archives a single ad by setting its `status` to `PAUSED`, `ACTIVE`, or `ARCHIVED`, without touching the rest of its ad group. Setting `ACTIVE` starts spend, so the assistant sets it only when you explicitly ask. An `ACTIVE` ad serves only while its ad group is active, and LinkedIn refuses to pause an ad that is still in review. Pass `dryRun` first to preview the patch.
 
 LinkedIn's editor ignores post edits on a live ad, so to change copy you recreate it: `delete_ad` plus `create_image_ad`.
+
+### Thought leader ads
+
+A thought leader ad sponsors a member's post, such as a founder's. LinkedIn lets you sponsor it only after the member approves, and the API can't send or approve that request ([Create Thought Leader Ads in Campaign Manager](https://www.linkedin.com/help/lms/answer/a5965137)):
+
+1. In Campaign Manager, open the ad set, click Browse existing content, choose LinkedIn members, and find the post by the member's name or the post URL.
+2. Click Request approval. LinkedIn emails the member, who approves or declines. A member can approve 1 request or all pending and future ones, and can turn on auto-approval.
+3. Once the member approves, `create_post_ad` can sponsor the post. If the member later withdraws approval, LinkedIn turns the ad off.
+
+You need super admin, content admin, or Sponsored Content poster access on the ad account's Page, and creative manager or higher on the ad account. The post must be public, and a repost can't be sponsored ([Thought Leader Ads](https://www.linkedin.com/help/lms/answer/a1399568)).
+
+The ad group needs an objective that supports the format. `ENGAGEMENT` is the one Adwarp has tested. LinkedIn's Help also lists brand awareness, and video views for video posts.
 
 ## Orchestrator
 

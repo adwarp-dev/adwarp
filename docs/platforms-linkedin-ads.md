@@ -25,7 +25,7 @@ LinkedIn's names sit 1 level off from other ad platforms, which trips up everyon
 - [Targeting](./tools.md#targeting): resolve plain-language targeting to facets and entity URNs, and estimate reach before anything is built.
 - [Audiences](./tools.md#audiences): upload a CSV, a Salesforce query, or a HubSpot list or search as a matched audience, then check its match status.
 - [Conversions](./tools.md#conversions): pick the insight-tag conversion a campaign tracks.
-- [Campaigns](./tools.md#campaigns): create campaign groups, campaigns and ads as drafts, change an ad group in place with `update_campaign`, and pause, resume or archive a single ad with `update_ad`.
+- [Campaigns](./tools.md#campaigns): create campaign groups, campaigns and ads as drafts, sponsor an existing post such as a member's for a [thought leader ad](./tools.md#thought-leader-ads) with `create_post_ad`, change an ad group in place with `update_campaign`, and pause, resume or archive a single ad with `update_ad`.
 - [Orchestrator](./tools.md#orchestrator): `launch_from_brief` creates the audience, campaign group, campaign and draft ads in 1 call.
 - [Reporting](./tools.md#reporting): account rollups, per-entity metrics and trends with deltas.
 - [Competitor intel](./tools.md#competitor-intel): any company's ads from the official LinkedIn Ad Library.

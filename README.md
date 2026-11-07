@@ -478,10 +478,13 @@ whether it works on the hosted endpoint.
 - **Conversions:** `list_conversions` (select an existing insight-tag conversion to track).
   `create_campaign` and `launch_from_brief` accept `conversionIds` or `conversionName`, and
   fall back to `defaultConversionName` from config.
-- **Campaigns:** `create_campaign_group`, `create_campaign`, `create_text_ad`, `create_image_ad`;
+- **Campaigns:** `create_campaign_group`, `create_campaign`, `create_text_ad`, `create_image_ad`,
+  `create_post_ad` (sponsors an existing post as a draft ad, such as a member's post for a thought
+  leader ad once the member approves the request in Campaign Manager);
   `list_campaigns` (the account structure: campaign groups and their ad groups, **drafts
   included**, unlike reporting which only shows entities with spend), `list_ads`, `delete_ad`
-  (removes the creative and best-effort its Direct Sponsored Content post), `update_ad`
+  (removes the creative and best-effort its Direct Sponsored Content post, never a post it only
+  references), `update_ad`
   (pause, resume, or archive a single ad; `ACTIVE` starts spend, so it is set only on an
   explicit request). LinkedIn's editor ignores post edits on a live ad, so to change copy you
   recreate: `delete_ad` + `create_image_ad`.

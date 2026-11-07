@@ -21,7 +21,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "start": "tsx src/index.ts"
+    "start": "tsx src/index.ts",
+    "test": "node --test \"test/*.test.mjs\""
   },
   "dependencies": {
     "@adwarp/core": "workspace:*",

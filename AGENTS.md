@@ -99,6 +99,16 @@ modules are thin typed wrappers over `LinkedInClient.request()`.
   status is independent of its campaign's, but a campaign that is not ACTIVE still keeps an
   ACTIVE creative from serving. LinkedIn returns 400 when pausing a creative still in review.
   The journal records creatives under the numeric id, decoded from the path or x-restli-id URN.
+- **Post ads** (`createPostAd`, `create_post_ad`, `adwarp ad create-post`): a plain `POST
+  /adAccounts/{id}/creatives` with `content.reference` set to a `urn:li:ugcPost:` or
+  `urn:li:share:` URN, the only post URN types LinkedIn's Creatives docs accept. `parsePostUrn`
+  pulls the URN out of pasted URLs and refuses `urn:li:activity:` URNs, which the Marketing API
+  documents no way to resolve. Thought leader ads (a member's post) need the member's approval,
+  requested in Campaign Manager; the API has no endpoint for it. Live creation is untested.
+- **`deleteAd` never deletes a referenced post.** It reads the post (`GET /posts/{urn}`, which
+  works with the default scopes, verified read-only on 2026-11-07) and deletes it only when
+  `adContext.isDsc` is true and `dscAdAccount` is this ad account. A member's post or an organic
+  Page post behind an ad stays. `packages/core/test/postAd.test.mjs` pins this.
 - **Audiences (DMP):** list-upload flow only — `generateUploadUrl` → upload hashed CSV to
   the signed URL → create `LIST_UPLOAD` segment → attach list → poll until READY for the
   `adSegment` urn. Emails are SHA256(lowercased, trimmed). `USER_LIST_UPLOAD` requires
