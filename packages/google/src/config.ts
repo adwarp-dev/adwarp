@@ -32,10 +32,12 @@ export interface GoogleAdsConfig {
   clientId: string;
   clientSecret: string;
   /**
-   * From the manager account's API Center. Required on every call unless the
-   * Cloud-managed access pilot is enabled for this org.
+   * No longer used. Google sunset developer tokens on 2026-09-09: access levels
+   * now belong to the Google Cloud project that owns the OAuth client, and the
+   * API ignores the header. Google will reject it in a future major version, so
+   * Adwarp never sends it. Still accepted here so older google.json files load.
    */
-  developerToken: string;
+  developerToken?: string;
   /**
    * The manager (MCC) customer id, digits only. Sent as `login-customer-id`.
    * Only needed when the OAuth user reaches the target account through a
@@ -67,7 +69,7 @@ export async function loadGoogleConfig(): Promise<GoogleAdsConfig> {
     return {
       clientId,
       clientSecret,
-      developerToken: env("ADWARP_GOOGLE_DEVELOPER_TOKEN") ?? "",
+      developerToken: env("ADWARP_GOOGLE_DEVELOPER_TOKEN"),
       loginCustomerId: env("ADWARP_GOOGLE_LOGIN_CUSTOMER_ID"),
       defaultCustomerId: env("ADWARP_GOOGLE_DEFAULT_CUSTOMER_ID"),
       apiVersion: env("ADWARP_GOOGLE_API_VERSION"),
@@ -78,7 +80,7 @@ export async function loadGoogleConfig(): Promise<GoogleAdsConfig> {
     raw = await readFile(CONFIG_PATH, "utf8");
   } catch {
     throw new Error(
-      `No Google Ads credentials. Create ${displayPath(CONFIG_PATH)} with { "clientId", "clientSecret", "developerToken", "loginCustomerId", "defaultCustomerId" }, or set ADWARP_GOOGLE_CLIENT_ID / ADWARP_GOOGLE_CLIENT_SECRET / ADWARP_GOOGLE_DEVELOPER_TOKEN.`,
+      `No Google Ads credentials. Create ${displayPath(CONFIG_PATH)} with { "clientId", "clientSecret", "loginCustomerId", "defaultCustomerId" }, or set ADWARP_GOOGLE_CLIENT_ID / ADWARP_GOOGLE_CLIENT_SECRET.`,
     );
   }
   const parsed = JSON.parse(raw) as GoogleAdsConfig;

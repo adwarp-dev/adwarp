@@ -906,7 +906,7 @@
     "hosted": false,
     "hostedSupport": "none",
     "hostedNote": "Not registered on the hosted endpoint. Run it on the local MCP server or the CLI.",
-    "description": "List every Google Ads customer this login can reach. Run this first: it proves the OAuth client, developer token, and account access all work.",
+    "description": "List every Google Ads customer this login can reach. Run this first: it proves the OAuth client, your Google Cloud project's API access, and account access all work.",
     "inputSchema": {
       "type": "object",
       "properties": {},

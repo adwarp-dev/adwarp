@@ -16,8 +16,8 @@ export interface AccessibleCustomer {
 
 /**
  * Every customer the authenticated user can reach. This is the first call worth
- * making after `auth login`: it proves the OAuth client, the developer token,
- * and the account linkage all work together.
+ * making after `auth login`: it proves the OAuth client, the Cloud project's
+ * API access, and the account linkage all work together.
  */
 export async function listAccessibleCustomers(client: GoogleAdsClient): Promise<AccessibleCustomer[]> {
   const res = await client.request<{ resourceNames?: string[] }>({

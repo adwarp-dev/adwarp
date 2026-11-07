@@ -136,25 +136,26 @@ modules are thin typed wrappers over `LinkedInClient.request()`.
 - **Version is pinned** (`v25` in `google/config.ts`). Major versions carry breaking
   changes — v24 renamed `campaign.start_date` to `campaign.start_date_time` — and each is
   supported for roughly a year. Bump deliberately.
-- **Three headers, every call:** `Authorization: Bearer`, `developer-token`, and
-  `login-customer-id` **only** when reaching the account through a manager (MCC). Sending an
-  unrelated login-customer-id is an authorization error, so it is opt-in via config. Customer
-  ids go in without hyphens.
-- **Developer token** comes from a **manager** account's API Center. A plain client account
-  cannot issue one. Google usually auto-grants Explorer (2,880 production ops/day); Basic
-  (15,000/day) is a separate application. Stan's token has Basic access as of 2026-09-13.
-- **Explorer access blocks KeywordPlanService**, so `generateKeywordIdeas` needs **Basic**.
+- **Headers:** `Authorization: Bearer`, plus `login-customer-id` **only** when reaching the
+  account through a manager (MCC). Sending an unrelated login-customer-id is an authorization
+  error, so it is opt-in via config. Customer ids go in without hyphens.
+- **No developer token.** Google sunset developer tokens on 2026-09-09. Access levels now belong
+  to the Google Cloud project that owns the OAuth client, the `developer-token` header is
+  ignored, and Google says a future major version will reject it, so the client never sends
+  it. `developerToken` stays optional in config so older `google.json` files still load.
+- **Access levels:** enabling the API gives Test (test accounts only); Explorer (2,880
+  production operations a day) is applied for on the Google Ads API Overview page and is
+  usually automatic; Basic (15,000 a day) needs brand verification first. A Test-only project
+  fails with `CLOUD_PROJECT_NOT_APPROVED_FOR_PRODUCTION`, and `describe()` in http.ts adds the fix.
+- **Explorer access blocks KeywordPlanIdeaService**, so `generateKeywordIdeas` needs **Basic**.
   Campaign creation, structure reads, and GAQL reporting all work on Explorer. If keyword
-  ideas fail with an authorization error on an otherwise-working token, this is why.
+  ideas fail with an authorization error on an otherwise-working project, this is why.
 - **OAuth needs `access_type=offline` AND `prompt=consent`.** Without both, Google returns a
   refresh token on the first authorization only, and every re-auth after that returns none.
 - **Consent screen: anything but "Testing".** That status issues refresh tokens that die
-  after 7 days. Beyond that it is a trade, not a rule: **Internal** (Workspace orgs) is what
-  Google's OAuth docs recommend for a single-company tool and needs no verification;
-  **External + In production** is required for brand verification (the pilot that cuts Basic
-  Access review from days to hours), but `auth/adwords` is a **sensitive** scope, so a
-  published external app can require full OAuth app verification. Internal is the better
-  default here; Stan's project is Internal and works.
+  after 7 days. Google's brand verification guide (2026-10-30) requires **External + In
+  production** for Basic access and says it supersedes the docs that let Internal apps skip
+  verification. **Internal** (Workspace orgs) still works for Explorer only.
 - **`googleAds:mutate` is the write path.** It takes operations across resource types, resolves
   **temporary resource names** (negative ids, e.g. `customers/X/campaigns/-2`), and is atomic.
   Temp ids must be unique across the whole request even between types, and a child may only

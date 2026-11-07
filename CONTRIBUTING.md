@@ -134,15 +134,11 @@ The server starts and lists its tools without credentials, so the build test nee
     },
     "ADWARP_GOOGLE_CLIENT_ID": {
       "type": "string",
-      "description": "Google OAuth client ID. The Google Ads tools need it with the client secret, developer token and refresh token."
+      "description": "Google OAuth client ID. The Google Ads tools need it with the client secret and refresh token."
     },
     "ADWARP_GOOGLE_CLIENT_SECRET": {
       "type": "string",
       "description": "Google OAuth client secret."
-    },
-    "ADWARP_GOOGLE_DEVELOPER_TOKEN": {
-      "type": "string",
-      "description": "Google Ads API developer token."
     },
     "ADWARP_GOOGLE_REFRESH_TOKEN": {
       "type": "string",

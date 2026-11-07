@@ -97,17 +97,32 @@ export function flattenGoogleAdsErrors(body: unknown): { errors: GoogleAdsFieldE
   return { errors, requestId };
 }
 
+/**
+ * Access level errors since the developer token sunset (2026-09-09). Google
+ * names the Cloud project's level in the error, but not where to fix it.
+ */
+const ACCESS_HINTS: Record<string, string> = {
+  CLOUD_PROJECT_NOT_APPROVED_FOR_PRODUCTION:
+    "Your Google Cloud project only has Test access. Apply for Explorer access on the Google Ads API Overview page in Cloud Console (usually approved automatically).",
+  DEVELOPER_TOKEN_NOT_APPROVED:
+    "Your Google Cloud project only has Test access. Apply for Explorer access on the Google Ads API Overview page in Cloud Console (usually approved automatically).",
+};
+
 function describe(errors: GoogleAdsFieldError[], fallback: string, status: number): string {
   if (!errors.length) return fallback || `Google Ads API ${status}`;
-  return errors
+  const line = errors
     .map((e) => `${e.codeGroup}.${e.code}${e.fieldPath ? ` at ${e.fieldPath}` : ""}: ${e.message}`)
     .join("; ");
+  const hint = errors.map((e) => ACCESS_HINTS[e.code]).find(Boolean);
+  return hint ? `${line} ${hint}` : line;
 }
 
 /**
  * The one place every Google Ads REST call flows through. Injects the bearer
- * token, developer token, and login-customer-id; retries on 429/5xx; and turns
- * GoogleAdsFailure envelopes into readable errors.
+ * token and login-customer-id; retries on 429/5xx; and turns GoogleAdsFailure
+ * envelopes into readable errors. It never sends a developer-token header:
+ * Google ignores it since the 2026-09-09 sunset and will reject it in a future
+ * major version.
  */
 export class GoogleAdsClient {
   constructor(
@@ -130,7 +145,6 @@ export class GoogleAdsClient {
       const token = await this.getToken();
       const headers: Record<string, string> = {
         Authorization: `Bearer ${token}`,
-        "developer-token": this.config.developerToken,
       };
       // Only needed when reaching the account through a manager. Sending an
       // unrelated one is an authorization error, so it is opt-in via config.

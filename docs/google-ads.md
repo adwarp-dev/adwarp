@@ -1,6 +1,6 @@
 ---
 title: Google Ads
-description: "Create paused Google Ads Search campaigns, research keywords, and report on performance. Setup for the developer token and OAuth client."
+description: "Create paused Google Ads Search campaigns, research keywords, and report on performance. Setup for Google Ads API access and the OAuth client."
 order: 7
 ---
 
@@ -8,7 +8,7 @@ Google Ads support covers Search campaigns only, creation first. It runs from th
 
 ```bash
 adwarp google auth login
-adwarp google accounts list                       # proves the token and OAuth client work
+adwarp google accounts list                       # proves the OAuth client and API access work
 adwarp google keywords "revops automation" --url https://example.com/product
 adwarp google conversions list
 adwarp google launch --brief examples/google-brief.json           # dry run
@@ -31,24 +31,30 @@ Google has no draft status, so campaigns, ad groups, and ads are created paused,
 
 ## Setup
 
-Google Ads needs 2 things LinkedIn does not.
+Google Ads needs a Google Cloud project with Google Ads API access and an OAuth client. You don't need a developer token. Google sunset developer tokens on September 9, 2026, and API access now belongs to the Google Cloud project that owns your OAuth client ([Google's developer token page](https://developers.google.com/google-ads/api/docs/api-policy/developer-token)). Adwarp doesn't send one.
 
-### A developer token
+### API access for your Cloud project
 
-Get it from a Google Ads manager (MCC) account at [ads.google.com/aw/apicenter](https://ads.google.com/aw/apicenter). A plain client account cannot issue one. Approval usually lands on Explorer access automatically (2,880 production operations per day).
+1. In a Google Cloud project with billing set up, enable the Google Ads API. That gives the project Test access, which only reaches test accounts.
+2. On the Google Ads API Overview page in Cloud Console, open Upgrade access level and apply for Explorer access. Google approves most applications automatically. Explorer allows 2,880 operations a day on production accounts, which covers campaign creation, structure reads and reporting.
+3. For `adwarp google keywords`, apply for Basic access on the same page. Explorer blocks KeywordPlanIdeaService, and Basic allows 15,000 operations a day. Basic needs brand verification first (see the consent screen below).
 
-Explorer access is not enough for `adwarp google keywords`. Explorer blocks KeywordPlanService, so keyword research needs Basic access (15,000 operations per day), which is a separate application on the same screen. Campaign creation and reporting work fine on Explorer.
+The levels and their limits are on Google's [access levels page](https://developers.google.com/google-ads/api/docs/api-policy/access-levels). A project on a Free Trial or with suspended billing gets Explorer and Basic applications rejected.
 
 ### An OAuth client
 
-Create it in a Google Cloud project with the Google Ads API enabled. Use the "Desktop app" type, which accepts any `localhost` redirect.
+Create it in the same Cloud project. Use the "Desktop app" type, which accepts any `localhost` redirect.
 
-Do not leave the consent screen in "Testing". That status issues refresh tokens that stop working after 7 days. Beyond that it is a trade-off:
+Do not leave the consent screen in "Testing". That status issues refresh tokens that stop working after 7 days. Which setting to pick depends on the access you need:
 
-- Internal (Google Workspace organizations only) is what Google's OAuth docs recommend for a single-company tool. It is the simplest, with no verification and no 7-day expiry.
-- External and In production is the precondition for brand verification, the pilot that cuts Basic access review from days to hours. The cost is that `auth/adwords` is a sensitive scope, so a published external app can require full OAuth app verification, which may take longer than the wait it saves.
+- For Basic access (keyword research), set the user type to External and the publishing status to In production, then complete brand verification on the Branding tab. Google's [brand verification guide](https://developers.google.com/google-ads/api/docs/api-policy/brand-verification) requires this for Basic, even where other Google docs say Internal apps skip verification.
+- For Explorer only, Internal (Google Workspace organizations only) also works and needs no verification.
 
-Internal is the better default for an internal tool. Choose External only if the fast track is worth the verification risk.
+`auth/adwords` is a sensitive scope, so until Google verifies the app, signing in shows an unverified app warning. You can continue past it for your own account.
+
+### If you set Adwarp up before September 9, 2026
+
+Your developer token's access level moved to the Cloud projects that called the API with it in the 90 days before the sunset. Check the level on the Google Ads API Overview page. You can delete `developerToken` from `google.json`. Adwarp ignores it and no longer sends the header, which Google says a future API version will reject.
 
 ### Configure and log in
 
@@ -58,14 +64,13 @@ Write `~/.adwarp/google.json`:
 {
   "clientId": "....apps.googleusercontent.com",
   "clientSecret": "...",
-  "developerToken": "...",
   "loginCustomerId": "1234567890",
   "defaultCustomerId": "0987654321",
   "defaultConversionActionNames": ["Demo Booked"]
 }
 ```
 
-`loginCustomerId` is the manager account, and is only needed when you reach the target account through one. Run `adwarp google auth login` and you are set.
+`loginCustomerId` is the manager account, and is only needed when you reach the target account through one. You don't need a manager account to get API access. Run `adwarp google auth login` and you are set.
 
 ### Environment variables
 
@@ -74,7 +79,6 @@ For CI or a server, set these instead of writing `google.json`. When `ADWARP_GOO
 | Variable | Replaces |
 | --- | --- |
 | `ADWARP_GOOGLE_CLIENT_ID`, `ADWARP_GOOGLE_CLIENT_SECRET` | `clientId`, `clientSecret` |
-| `ADWARP_GOOGLE_DEVELOPER_TOKEN` | `developerToken` |
 | `ADWARP_GOOGLE_LOGIN_CUSTOMER_ID` | `loginCustomerId` |
 | `ADWARP_GOOGLE_DEFAULT_CUSTOMER_ID` | `defaultCustomerId` |
 | `ADWARP_GOOGLE_API_VERSION` | `apiVersion`, the pinned Google Ads API version (default `v25`) |
