@@ -13,7 +13,7 @@ adwarp audience from-hubspot -n "Q3 target accounts" --list 123 --dry-run
 adwarp audience from-hubspot -n "Q3 target accounts" --list 123
 ```
 
-## What it does
+## Behavior
 
 - Reads every record: all pages of a list's members, or all pages of a search.
 - Contacts become a contact list, matched on email. Adwarp reads only the `email` property, then trims and lowercases it, drops blank, malformed and duplicate addresses, and SHA-256 hashes the rest. Only the hashes leave your machine.
