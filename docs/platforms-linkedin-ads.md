@@ -19,7 +19,7 @@ LinkedIn's names sit 1 level off from other ad platforms, which trips up everyon
 | Ad | Creative | the rendered ad |
 | Audience | Matched audience | attached to targeting |
 
-## What it covers
+## Coverage
 
 - [Accounts](./tools.md#accounts): the ad accounts your app can reach.
 - [Targeting](./tools.md#targeting): resolve plain-language targeting to facets and entity URNs, and estimate reach before anything is built.
@@ -31,6 +31,6 @@ LinkedIn's names sit 1 level off from other ad platforms, which trips up everyon
 - [Competitor intel](./tools.md#competitor-intel): any company's ads from the official LinkedIn Ad Library.
 - [Change journal](./tools.md#change-journal): every change Adwarp makes, changes you log yourself, and before and after lift.
 
-## Where it runs
+## Local and hosted
 
 The local MCP server and the CLI run every LinkedIn tool. The [hosted endpoint](./hosted.md) registers all of them except HubSpot audiences, but CSV uploads, Salesforce audiences and the change journal need your machine too, so run those locally as well. See [Hosted limitations](./hosted.md#hosted-limitations).
