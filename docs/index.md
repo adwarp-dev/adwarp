@@ -10,7 +10,7 @@ Everything Adwarp creates starts switched off. LinkedIn entities are created as 
 
 Adwarp is unofficial and not affiliated with or endorsed by LinkedIn or Google.
 
-## What you can ask for
+## Example requests
 
 Once Adwarp is connected, you talk to your assistant in plain language. These are requests it handles today, roughly in the order a campaign comes together:
 

@@ -25,7 +25,7 @@ Or copy a folder from the repo's `skills/` directory into `~/.claude/skills/`. E
 
 ## LinkedIn Ads
 
-| Skill | Ask it | What you get |
+| Skill | Ask it | Output |
 | --- | --- | --- |
 | `linkedin-ads-audit` | "Audit my LinkedIn ads account" | a scored check of tracking, structure, targeting, delivery settings, bidding, creative and UTMs, with fixes ranked by spend at risk |
 | `linkedin-ads-performance-review` | "How are my LinkedIn ads doing?" | scale, pause and watch lists against like-for-like peers, week over week direction and creative fatigue |
@@ -40,7 +40,7 @@ Or copy a folder from the repo's `skills/` directory into `~/.claude/skills/`. E
 
 ## Google Ads
 
-| Skill | Ask it | What you get |
+| Skill | Ask it | Output |
 | --- | --- | --- |
 | `google-ads-account-audit` | "Audit my Google Ads account" | 50 checks with a GAQL query for each, and the fixes ranked |
 | `google-ads-search-campaign-builder` | "Build a search campaign for this product" | keywords, structure and responsive search ads, ending in a paused launch brief |
@@ -48,7 +48,7 @@ Or copy a folder from the repo's `skills/` directory into `~/.claude/skills/`. E
 
 ## Both platforms
 
-| Skill | Ask it | What you get |
+| Skill | Ask it | Output |
 | --- | --- | --- |
 | `paid-media-weekly-report` | "Write the weekly paid report" | the last 7 days against the 7 before, the movers, flags and 3 actions |
 | `paid-media-health-check` | "Anything on fire in our ads?" | a daily check that stays silent unless something is wrong |

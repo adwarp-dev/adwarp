@@ -20,7 +20,7 @@ campaigns can only be switched on in the Google Ads UI.
 > change journal with before/after lift. See [ROADMAP.md](./ROADMAP.md) for what's shipped
 > and what's planned next.
 
-## What you can do with it
+## Use cases
 
 Once Adwarp is connected, you talk to your assistant in plain language. Real requests it
 handles today, roughly in the order a campaign comes together:
@@ -561,7 +561,7 @@ Periods: `last_7_days`, `last_30_days`, `last_90_days`, `month_to_date`, `last_m
 Adwarp keeps an append-only journal of every change made to an ad entity so you can measure the
 **lift** of a change: how performance differed in the window before it versus after.
 
-- **Where it lives:** `~/.adwarp/changelog.jsonl` (one JSON object per line). A plain local
+- **Location:** `~/.adwarp/changelog.jsonl` (one JSON object per line). A plain local
   file with nothing to set up. Override the path with `ADWARP_CHANGELOG_PATH`.
 - **Auto-capture:** every create/update Adwarp makes to a campaign group, campaign, or creative is
   journaled automatically (captured at the one HTTP chokepoint, so it can't be forgotten).

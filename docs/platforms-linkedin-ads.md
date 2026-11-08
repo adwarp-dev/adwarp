@@ -19,7 +19,7 @@ LinkedIn's names sit 1 level off from other ad platforms, which trips up everyon
 | Ad | Creative | the rendered ad |
 | Audience | Matched audience | attached to targeting |
 
-## What it covers
+## Coverage
 
 - [Accounts](./tools.md#accounts): the ad accounts your app can reach.
 - [Targeting](./tools.md#targeting): resolve plain-language targeting to facets and entity URNs, and estimate reach before anything is built.
