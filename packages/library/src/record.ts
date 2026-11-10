@@ -207,7 +207,7 @@ export class AdRecordError extends Error {
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 // Em and en dashes, and emoji: the site's copy rules (DESIGN.md) apply to records too.
-const BANNED_CHARACTERS = /[–—]|\p{Extended_Pictographic}/u;
+const BANNED_CHARACTERS = /[\u2013\u2014]|\p{Extended_Pictographic}/u;
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);

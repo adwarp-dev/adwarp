@@ -105,13 +105,15 @@ function mostSeenReason(metric: AdMetric, c: Candidate, position: number, size: 
   const what = `${metric.text} ${METRIC_WORDS[metric.name] ?? metric.name} ${geographyPhrase(metric.geography)}`;
   const where = `${size} tracked ${PLATFORM_LABEL[c.platform]} ads with the same measure`;
   const tie = tied ? `, level with ${tied} other${tied === 1 ? "" : "s"} whose ranges overlap` : "";
-  return `${what}, ranked ${position} of ${where}${tie}.`;
+  // A group of 1 has no ranking to report.
+  return size > 1 ? `${what}, ranked ${position} of ${where}${tie}.` : `${what}.`;
 }
 
 function longRunReason(c: Candidate, days: number, position: number, size: number): string {
   const span = c.firstShown && c.lastShown ? ` from ${formatDay(c.firstShown)} to ${formatDay(c.lastShown)}` : "";
   const live = c.live ? ", still running when checked" : "";
-  return `Ran ${days} days${span}${live}, ranked ${position} of ${size} tracked ${PLATFORM_LABEL[c.platform]} ads by days run.`;
+  const rank = size > 1 ? `, ranked ${position} of ${size} tracked ${PLATFORM_LABEL[c.platform]} ads by days run` : "";
+  return `Ran ${days} days${span}${live}${rank}.`;
 }
 
 export function rankCandidates(candidates: Candidate[], opts: RankOptions = {}): RankReport {

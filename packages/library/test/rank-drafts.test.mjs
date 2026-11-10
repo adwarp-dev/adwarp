@@ -57,7 +57,7 @@ test("ads without an exposure metric never rank as most seen; long runs and the 
     candidate("none", { advertiser: "D" }),
   ]);
   assert.deepEqual(report.shortlist.map((r) => [r.candidate.source.adId, r.collection]), [["m", "most-seen"], ["long", "long-running"]]);
-  assert.match(report.shortlist[1].reason, /^Ran 99 days from Aug 1, 2026 to Nov 7, 2026, still running when checked, ranked 1 of 1 tracked LinkedIn ads by days run\.$/);
+  assert.match(report.shortlist[1].reason, /^Ran 99 days from Aug 1, 2026 to Nov 7, 2026, still running when checked\.$/);
   assert.deepEqual(report.ineligible.map((i) => [i.adId, i.reason]), [
     ["short", "No exposure metric, and ran 7 days, under 30"],
     ["none", "No exposure metric and no run dates"],
