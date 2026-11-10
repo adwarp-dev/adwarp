@@ -1,3 +1,5 @@
+![Adwarp, the open-source ad agent for your terminal, for LinkedIn Ads and Google Ads](.github/assets/readme-banner.png)
+
 # Adwarp
 
 [![npm](https://img.shields.io/npm/v/adwarp)](https://www.npmjs.com/package/adwarp)
