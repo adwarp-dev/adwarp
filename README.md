@@ -24,6 +24,8 @@ campaigns can only be switched on in the Google Ads UI.
 
 ## Use cases
 
+![A plain-language ask, then the order a campaign comes together: reach, audience, launch, report and lift](.github/assets/readme/use-cases.png)
+
 Once Adwarp is connected, you talk to your assistant in plain language. Real requests it
 handles today, roughly in the order a campaign comes together:
 
@@ -65,6 +67,8 @@ Some loops that work well:
 
 ## Hierarchy mapping (the two platforms disagree)
 
+![LinkedIn's campaign group and campaign next to Google's campaign, which covers both, then the ad group and the ad on each platform](.github/assets/readme/hierarchy.png)
+
 LinkedIn's names are shifted one level from everyone else's, which is the single
 most common source of confusion when working across both:
 
@@ -81,6 +85,8 @@ campaign holds the budget and targeting (LinkedIn's *campaign group* plus
 *campaign*), and its ad group holds keywords.
 
 ## Google Ads
+
+![Budget, campaign, targeting, ad groups, keywords and search ads go out in 1 atomic mutate and land paused](.github/assets/readme/google-ads.png)
 
 Search campaigns only, creation-first. What is there today:
 
@@ -159,6 +165,8 @@ steps, plus the `ADWARP_GOOGLE_*` environment variables.
 
 ## Packages
 
+![The packages: shared at the bottom, core for LinkedIn and google for Google Ads, then mcp and cli, bundled as the adwarp npm package, with web on top of mcp](.github/assets/readme/packages.png)
+
 - `@adwarp/shared`: the platform-neutral layer: OAuth, credential stores, retry policy, the change journal, period and KPI math.
 - `@adwarp/core`: LinkedIn REST client, resource modules, CSV + SHA256 hashing, Salesforce and HubSpot readers.
 - `@adwarp/google`: Google Ads REST client, GAQL reads, atomic mutate builder, Search campaign creation.
@@ -168,6 +176,8 @@ steps, plus the `ADWARP_GOOGLE_*` environment variables.
 - `adwarp`: the published npm package. Bundles the CLI and the MCP server behind the `adwarp`, `adwarp-mcp` and `liam` commands.
 
 ## How it works
+
+![MCP tools and CLI commands share 1 engine, and every write passes 1 chokepoint that calls the API and writes the change journal](.github/assets/readme/how-it-works.png)
 
 Both interfaces are thin layers over the same engine. Every MCP tool and CLI command builds
 a client via `createLinkedInAds()` (`core/src/client.ts`), which loads config plus an
@@ -187,6 +197,8 @@ local change journal (`~/.adwarp/changelog.jsonl`) for later lift analysis.
 (restli encoding, required fields, DMP audience flow) learned from live testing.
 
 ## Install
+
+![Step 0, a LinkedIn app, and step 1, login, then an MCP server or the CLI, both reading ~/.adwarp](.github/assets/readme/install.png)
 
 The [install guide](https://adwarp.dev/docs/install) on adwarp.dev has these steps too, with
 a setup page for each client: [Claude Code](https://adwarp.dev/docs/clients/claude-code),
@@ -444,6 +456,8 @@ If any step fails, show me the exact error and fix it with me before moving on.
 
 ## Skills
 
+![17 skills: 10 for LinkedIn Ads, 3 for Google Ads and 4 for both](.github/assets/readme/skills.png)
+
 The 17 [paid ads skills](https://github.com/adwarp-dev/paid-ads-skills) turn Adwarp's
 tools into playbooks: what to pull, how to judge it, the thresholds that matter, and a
 report that ends in ranked actions. They also run from a CSV export with no Adwarp install.
@@ -464,6 +478,8 @@ names. Their folders now point to the new skills, so existing installs keep work
 full list of moves is in the [skills docs](https://adwarp.dev/docs/skills).
 
 ## Tools (MCP)
+
+![38 MCP tools by group: 29 for LinkedIn Ads and 9 for Google Ads](.github/assets/readme/tools.png)
 
 The [tool reference](https://adwarp.dev/docs/tools) lists every tool with its inputs and
 whether it works on the hosted endpoint.
@@ -518,6 +534,8 @@ Structured targeting uses short facet names mapped to entity URNs (resolve URNs 
 
 ## CLI reference
 
+![The top-level commands of the adwarp CLI](.github/assets/readme/cli.png)
+
 All commands also work via `npx -y adwarp <cmd>`. The [CLI docs](https://adwarp.dev/docs/cli)
 have the full list, including the Google Ads commands.
 
@@ -560,6 +578,8 @@ Periods: `last_7_days`, `last_30_days`, `last_90_days`, `month_to_date`, `last_m
 
 ## Change journal & lift
 
+![A change, the 14 days before it and the 14 days after it, and the lift between them](.github/assets/readme/journal.png)
+
 Adwarp keeps an append-only journal of every change made to an ad entity so you can measure the
 **lift** of a change: how performance differed in the window before it versus after.
 
@@ -582,6 +602,8 @@ also off on hosted deploys (read-only filesystem).
 
 ## Configuration
 
+![The ~/.adwarp folder: config.json, credentials.json, google.json and hubspot.json at mode 0600, plus changelog.jsonl](.github/assets/readme/config.png)
+
 Local config lives in `~/.adwarp/config.json` (mode 0600, never in the repo):
 
 | Field | Purpose |
@@ -603,6 +625,8 @@ Coming from Liam? Every name from before the rename still works: the `~/.liads` 
 
 ## Salesforce integration
 
+![The sf CLI runs a SOQL query, and its email column is hashed with SHA256 into a matched audience](.github/assets/readme/salesforce.png)
+
 Adwarp reads Salesforce by shelling out to the authenticated `sf` CLI (`sf data query`), so it
 reuses your existing login and needs no new credentials. `audience_from_salesforce` (and
 `adwarp audience from-salesforce`) take a SOQL query that selects an email column and turn the
@@ -615,6 +639,8 @@ adwarp audience from-salesforce -n "Q3 target accounts" \
 ```
 
 ## HubSpot integration
+
+![HubSpot rows are read and hashed on your machine, and only the hashes go to LinkedIn as an audience](.github/assets/readme/hubspot.png)
 
 Adwarp reads HubSpot with a private app access token you create in your own HubSpot account,
 with 3 read-only scopes: `crm.objects.contacts.read`, `crm.objects.companies.read` and
@@ -634,12 +660,16 @@ See [HubSpot audiences](https://adwarp.dev/docs/hubspot) for creating the privat
 
 ## Safety
 
+![LinkedIn ads start as drafts and Google ads start paused until you turn them on; an audience takes up to 48 hours to match and needs about 300 members](.github/assets/readme/safety.png)
+
 - Every campaign/creative is created **DRAFT/PAUSED**. Activation is a separate, explicit step.
 - Matched-audience matching takes up to 48h, and a campaign needs ~300 matched members to serve.
 - LinkedIn does not expose person-level ad-view data; cross-referencing is account/segment-level.
 - Secrets never enter the repo. Local: `~/.adwarp`. Hosted: Vercel env vars.
 
 ## Docs
+
+![Markdown files in docs/ are read from main and shown at adwarp.dev/docs](.github/assets/readme/docs.png)
 
 The docs are at [adwarp.dev/docs](https://adwarp.dev/docs):
 [Install](https://adwarp.dev/docs/install),
