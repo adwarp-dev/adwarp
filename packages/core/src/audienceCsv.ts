@@ -51,6 +51,9 @@ const COUNTRY_KEYS = new Set(["country", "countrycode"]);
 /** LinkedIn's length caps for the plain-text contact columns. */
 const CONTACT_MAX_LENGTH: Record<string, number> = { firstname: 35, lastname: 35, employeecompany: 50, title: 50 };
 
+/** LinkedIn rejects the whole file if any plain-text column holds an email address. */
+const EMAIL_IN_TEXT = /[^\s@]+@[^\s@]+\.[^\s@]+/;
+
 /** Turn a domain or messy URL into a clean https:// website URL (or "" if not a domain). */
 export function toWebsiteUrl(raw: string): string {
   let s = (raw ?? "").trim().toLowerCase();
@@ -134,12 +137,17 @@ export function cleanAudienceRows(parsed: Record<string, string>[], opts: { type
     const columns = kept.map(([c]) => c);
 
     let badCountry = 0;
+    let emailInText = 0;
     const rows: Record<string, string>[] = [];
     for (const r of parsed) {
       const out: Record<string, string> = {};
       for (const [col, header] of kept) {
         let v = (r[header] ?? "").trim();
         if (col === "email") v = v.toLowerCase();
+        else if (EMAIL_IN_TEXT.test(v)) {
+          emailInText += 1;
+          v = "";
+        }
         if (col === "country" && v) {
           // LinkedIn takes an ISO two-letter code only.
           if (/^[a-z]{2}$/i.test(v)) v = v.toUpperCase();
@@ -158,6 +166,9 @@ export function cleanAudienceRows(parsed: Record<string, string>[], opts: { type
     const dropped = headers.filter((h) => !used.has(h));
     if (dropped.length) warnings.push(`Dropped ${dropped.length} non-matcher column(s): ${dropped.join(", ")}.`);
     if (badCountry) warnings.push(`${badCountry} country value(s) were not two-letter ISO codes and were left blank.`);
+    if (emailInText) {
+      warnings.push(`${emailInText} name, company or title value(s) held an email address and were left blank (LinkedIn rejects raw emails).`);
+    }
     return { type, columns, rows, dropped, rowCount: rows.length, warnings };
   }
 
