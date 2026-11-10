@@ -1,0 +1,18 @@
+{
+  "_comment": "Shaped like a BigQuery jobs.query response for GOOGLE_QUERY in src/adapters/google.ts. Values are made up for tests.",
+  "kind": "bigquery#queryResponse",
+  "jobComplete": true,
+  "jobReference": { "projectId": "test-project", "jobId": "job_1", "location": "US" },
+  "totalBytesProcessed": "1073741824",
+  "schema": { "fields": [
+    { "name": "advertiser_id" }, { "name": "advertiser_disclosed_name" }, { "name": "creative_id" }, { "name": "creative_page_url" },
+    { "name": "ad_format_type" }, { "name": "region_code" }, { "name": "first_shown" }, { "name": "last_shown" },
+    { "name": "times_shown_lower_bound" }, { "name": "times_shown_upper_bound" }, { "name": "times_shown_start_date" }, { "name": "times_shown_end_date" }
+  ] },
+  "rows": [
+    { "f": [ { "v": "AR111" }, { "v": "Example Software Inc" }, { "v": "CR001" }, { "v": "https://adstransparency.google.com/advertiser/AR111/creative/CR001" }, { "v": "TEXT" }, { "v": "DE" }, { "v": "2026-06-01" }, { "v": "2026-11-01" }, { "v": "100000" }, { "v": "150000" }, { "v": "2026-06-01" }, { "v": "2026-11-01" } ] },
+    { "f": [ { "v": "AR111" }, { "v": "Example Software Inc" }, { "v": "CR001" }, { "v": "https://adstransparency.google.com/advertiser/AR111/creative/CR001" }, { "v": "TEXT" }, { "v": "FR" }, { "v": "2026-07-01" }, { "v": "2026-11-05" }, { "v": "5000" }, { "v": "10000" }, { "v": null }, { "v": null } ] },
+    { "f": [ { "v": "AR111" }, { "v": "Example Software Inc" }, { "v": "CR002" }, { "v": "https://adstransparency.google.com/advertiser/AR111/creative/CR002" }, { "v": "VIDEO" }, { "v": "DE" }, { "v": "2026-09-01" }, { "v": "2026-10-01" }, { "v": null }, { "v": null }, { "v": null }, { "v": null } ] },
+    { "f": [ { "v": "AR999" }, { "v": "Not On The List" }, { "v": "CR900" }, { "v": "https://adstransparency.google.com/advertiser/AR999/creative/CR900" }, { "v": "IMAGE" }, { "v": "DE" }, { "v": "2026-09-01" }, { "v": "2026-10-01" }, { "v": "9000000" }, { "v": "10000000" }, { "v": null }, { "v": null } ] }
+  ]
+}

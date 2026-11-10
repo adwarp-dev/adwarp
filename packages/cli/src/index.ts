@@ -51,6 +51,7 @@ import {
 } from "@adwarp/core";
 import { VERSION } from "@adwarp/shared";
 import { registerGoogleCommands } from "./google.js";
+import { registerLibraryCommands } from "./library.js";
 
 const program = new Command();
 program
@@ -61,6 +62,7 @@ program
 // Google Ads lives under `adwarp google ...`; LinkedIn keeps the top level it has
 // always had, so no existing command or script changes.
 registerGoogleCommands(program);
+registerLibraryCommands(program);
 
 // Same server as the adwarp-mcp command, so an MCP client config can be `npx -y adwarp mcp`.
 program

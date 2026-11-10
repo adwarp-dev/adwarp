@@ -1,6 +1,6 @@
 /** Official API discovery plus optional remote creative collection. Never opens a local browser. */
 import type { AdLibraryScanOptions, AdLibraryAd } from "./adLibrary.js";
-import { searchAdLibraryApi } from "./adLibraryApi.js";
+import { isCompanyAd, searchAdLibraryApi } from "./adLibraryApi.js";
 import { creativeWorkerConfig, getRemoteCreatives } from "./remoteCreatives.js";
 
 export type CompetitorAdsEngine = "auto" | "api" | "scraper";
@@ -24,8 +24,8 @@ export async function scanCompetitorAds(opts: CompetitorAdsOptions): Promise<Com
   const linkedinAds = await createLinkedInAds();
   // API errors propagate. They must never trigger a browser fallback.
   const result = await searchAdLibraryApi(linkedinAds.client, opts);
-  const ads = opts.companyId ? result.ads.filter(ad =>
-    ad.detail?.advertiserUrl?.replace(/\/$/, "").endsWith(`/company/${opts.companyId}`)) : result.ads;
+  const companyId = opts.companyId;
+  const ads = companyId ? result.ads.filter((ad) => isCompanyAd(ad, companyId)) : result.ads;
   const notes = [opts.companyId
     ? `Filtered ${result.fetched} API results to ${ads.length} ads for company ${opts.companyId}. Total reported is the broad API query total, not the exact company total.`
     : "Advertiser name searches can include unrelated companies. Supply companyId to filter before collecting creatives."];

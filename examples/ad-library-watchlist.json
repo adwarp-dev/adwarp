@@ -1,0 +1,15 @@
+{
+  "_note": "Advertisers for `adwarp library collect`. Add each platform's own ID: an entry without one is skipped on that platform, because name searches return lookalike advertisers. See docs/ad-library.md for where to find each ID.",
+  "version": 1,
+  "category": "B2B SaaS",
+  "scope": "US and EU",
+  "countries": {
+    "google": ["EEA"],
+    "meta": ["DE", "FR", "NL", "ES", "IT", "SE", "IE"],
+    "tiktok": ["DE", "FR", "NL", "ES", "IT"]
+  },
+  "advertisers": [
+    { "name": "Notion", "domain": "notion.so", "linkedin": { "companyId": "30898036" } },
+    { "name": "Ramp", "domain": "ramp.com", "linkedin": { "companyId": "1406226" } }
+  ]
+}

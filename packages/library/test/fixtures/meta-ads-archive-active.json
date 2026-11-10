@@ -1,0 +1,25 @@
+{
+  "_comment": "Shaped like GET /ads_archive with the fields in src/adapters/meta.ts. Values are made up for tests.",
+  "data": [
+    {
+      "id": "1200000000000001",
+      "page_id": "111",
+      "page_name": "Example Software",
+      "ad_delivery_start_time": "2026-08-01",
+      "ad_creative_bodies": ["Close your books 3 days faster — no spreadsheets 🚀", "A second version of the copy"],
+      "ad_creative_link_titles": ["See the 5-minute demo"],
+      "ad_creative_link_captions": ["example.com"],
+      "publisher_platforms": ["facebook", "instagram"],
+      "eu_total_reach": 48213,
+      "age_country_gender_reach_breakdown": [{ "country": "DE" }, { "country": "FR" }],
+      "ad_snapshot_url": "https://www.facebook.com/ads/archive/render_ad/?id=1200000000000001&access_token=SECRET"
+    },
+    {
+      "id": "1200000000000099",
+      "page_id": "222",
+      "page_name": "Someone Else",
+      "ad_delivery_start_time": "2026-08-01"
+    }
+  ],
+  "paging": { "cursors": { "after": "CURSOR1" }, "next": "https://graph.facebook.com/v25.0/ads_archive?after=CURSOR1&access_token=SECRET" }
+}

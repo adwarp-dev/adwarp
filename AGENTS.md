@@ -17,10 +17,18 @@ pnpm + TypeScript monorepo:
   HubSpot readers.
 - `packages/google` — the Google Ads engine. Same shape as core: config and auth, one HTTP
   chokepoint, thin typed resource modules over GAQL, zod schemas reused as MCP inputs.
+- `packages/library` — public ad library collectors (LinkedIn Ad Library API, Google's Ads
+  Transparency BigQuery dataset, Meta's `ads_archive`, TikTok's Commercial Content API), the
+  ranking that only compares like with like, and the drafts writer for adwarp.dev's ad library.
+  `src/record.ts` is vendored from the website repo's `lib/ads/record.ts`: change it there
+  first, then copy it, keeping the 2 identical below the header. Credentials come only from
+  `ADWARP_LIBRARY_*` and must never fall back to the ad-account credentials
+  (`test/collect.test.mjs` pins this). See docs/ad-library.md.
 - `packages/mcp` — MCP server. `src/tools.ts` (LinkedIn) and `src/googleTools.ts`
   (`gads_*`) are shared by the stdio entry (`src/index.ts`) and the hosted Vercel route.
 - `packages/cli` — the `adwarp` CLI (commander), also installed as `liam` for existing users.
-  LinkedIn at the top level, Google under `adwarp google ...` (`src/google.ts`).
+  LinkedIn at the top level, Google under `adwarp google ...` (`src/google.ts`), the public
+  ad libraries under `adwarp library ...` (`src/library.ts`).
 - `packages/adwarp`: the published npm package `adwarp`. `build.mjs` bundles the private
   `@adwarp/*` packages with esbuild into `dist/cli.js` (`adwarp`, `liam`) and `dist/mcp.js`
   (`adwarp-mcp`). Third-party imports stay npm dependencies, and the build fails on one its

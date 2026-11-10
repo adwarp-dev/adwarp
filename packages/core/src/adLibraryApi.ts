@@ -78,13 +78,37 @@ const epochToDate = (ms: unknown): string | undefined => {
   return new Date(ms).toISOString().slice(0, 10);
 };
 
-const compactImpressions = (range: unknown): string | undefined => {
+/**
+ * The impression band exactly as the API sent it, as numbers. `to` is absent for
+ * an open-ended top band such as "1M+". Undefined when the ad has no band (only
+ * ads served in the EU carry one). The ad library ranks on these numbers; the
+ * string from compactImpressions stays the display form everywhere else.
+ */
+export function impressionBounds(range: unknown): { from?: number; to?: number } | undefined {
   if (!range || typeof range !== "object") return undefined;
-  const r = range as { from?: number; to?: number };
+  const r = range as { from?: unknown; to?: unknown };
+  const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : undefined);
+  const from = num(r.from);
+  const to = num(r.to);
+  if (from === undefined && to === undefined) return undefined;
+  return { ...(from !== undefined ? { from } : {}), ...(to !== undefined ? { to } : {}) };
+}
+
+const compactImpressions = (range: unknown): string | undefined => {
+  const r = impressionBounds(range);
+  if (!r) return undefined;
   const fmt = (n?: number) => (typeof n === "number" ? (n >= 1000 ? `${n / 1000}k` : String(n)) : "?");
-  if (r.from == null && r.to == null) return undefined;
   return `${fmt(r.from)}-${fmt(r.to)}`;
 };
+
+/**
+ * True when the ad's advertiser page is the given numeric LinkedIn company. A
+ * name search also returns partners and similarly named companies, so callers
+ * that know the company ID filter on this.
+ */
+export function isCompanyAd(ad: AdLibraryAd, companyId: string): boolean {
+  return Boolean(ad.detail?.advertiserUrl?.replace(/\/$/, "").endsWith(`/company/${companyId}`));
+}
 
 const countryCode = (urn: unknown): string =>
   typeof urn === "string" ? urn.replace(/^urn:li:country:/, "").toUpperCase() : String(urn ?? "");
