@@ -8,8 +8,8 @@
 
   Ownership, so a new collection run never overwrites an editor's work:
   - The collector owns `source`, `advertiser.platformId`, `evidence`, and fills `copy` only while it is null.
-  - The editor owns `status`, `selection`, `writeup`, `creative` and `review`. The collector writes them once, when
-    it creates the file, and never again.
+  - The editor owns `status`, `selection`, `writeup`, `creative`, `review`, `offerType` and `offerDetail`. The collector
+    writes the first 5 once, when it creates the file, and never again, and never writes the offer fields at all.
 
   Lifecycle: media_pending (evidence saved, creative not inspected yet) -> draft (write-up ready for review) ->
   published. unpublished keeps the file and its history but takes the page down; rejected never shows anywhere.
@@ -84,6 +84,19 @@ export const AD_COLLECTIONS = ["most-seen", "long-running", "top-ads", "editors-
 export type AdCollection = (typeof AD_COLLECTIONS)[number];
 
 export const LONG_RUN_DAYS = 30;
+
+/*
+  What the ad offers in exchange for the click, read off the ad itself, so it needs `copy` or
+  review.inspectedCreativeAt. Editor-owned and optional: a record without it just isn't on an offer page.
+  - lead-magnet: a report, guide, template, ebook or tool given for contact details
+  - gift: a gift card, AirPods or another item for booking or taking a meeting
+  - free-trial, demo, discount
+  - event: a webinar or an event
+  - other: an offer none of these fit
+  `offerDetail` names it in a few words, such as "AirPods Pro" or "$100 Amazon gift card".
+*/
+export const AD_OFFER_TYPES = ["lead-magnet", "gift", "free-trial", "demo", "event", "discount", "other"] as const;
+export type AdOfferType = (typeof AD_OFFER_TYPES)[number];
 
 /* Exposure metrics can rank a most-seen collection. The rest (likes, CTR, view rate) only ever describe. */
 export const EXPOSURE_METRICS = ["impressions", "reach", "times-shown", "unique-users-seen"] as const;
@@ -183,6 +196,8 @@ export type AdRecord = {
   advertiser: { name: string; platformId?: string; domain?: string };
   category: string; // "B2B SaaS" at launch
   format: AdFormat;
+  offerType?: AdOfferType;
+  offerDetail?: string;
   copy: AdCopy | null;
   creative: AdCreative;
   evidence: AdEvidence;
@@ -343,6 +358,17 @@ export function parseAdRecord(raw: unknown, fileSlug: string): AdRecord {
   if (copy !== null && !isObject(copy)) problems.push("copy must be an object or null");
   const hasCopy =
     isObject(copy) && ["intro", "headline", "body"].some((key) => typeof copy[key] === "string" && copy[key]);
+
+  if (r.offerType !== undefined) {
+    if (!oneOf(AD_OFFER_TYPES, r.offerType)) problems.push(`offerType must be one of ${AD_OFFER_TYPES.join(", ")}`);
+    const review = r.review;
+    if (!hasCopy && !(isObject(review) && isDate(review.inspectedCreativeAt)))
+      problems.push("offerType needs copy or review.inspectedCreativeAt: an offer can only be read off the ad");
+  }
+  if (r.offerDetail !== undefined) {
+    if (typeof r.offerDetail !== "string" || !r.offerDetail.trim()) problems.push("offerDetail must be text");
+    if (r.offerType === undefined) problems.push("offerDetail needs offerType");
+  }
 
   const creative = r.creative;
   if (!isObject(creative) || !oneOf(AD_DISPLAYS, creative.display))
