@@ -19,6 +19,7 @@ import { VERSION } from "@adwarp/shared";
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, "..", "..");
 const REPO_URL = "https://github.com/adwarp-dev/adwarp";
+const RAW_URL = "https://raw.githubusercontent.com/adwarp-dev/adwarp/main";
 
 const pkg = JSON.parse(await readFile(join(HERE, "package.json"), "utf8"));
 const server = JSON.parse(await readFile(join(ROOT, "server.json"), "utf8"));
@@ -84,6 +85,9 @@ await build({
 const readme = await readFile(join(ROOT, "README.md"), "utf8");
 await writeFile(
   join(HERE, "README.md"),
-  readme.replace(/\]\((?:\.\/)?(?!https?:|#|mailto:)([^)\s]+)\)/g, `](${REPO_URL}/blob/main/$1)`),
+  readme
+    // Images first, to the raw file (a blob URL is a GitHub page, not an image).
+    .replace(/!\[([^\]]*)\]\((?:\.\/)?(?!https?:)([^)\s]+)\)/g, `![$1](${RAW_URL}/$2)`)
+    .replace(/\]\((?:\.\/)?(?!https?:|#|mailto:)([^)\s]+)\)/g, `](${REPO_URL}/blob/main/$1)`),
 );
 await copyFile(join(ROOT, "LICENSE"), join(HERE, "LICENSE"));
