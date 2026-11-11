@@ -559,7 +559,7 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
 
   server.tool(
     "inspect_competitor_ads",
-    "Discover competitor ads through the official API. auto optionally queues up to 10 creatives on the remote worker; api returns metadata only. Always provide advertiser plus companyId to filter unrelated name matches before collection. No local browser or scraper fallback. Read pending results with get_competitor_creatives. Cached screenshots require worker authentication. Report sample coverage and collection dates; never retry a blocked worker or use another browser/client. Synthesize findings rather than dumping rows.",
+    "Discover competitor ads through the official API. Calls are paced at least 2.2s apart, count against a daily budget per app (150 by default), and stop at once on throttling (a 429) or revoked access, returning what was collected. auto optionally queues up to 10 creatives on the remote worker; api returns metadata only. Always provide advertiser plus companyId to filter unrelated name matches before collection. No local browser or scraper fallback. Read pending results with get_competitor_creatives. Cached screenshots require worker authentication. Report sample coverage and collection dates; never retry a blocked worker or use another browser/client. Synthesize findings rather than dumping rows.",
     AdLibraryScanSchema.shape,
     async (args) => {
       try {

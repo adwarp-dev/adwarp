@@ -28,7 +28,7 @@ test("library credentials ignore the ad-account variables and name what to set",
     assert.ok(!err.message.includes("employer"));
     return true;
   });
-  await assert.rejects(lib.linkedinLibrarySearch(ACCOUNT_ENV), /LinkedIn library credentials are missing/);
+  await assert.rejects(lib.createLinkedInLibrarySearch(ACCOUNT_ENV), /LinkedIn library credentials are missing/);
   assert.throws(() => lib.metaLibraryCredentials(ACCOUNT_ENV), /ADWARP_LIBRARY_META_ACCESS_TOKEN/);
   assert.throws(() => lib.tiktokLibraryCredentials(ACCOUNT_ENV), /ADWARP_LIBRARY_TIKTOK_CLIENT_KEY, ADWARP_LIBRARY_TIKTOK_CLIENT_SECRET/);
   assert.throws(() => lib.googleLibraryCredentials({ ...ACCOUNT_ENV, ADWARP_LIBRARY_GOOGLE_PROJECT: "p" }), /Set ADWARP_LIBRARY_GOOGLE_ACCESS_TOKEN\./);

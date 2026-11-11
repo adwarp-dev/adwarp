@@ -149,6 +149,13 @@ modules are thin typed wrappers over `LinkedInClient.request()`.
   `accounts|campaignGroups|campaigns|creatives=List(<encoded urns>)`. All restli-encoded, so it
   goes through the client's `rawQuery`. `costInUsd` is a string; metric field names are verified
   in `analytics.ts` DEFAULT_METRIC_FIELDS. Derived KPIs + flags live in `report.ts`.
+- **Ad Library calls are conservative, and must stay that way** (`core/src/adLibraryGuard.ts`). LinkedIn's
+  limits are per app, per endpoint, per day, unpublished, and reset at midnight UTC. Every call goes through an
+  `AdLibraryGuard`: paced at least 2.2s apart per process, counted against a daily budget per app (a hash of the
+  client ID, in `~/.local/state/adwarp/ad-library`; 300 for `adwarp library`, 150 for `inspect_competitor_ads`),
+  and sent with `noRetry`. A 429 is waited out once per run, only with a Retry-After of 2 minutes or less; any other
+  429, a 401 or a 403 stops the run and keeps what was collected. Never add retries or loops to this path.
+  `packages/core/test/adLibraryLimits.test.mjs` and `packages/library/test/limits.test.mjs` pin it.
 - **Non-transactional orchestrator:** `launchFromBrief` creates a campaign group before the
   campaign; a later failure can orphan the group. (Cleanup-on-failure is implemented for
   audience upload; campaign-group cleanup is a known TODO.)

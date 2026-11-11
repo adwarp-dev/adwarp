@@ -36,6 +36,7 @@ export * from "./hubspot.js";
 // Competitor ad intelligence: official API and remote creative worker.
 export * from "./adLibrary.js";
 export * from "./adLibraryApi.js";
+export * from "./adLibraryGuard.js";
 export * from "./competitorAds.js";
 
 export * from "./remoteCreatives.js";

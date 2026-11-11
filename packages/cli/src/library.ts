@@ -46,7 +46,10 @@ export function registerLibraryCommands(program: Command): void {
     .option("--walk-back", "LinkedIn only: read 1 calendar month at a time, back to --months, and record the months each ad was served in")
     .option("--months <n>", "Months for --walk-back, counting the current one (LinkedIn's filter reaches back 12)", int, 12)
     .option("--window-cap <n>", "Ads read per window before --walk-back splits it", int, 1000)
-    .option("--previous <file>", "The last run's candidates file: report the ads that are new since then (can be the same path as --out)")
+    .option("--previous <file>", "The last run's candidates file: report the ads that are new since then (can be the same path as --out). On LinkedIn it also makes the pull incremental and lets --walk-back resume")
+    .option("--no-incremental", "LinkedIn with --previous: read up to --max instead of stopping at the first page with nothing new")
+    .option("--force", "LinkedIn --walk-back: walk an advertiser walked back in the last 7 days, and start over instead of resuming")
+    .option("--daily-calls <n>", "LinkedIn: Ad Library calls a day for this app (300, or ADWARP_LIBRARY_LINKEDIN_DAILY_CALLS)", int)
     .action(async (platform: string, opts) => {
       if (!(AD_PLATFORMS as readonly string[]).includes(platform))
         throw new Error(`Unknown platform ${platform}. Use ${AD_PLATFORMS.join(", ")}.`);
@@ -61,10 +64,16 @@ export function registerLibraryCommands(program: Command): void {
           console.log(`No previous run at ${opts.previous}, so this run is the baseline.`);
         }
       }
+      if (opts.walkBack && !previous)
+        console.log("--walk-back without --previous starts over and can't skip advertisers walked back in the last 7 days.");
       const collected = await collect({
         platform: platform as AdPlatform,
         watchlist,
         watchlistPath: opts.watchlist,
+        ...(previous ? { previous } : {}),
+        incremental: opts.incremental !== false,
+        ...(opts.force ? { force: true } : {}),
+        ...(opts.dailyCalls ? { dailyCalls: opts.dailyCalls } : {}),
         ...(opts.country ? { countries: list(opts.country) } : {}),
         ...(opts.max ? { max: opts.max } : {}),
         ...(opts.walkBack ? { walkBack: { months: opts.months, windowCap: opts.windowCap } } : {}),
@@ -75,10 +84,13 @@ export function registerLibraryCommands(program: Command): void {
       const { file, report } = compareWithPrevious(previous, collected);
       const out = opts.out ?? `ad-library-${platform}-${file.collectedAt}.json`;
       await writeFile(out, `${JSON.stringify(file, null, 2)}\n`, "utf8");
-      console.log(`\n${file.candidates.length} ads from ${watchlist.advertisers.length - file.skipped.length} advertisers on ${platform}. Wrote ${out}.`);
+      console.log(`\n${file.candidates.length} ads from ${file.tracked?.length ?? 0} advertisers on ${platform}. Wrote ${out}.`);
       for (const s of file.skipped) console.log(`  skipped ${s.advertiser}: ${s.reason}`);
       for (const e of file.errors) console.log(`  failed  ${e.advertiser}: ${e.message}`);
-      if (file.errors.length) process.exitCode = 1;
+      if (file.calls)
+        console.log(`${file.calls.made} Ad Library calls made${file.calls.leftToday !== undefined ? `; ${file.calls.leftToday} of ${file.calls.dailyBudget} left today for this app (UTC)` : ""}.`);
+      if (file.stopped) console.log(`\nStopped early: ${file.stopped.message}`);
+      if (file.errors.length || file.stopped) process.exitCode = 1;
       if (report) {
         console.log(`\n${changesSummary(report)}`);
         try {

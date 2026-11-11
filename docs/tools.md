@@ -71,7 +71,7 @@ Metrics: click-through rate, cost per click, cost per 1,000 impressions, cost pe
 
 ## Competitor intel
 
-- `inspect_competitor_ads`: discovers any company's ads through the official LinkedIn Ad Library API. In `api` mode it returns metadata only. In `auto` mode it also queues at most 10 ads on the optional [remote creative worker](https://github.com/adwarp-dev/adwarp/tree/main/services/creative-worker) for creative copy and screenshots, and returns cached results or job status. Supply both `advertiser` and `companyId` to filter broad name matches before creatives are queued.
+- `inspect_competitor_ads`: discovers any company's ads through the official LinkedIn Ad Library API. In `api` mode it returns metadata only. In `auto` mode it also queues at most 10 ads on the optional [remote creative worker](https://github.com/adwarp-dev/adwarp/tree/main/services/creative-worker) for creative copy and screenshots, and returns cached results or job status. Supply both `advertiser` and `companyId` to filter broad name matches before creatives are queued. Calls are paced at least 2.2 seconds apart and count against a daily budget per app (150, or `ADWARP_AD_LIBRARY_DAILY_CALLS`); a 429 without a short `Retry-After`, a second 429, a 401 or a 403 stops the search at once and returns what it collected. See [Ad library collectors](./ad-library.md#staying-within-linkedins-limits).
 - `get_competitor_creatives`: reads completed remote creative jobs by ad id, without queuing new work.
 
 No CLI command or MCP tool launches a local browser or falls back to scraping when the API fails.

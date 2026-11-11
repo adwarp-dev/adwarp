@@ -46,7 +46,7 @@ A JSON file of advertisers with each platform's own ID for them. An entry withou
 ## Commands
 
 ```
-adwarp library collect <platform> -w <watchlist.json> [-c <codes>] [-m <n>] [--days <n>] [--max-gib <n>] [-o <file>] [--previous <file>] [--walk-back] [--months <n>] [--window-cap <n>]
+adwarp library collect <platform> -w <watchlist.json> [-c <codes>] [-m <n>] [--days <n>] [--max-gib <n>] [-o <file>] [--previous <file>] [--no-incremental] [--walk-back] [--months <n>] [--window-cap <n>] [--force] [--daily-calls <n>]
 adwarp library drafts -i <candidates.json...> -t <content/ads> [--rank-by evidence|run] [--top <n>] [--per-advertiser <n>] [--ids <ids>] [--dry-run]
 ```
 
@@ -70,6 +70,26 @@ So the walk asks for this month up to yesterday, then each whole month before it
 A month with more ads than `--window-cap` (1000) is split in half until each part fits, and a single day that is still full is reported, because it may hold more. Served-during means a busy advertiser's month holds every ad that ran in it, long runners included (Ramp's February held 3,701), so `--max` rises to 20000 and a year of a busy advertiser takes thousands of 25-ad pages. Run it weekly or once, and the daily pull without it.
 
 The walk still checks LinkedIn's answers: a dated ad whose run doesn't touch the window it came back in, or a 4xx on the first window, stops it with an error. Without `--walk-back`, a higher `--max`, such as 3000, pages deeper through the newest-first list instead.
+
+With `--previous`, a walk that stops (the daily budget, or a 429) records the windows it didn't read, and the next `--walk-back` run with the same file resumes there and adds the months up. An advertiser whose walk finished in the last 7 days is skipped, keeping its ads, unless `--force`, which also starts a walk over instead of resuming. Both read `walks` in the candidates file, so pass the same file as `--previous` and `-o`.
+
+## Staying within LinkedIn's limits
+
+LinkedIn's limits are per app, per endpoint and per day. They aren't published, they reset at midnight UTC, and a call over the limit gets a 429. LinkedIn emails the app's admins at 75% of the daily quota, and the Developer Portal's Analytics tab shows the Ad Library's limit once the app has called it that day ([LinkedIn's rate limits page](https://learn.microsoft.com/en-us/linkedin/shared/api-guide/concepts/rate-limits)). A day of about 270 calls at the 2.2 second pace drew no throttling on November 11, 2026. Every Ad Library call, from `adwarp library` and from the `inspect_competitor_ads` tool and `adwarp competitor ads`, follows these rules:
+
+| Rule | What happens |
+| --- | --- |
+| Pace | At least 2.2 seconds between calls, plus up to 0.6 seconds of jitter, across every search in a process |
+| Daily budget | 300 calls a day per app for `adwarp library` (`--daily-calls` or `ADWARP_LIBRARY_LINKEDIN_DAILY_CALLS`), 150 for the tool and `adwarp competitor ads` (`ADWARP_AD_LIBRARY_DAILY_CALLS`). A call over it isn't sent: the run stops and says how many calls are left (0) and when the day resets |
+| 429 | Waited out once per run, only with a `Retry-After` of 2 minutes or less. A second 429, or 1 without `Retry-After`, stops the run: the quota is likely spent until midnight UTC |
+| 401, 403 | Stops at once, with no retry: the token is invalid or revoked, or the app isn't approved for the Ad Library product |
+| Server error | Retried once, after the pace delay |
+
+A stopped run keeps every ad it read. In `adwarp library collect`, the advertisers it didn't reach are listed as not reached and keep their ads from `--previous`, and the command exits with 1. Each run prints the calls it made and how many are left today.
+
+The count is kept per app, by a hash of the client ID (never the ID itself or a token), and per UTC day, in `~/.local/state/adwarp/ad-library` (or `$XDG_STATE_HOME/adwarp/ad-library`, or `ADWARP_AD_LIBRARY_STATE_DIR`), so every run and process on the machine shares it. It never touches the credential files in `~/.adwarp`. With only an access token, `adwarp library` counts under 1 shared key unless `ADWARP_LIBRARY_LINKEDIN_CLIENT_ID` is set too.
+
+Daily runs are cheap: with `--previous`, `collect` reads each advertiser newest first and stops at the first full page of 25 that holds none of its ads the last run didn't have, so a check costs about 1 or 2 calls per advertiser. `--no-incremental` reads up to `--max` instead. Walks are the expensive part: run them weekly at most, and check the Analytics tab after the first one.
 
 ## New ads and alerts
 

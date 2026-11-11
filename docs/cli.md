@@ -57,7 +57,7 @@ adwarp report summary [-p <period>]       # account rollup: totals, top performe
 adwarp report perf <level> [--parent <id>] [-p <period>]   # per-entity metric rows
 adwarp report trend <level> <id> [-b weekly|monthly] [-p <period>]   # trend with deltas
 adwarp launch --brief <brief.json>        # audience, campaign group, campaign, and draft ads
-adwarp competitor ads <advertiser>        # any company's ads from the public Ad Library
+adwarp competitor ads <advertiser>        # any company's ads from the public Ad Library (paced, 150 calls a day per app, stops on a 429)
 adwarp creative-status <ids>              # read remote creative jobs by comma-separated ad id
 adwarp changelog list [-t <type>] [-i <id>] [--tag <tag>]   # recorded ad changes, newest first
 adwarp changelog add -t <type> -i <id> -f <field> --after <value> [-l <label>]   # log a change made elsewhere

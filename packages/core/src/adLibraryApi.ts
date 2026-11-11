@@ -33,6 +33,15 @@
 
 import type { LinkedInClient } from "./http.js";
 import { type DateRange, encDateRange } from "./resources/analytics.js";
+import {
+  AD_LIBRARY_MAX_RETRY_AFTER_SECONDS,
+  AdLibraryAccessError,
+  AdLibraryGuard,
+  AdLibraryStopError,
+  AdLibraryThrottledError,
+  retryAfterSeconds,
+  untilMidnightUtc,
+} from "./adLibraryGuard.js";
 import type { AdLibraryAd, AdLibraryDetail } from "./adLibrary.js";
 
 export interface AdLibraryApiOptions {
@@ -52,12 +61,21 @@ export interface AdLibraryApiOptions {
   dateRange?: DateRange;
   /** Max ads to collect across pages (default 50). */
   max?: number;
-  /** Delay between pages to respect the per-minute rate limit (default 2200ms). */
+  /** Least time between calls, raised to 2200ms when lower. Pacing is process-wide; see adLibraryGuard.ts. */
   pageDelayMs?: number;
+  /**
+   * The run's pacing, daily budget and throttle state. Share 1 guard across every search in a run. Without one, the
+   * search is paced but has no budget.
+   */
+  guard?: AdLibraryGuard;
+  /**
+   * Called after each page with that page's ads. Returning true stops paging: an incremental pull stops at the first
+   * full page that holds nothing new.
+   */
+  stopAfterPage?: (page: AdLibraryApiAd[]) => boolean;
   onProgress?: (m: string) => void;
 }
 
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const isThrottle = (e: unknown): boolean => {
   const err = e as { status?: number; message?: string };
   return err?.status === 429 || /throttl/i.test(err?.message ?? "");
@@ -73,13 +91,7 @@ export interface AdLibraryApiResult {
   ads: AdLibraryApiAd[];
 }
 
-/** Raised when the app isn't provisioned for the Ad Library product. */
-export class AdLibraryAccessError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "AdLibraryAccessError";
-  }
-}
+export { AdLibraryAccessError } from "./adLibraryGuard.js";
 
 /** Restli list literal of country URNs, e.g. List(urn:li:country:us,urn:li:country:gb). */
 const countryList = (codes: string[]) =>
@@ -202,8 +214,15 @@ export function adLibraryRawQuery(query: Record<string, string | number | undefi
 }
 
 /**
- * Search the official Ad Library API, paging until `max` ads or exhaustion.
- * Throws AdLibraryAccessError on 403 so the caller can fall back to the scraper.
+ * Search the official Ad Library API, paging until `max` ads, exhaustion, or `stopAfterPage`.
+ *
+ * Conservative by design, because LinkedIn's daily Ad Library quota is per app and unpublished:
+ * - every call goes through the guard (pacing of at least 2.2s, and the daily budget when there is one);
+ * - the HTTP layer never retries (`noRetry`);
+ * - a 429 is waited out at most once per run, and only with a Retry-After of 2 minutes or less. Any other 429 throws
+ *   AdLibraryThrottledError, and 401 or 403 throw AdLibraryAccessError at once;
+ * - a 5xx or a dropped connection is retried once, after the pacing delay.
+ * Every stop error carries `partial`, the ads collected before it, so callers keep them.
  */
 export async function searchAdLibraryApi(
   client: LinkedInClient,
@@ -216,13 +235,17 @@ export async function searchAdLibraryApi(
     );
   }
   const max = opts.max ?? 50;
-  const pageDelayMs = opts.pageDelayMs ?? 2200;
+  const guard = opts.guard ?? new AdLibraryGuard({ ...(opts.pageDelayMs ? { minIntervalMs: opts.pageDelayMs } : {}) });
   const progress = opts.onProgress ?? (() => {});
   const ads: AdLibraryApiAd[] = [];
   let start = 0;
   let totalReported: number | undefined;
   // The criteria finder caps `count` at 25 per page; paginate via `start`.
   const pageSize = Math.min(25, max);
+  const stop = (err: AdLibraryStopError): never => {
+    err.partial = { fetched: ads.length, ...(totalReported !== undefined ? { totalReported } : {}), ads };
+    throw err;
+  };
 
   while (ads.length < max) {
     const query: Record<string, string | number | undefined> = { q: "criteria", count: pageSize, start };
@@ -231,26 +254,52 @@ export async function searchAdLibraryApi(
     if (opts.countries?.length) query.countries = countryList(opts.countries);
 
     let res;
-    // The Ad Library API is rate-limited per minute. On a throttle, wait out the
-    // window and retry the same page (a few times) rather than failing the pull.
-    for (let attempt = 0; ; attempt++) {
+    let retriedFault = false;
+    for (;;) {
+      try {
+        await guard.beforeCall();
+      } catch (e) {
+        if (e instanceof AdLibraryStopError) stop(e);
+        throw e;
+      }
       try {
         res = await client.request<{
           elements?: Record<string, unknown>[];
           paging?: { total?: number };
-        }>(opts.dateRange ? { path: "/adLibrary", rawQuery: adLibraryRawQuery(query, opts.dateRange) } : { path: "/adLibrary", query });
+        }>({
+          path: "/adLibrary",
+          ...(opts.dateRange ? { rawQuery: adLibraryRawQuery(query, opts.dateRange) } : { query }),
+          noRetry: true,
+        });
         break;
       } catch (e) {
-        const err = e as { status?: number; message?: string };
-        if (err.status === 403) {
-          throw new AdLibraryAccessError(
-            "The Ad Library API is not provisioned for this app. Request the 'LinkedIn Ad Library' product " +
-              "in the Developer Portal (Products tab). " + (err.message ?? ""),
+        const err = e as { status?: number; message?: string; retryAfter?: string };
+        if (err.status === 401)
+          stop(new AdLibraryAccessError(`LinkedIn answered 401 to the Ad Library: the token is invalid, expired or revoked. Stopped without retrying. ${err.message ?? ""}`.trim()));
+        if (err.status === 403)
+          stop(
+            new AdLibraryAccessError(
+              `LinkedIn answered 403 to the Ad Library: the app isn't approved for the LinkedIn Ad Library product (Developer Portal, Products tab), or its access was revoked. Stopped without retrying. ${err.message ?? ""}`.trim(),
+            ),
+          );
+        if (isThrottle(e)) {
+          const wait = retryAfterSeconds(err.retryAfter, new Date(guard.now()));
+          if (wait !== undefined && wait <= AD_LIBRARY_MAX_RETRY_AFTER_SECONDS && !guard.waitedOutThrottle) {
+            guard.waitedOutThrottle = true;
+            progress(`LinkedIn answered 429 with Retry-After ${wait}s; waiting once, then stopping if it happens again.`);
+            await guard.sleep(wait * 1000);
+            continue;
+          }
+          stop(
+            new AdLibraryThrottledError(
+              `LinkedIn answered 429 to the Ad Library${wait !== undefined ? ` (Retry-After ${wait}s)` : " with no Retry-After"}${guard.waitedOutThrottle ? " after a wait" : ""}. The app's daily Ad Library quota is likely spent until midnight UTC, in ${untilMidnightUtc(new Date(guard.now()))}. Stopped, keeping the ${ads.length} ads collected so far.`,
+            ),
           );
         }
-        if (isThrottle(e) && attempt < 5) {
-          progress(`Rate limited; waiting 60s before retrying (have ${ads.length}/${max})...`);
-          await sleep(60_000);
+        const fault = err.status === undefined || err.status >= 500;
+        if (fault && !retriedFault) {
+          retriedFault = true;
+          progress(`The Ad Library call failed (${err.status ?? "no response"}); retrying once.`);
           continue;
         }
         throw e;
@@ -262,14 +311,20 @@ export async function searchAdLibraryApi(
     }
     const elements = res.data.elements ?? [];
     if (!elements.length) break;
+    const page: AdLibraryApiAd[] = [];
     for (const el of elements) {
-      ads.push(normalizeApiElement(el));
+      const ad = normalizeApiElement(el);
+      page.push(ad);
+      ads.push(ad);
       if (ads.length >= max) break;
     }
     if (elements.length < pageSize) break;
+    if (opts.stopAfterPage?.(page)) {
+      progress(`Stopped after ${ads.length} ads: the last page held nothing new.`);
+      break;
+    }
     start += pageSize;
     progress(`Fetched ${ads.length}/${Math.min(max, totalReported ?? max)} ads...`);
-    if (pageDelayMs) await sleep(pageDelayMs);
   }
 
   return { fetched: ads.length, totalReported, ads };

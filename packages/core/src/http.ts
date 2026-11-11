@@ -16,6 +16,8 @@ export class LinkedInApiError extends Error {
     readonly status: number,
     readonly body: unknown,
     readonly serviceErrorCode?: number,
+    /** The Retry-After header of the response, when it had one. */
+    readonly retryAfter?: string,
   ) {
     super(message);
     this.name = "LinkedInApiError";
@@ -37,6 +39,11 @@ export interface RequestOptions {
   body?: unknown;
   /** Extra headers (merged over defaults). */
   headers?: Record<string, string>;
+  /**
+   * 1 attempt only: no retry on 429, 5xx or a transport failure. For endpoints with a small daily quota, such as
+   * the Ad Library, whose callers decide themselves whether a second request is worth spending.
+   */
+  noRetry?: boolean;
 }
 
 export interface ApiResponse<T> {
@@ -101,7 +108,8 @@ export class LinkedInClient {
     const method = opts.method ?? "GET";
 
     let lastErr: unknown;
-    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    const maxRetries = opts.noRetry ? 0 : MAX_RETRIES;
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
       const token = await this.getToken();
       const headers: Record<string, string> = {
         Authorization: `Bearer ${token}`,
@@ -120,14 +128,14 @@ export class LinkedInClient {
         res = await fetch(url, { method, headers, body: bodyStr });
       } catch (err) {
         lastErr = err;
-        if (attempt < MAX_RETRIES) {
+        if (attempt < maxRetries) {
           await sleep(transportRetryDelayMs(attempt));
           continue;
         }
         throw err;
       }
 
-      if (isRetryableStatus(res.status) && attempt < MAX_RETRIES) {
+      if (isRetryableStatus(res.status) && attempt < maxRetries) {
         await sleep(retryDelayMs(attempt, res.headers.get("retry-after")));
         continue;
       }
@@ -144,7 +152,7 @@ export class LinkedInClient {
           (data && typeof data === "object" && "message" in data
             ? String((data as Record<string, unknown>).message)
             : text) || `LinkedIn API ${res.status}`;
-        throw new LinkedInApiError(message, res.status, data ?? text, serviceErrorCode);
+        throw new LinkedInApiError(message, res.status, data ?? text, serviceErrorCode, res.headers.get("retry-after") ?? undefined);
       }
 
       const restliId = res.headers.get("x-restli-id") ?? undefined;

@@ -20,7 +20,7 @@
  * outside, in case LinkedIn changes the parameter.
  */
 import type { AdLibraryApiAd, DateRange } from "@adwarp/core";
-import { isCompanyAd } from "@adwarp/core";
+import { AdLibraryStopError, isCompanyAd } from "@adwarp/core";
 import { addDays } from "../parse.js";
 import { daysBetween } from "../record.js";
 import type { LinkedInSearch } from "./linkedin.js";
@@ -139,6 +139,10 @@ export interface WalkResult {
   checked: number;
   /** True when the walk stopped at `max` before the oldest window. */
   stoppedAtMax: boolean;
+  /** Windows not read yet, newest first: where the next run resumes. Empty when the walk finished. */
+  remaining: DayWindow[];
+  /** Set when LinkedIn throttled, access failed or the daily budget ran out. The ads read until then are kept. */
+  stopped?: AdLibraryStopError;
 }
 
 export async function walkLinkedIn(opts: WalkOptions): Promise<WalkResult> {
@@ -154,6 +158,14 @@ export async function walkLinkedIn(opts: WalkOptions): Promise<WalkResult> {
   let fetched = 0;
   let queries = 0;
   let checked = 0;
+  let stopped: AdLibraryStopError | undefined;
+  const keep = (ads: AdLibraryApiAd[], month: string) => {
+    for (const ad of ads) {
+      if (!isCompanyAd(ad, opts.companyId)) continue;
+      if (!found.has(ad.detailId)) found.set(ad.detailId, ad);
+      served.set(ad.detailId, (served.get(ad.detailId) ?? new Set()).add(month));
+    }
+  };
 
   while (queue.length && found.size < opts.max) {
     const w = queue.shift() as DayWindow;
@@ -166,6 +178,14 @@ export async function walkLinkedIn(opts: WalkOptions): Promise<WalkResult> {
         ...(opts.countries?.length ? { countries: opts.countries } : {}),
       });
     } catch (err) {
+      if (err instanceof AdLibraryStopError) {
+        // Keep what this window gave before the stop, and read the whole window again next time.
+        keep(err.partial?.ads ?? [], monthOf(w.start));
+        fetched += err.partial?.ads.length ?? 0;
+        queue.unshift(w);
+        stopped = err;
+        break;
+      }
       const status = (err as { status?: number }).status;
       if (queries === 0 && status && status >= 400 && status < 500 && status !== 429)
         throw new DateRangeMismatchError(`LinkedIn answered ${status} to the first window (${(err as Error).message})`);
@@ -188,12 +208,7 @@ export async function walkLinkedIn(opts: WalkOptions): Promise<WalkResult> {
       }
       truncated.push(w);
     }
-    const month = monthOf(w.start);
-    for (const ad of res.ads) {
-      if (!isCompanyAd(ad, opts.companyId)) continue;
-      if (!found.has(ad.detailId)) found.set(ad.detailId, ad);
-      served.set(ad.detailId, (served.get(ad.detailId) ?? new Set()).add(month));
-    }
+    keep(res.ads, monthOf(w.start));
     opts.onProgress?.(`${opts.advertiser}: ${w.start} to ${lastDayOf(w)}, ${found.size} ads so far`);
   }
 
@@ -209,7 +224,9 @@ export async function walkLinkedIn(opts: WalkOptions): Promise<WalkResult> {
     queries,
     truncated,
     checked,
-    stoppedAtMax: queue.length > 0,
+    stoppedAtMax: !stopped && queue.length > 0,
+    remaining: queue,
+    ...(stopped ? { stopped } : {}),
   };
 }
 
