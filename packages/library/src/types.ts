@@ -25,6 +25,13 @@ export interface Candidate {
   creativeRefs: string[];
   firstShown: string | null;
   lastShown: string | null;
+  /**
+   * LinkedIn walk-back only: the months (YYYY-MM, oldest first) LinkedIn's date filter lists the ad as served in. For
+   * ads never served in the EU these are the only run evidence. Not part of the website's record format yet.
+   */
+  servedMonths?: string[];
+  /** Why the first served month may be later than the true start: LinkedIn's 12-month lookback, or an unread month. */
+  servedMonthsFloor?: "lookback" | "unread";
   /** Still serving when checked. null when the source doesn't say. */
   live: boolean | null;
   regions: string[];
@@ -40,7 +47,7 @@ export interface CandidatesFile {
   platform: AdPlatform;
   collectedAt: string;
   watchlist?: string;
-  query: { countries?: string[]; max: number; walkBack?: { days: number; windowDays: number } };
+  query: { countries?: string[]; max: number; walkBack?: { months: number; windowCap?: number } };
   /** Advertisers pulled without an error, including those with no ads. New-ad detection uses it. */
   tracked?: string[];
   /** What changed since the previous run, when collect ran with --previous. */

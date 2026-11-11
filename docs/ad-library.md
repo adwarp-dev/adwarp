@@ -46,31 +46,30 @@ A JSON file of advertisers with each platform's own ID for them. An entry withou
 ## Commands
 
 ```
-adwarp library collect <platform> -w <watchlist.json> [-c <codes>] [-m <n>] [--days <n>] [--max-gib <n>] [-o <file>] [--previous <file>] [--walk-back] [--window-days <n>]
-adwarp library drafts -i <candidates.json...> -t <content/ads> [--top <n>] [--per-advertiser <n>] [--ids <ids>] [--dry-run]
+adwarp library collect <platform> -w <watchlist.json> [-c <codes>] [-m <n>] [--days <n>] [--max-gib <n>] [-o <file>] [--previous <file>] [--walk-back] [--months <n>] [--window-cap <n>]
+adwarp library drafts -i <candidates.json...> -t <content/ads> [--rank-by evidence|run] [--top <n>] [--per-advertiser <n>] [--ids <ids>] [--dry-run]
 ```
 
 `collect` writes a candidates file: every ad it found, each number exactly as the source reported it, plus the advertisers it skipped and any that failed. 1 advertiser's failure never stops the others. `--max` is per advertiser (100), `--days` keeps Google and Meta ads shown in that many days, and TikTok ads published in them (365).
 
-`drafts` ranks 1 or more candidates files together, prints the ranking, and writes the shortlist into a directory of records, 1 JSON file per ad. `--ids` adds ads as editor's picks even when they aren't ranked. `--dry-run` prints what it would write.
+`drafts` ranks 1 or more candidates files together, prints the ranking, and writes the shortlist into a directory of records, 1 JSON file per ad. `--rank-by run` ranks by days run alone (see Ranking). `--ids` adds ads as editor's picks even when they aren't ranked. `--dry-run` prints what it would write.
 
 ## Long runners on LinkedIn
 
-LinkedIn's Ad Library API returns an advertiser's newest ads first, 25 a page. Reaching an ad that started months ago and still runs means paging past every newer one: a pull of Ramp's newest 200 ads on November 11, 2026 returned 194, every one first shown between November 5 and 11. Adwarp's competitor tool stops at 500, and LinkedIn doesn't document how deep a search can page. With the default `--max` of 100, the long-running ranking only covers each advertiser's newest ads.
+LinkedIn's Ad Library API returns an advertiser's newest ads first, 25 a page. Reaching an ad that started months ago and still runs means paging past every newer one: a pull of Ramp's newest 200 ads on November 11, 2026 returned 194, every one first shown between November 5 and 11. With the default `--max` of 100, the long-running ranking only covers each advertiser's newest ads.
 
-There are 2 ways to reach further:
+`--walk-back` asks for 1 calendar month at a time instead, with LinkedIn's `dateRange` filter. LinkedIn doesn't document it (Microsoft Learn has no page for the Ad Library API), but live read-only checks on November 11, 2026 confirmed how it behaves, in the shape the reporting API uses, `(start:(year:2026,month:2,day:1),end:(year:2026,month:2,day:28))`:
 
-- **A higher `--max`**, such as 3000, pages deeper with the documented API. It reads every newer ad on the way, 25 a page about 2 seconds apart, and LinkedIn may stop paging before the oldest ones.
-- **`--walk-back`** asks for 1 date window at a time instead, newest first, back to `--days`, so older ads come back in their own window. A window that returns 500 ads (the walk's own budget per window) is split in half until each part fits, and a single day that still returns 500 is reported, because it may hold more. Each ad is kept once, and `--max` rises to 5000.
+- **It lists the ads served during the range, not the ads created in it.** Ramp's total fell from 13,081 to 3,701 for February 2026, and the same AirPods ads came back in every month from April to October.
+- **It reaches back about 12 months.** On November 11, 2026, every month of 2025 before December returned nothing, so `--months` (12) can't go further.
+- **A range that ends today or later returns nothing.** Nov 1 to 10 returned 213 ads and Nov 1 to 11, that day, returned none. The newest window always ends yesterday, and Adwarp refuses to send one that doesn't.
+- **It works for ads never served in the EU.** Those carry no run dates or impressions, so the months the filter lists them in are the only run evidence LinkedIn gives for them.
 
-This depends on a `dateRange` parameter that LinkedIn doesn't document: Microsoft Learn has no page for the Ad Library API. Some third-party clients send it in the shape the reporting API uses, `(start:(year:2026,month:9,day:1),end:(year:2026,month:10,day:1))`, and so does Adwarp. Until a live run confirms it, treat `--walk-back` as unverified. The walk checks LinkedIn's answers instead of trusting them, and stops with an error naming the ad when:
+So the walk asks for this month up to yesterday, then each whole month before it, newest first. Each window ends on its own last day: it isn't known whether LinkedIn's end is inclusive, so at worst a month's last day is missed, and an ad is never credited to a month it may not have run in. Every ad is kept once, with the months it was served in (`servedMonths` in the candidates file). The first of those months is a floor when it is the oldest month the walk asked about, because the filter reaches no further, or when an earlier month wasn't read in full (`servedMonthsFloor`).
 
-- an ad's run dates don't touch the window it was returned for, which means LinkedIn ignored or changed the range, or
-- LinkedIn rejects the first window with a 4xx.
+A month with more ads than `--window-cap` (1000) is split in half until each part fits, and a single day that is still full is reported, because it may hold more. Served-during means a busy advertiser's month holds every ad that ran in it, long runners included (Ramp's February held 3,701), so `--max` rises to 20000 and a year of a busy advertiser takes thousands of 25-ad pages. Run it weekly or once, and the daily pull without it.
 
-Only ads served in the EU carry dates, so an advertiser with none can't confirm the range either way, and the run says so. When the walk stops, run without `--walk-back` and use a higher `--max` instead.
-
-A walk takes 1 search per window and LinkedIn pages 25 ads at a time, so a year in monthly windows for a busy advertiser can take several minutes. Run it weekly or once, and the daily pull without it.
+The walk still checks LinkedIn's answers: a dated ad whose run doesn't touch the window it came back in, or a 4xx on the first window, stops it with an error. Without `--walk-back`, a higher `--max`, such as 3000, pages deeper through the newest-first list instead.
 
 ## New ads and alerts
 
@@ -162,9 +161,12 @@ The ranking compares like with like and never adds numbers from different source
 - **Most seen:** ads with an exposure number (impressions, reach, times shown, unique users), grouped by platform, metric, region and period. Ranges that overlap count as level: an ad's position counts only the ads whose lowest value is above its highest.
 - **Long running:** the other ads, when their dates show at least 30 days of running. Sorted by days run.
 - Ads with neither are listed as unranked. They can still be added with `--ids`.
+- **`--rank-by run`** ranks every ad by days run alone, exposure numbers aside, from its run dates or, for a LinkedIn ad with no EU dates, from its served months. Months give a minimum: from the last day of the first month to the first day of the last, because served-during names no day inside a month. Ads under 30 days are left out.
 - After the evidence, the caps: at most 3 ads per advertiser (`--per-advertiser`), 1 ad per group of near-identical ads, and 25 in all (`--top`).
 
-Every reason the ranking writes says what it was compared against, such as "100k-200k impressions in total, ranked 2 of 14 tracked LinkedIn ads with the same measure."
+Every reason the ranking writes says what it was compared against, such as "100k-200k impressions in total, ranked 2 of 14 tracked LinkedIn ads with the same measure." A run from served months says where it comes from: "Ran at least 275 days: LinkedIn's date filter lists it as served in 11 months, Dec 2025 to Oct 2026, and Dec 2025 is a floor because the filter reaches back only 12 months, ranked 1 of 3 tracked LinkedIn ads by days run."
+
+The website's record format has no field for served months yet, so `drafts` prints those ads in the ranking but doesn't write them as records.
 
 ## Records
 

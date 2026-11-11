@@ -39,12 +39,13 @@ export function registerLibraryCommands(program: Command): void {
     .description(`Collect a watchlist's ads from 1 platform's public library (${AD_PLATFORMS.join(", ")}) into a candidates file`)
     .requiredOption("-w, --watchlist <file>", "Watchlist JSON: the advertisers and their IDs on each platform")
     .option("-c, --country <codes>", "Comma-separated country codes; replaces the watchlist's countries for this platform")
-    .option("-m, --max <n>", "Ads per advertiser (100, or 5000 with --walk-back)", int)
-    .option("--days <n>", "Only ads shown (Google, Meta) or published (TikTok) in the last n days; how far back --walk-back goes on LinkedIn", int, 365)
+    .option("-m, --max <n>", "Ads per advertiser (100, or 20000 with --walk-back)", int)
+    .option("--days <n>", "Only ads shown (Google, Meta) or published (TikTok) in the last n days", int, 365)
     .option("--max-gib <n>", "Google only: the most GiB BigQuery may scan (billed to your project)", int, 20)
     .option("-o, --out <file>", "Where to write the candidates file (default ad-library-<platform>-<date>.json)")
-    .option("--walk-back", "LinkedIn only, unverified: query 1 date window at a time back to --days, to reach ads that started long ago")
-    .option("--window-days <n>", "Window size for --walk-back", int, 30)
+    .option("--walk-back", "LinkedIn only: read 1 calendar month at a time, back to --months, and record the months each ad was served in")
+    .option("--months <n>", "Months for --walk-back, counting the current one (LinkedIn's filter reaches back 12)", int, 12)
+    .option("--window-cap <n>", "Ads read per window before --walk-back splits it", int, 1000)
     .option("--previous <file>", "The last run's candidates file: report the ads that are new since then (can be the same path as --out)")
     .action(async (platform: string, opts) => {
       if (!(AD_PLATFORMS as readonly string[]).includes(platform))
@@ -66,7 +67,7 @@ export function registerLibraryCommands(program: Command): void {
         watchlistPath: opts.watchlist,
         ...(opts.country ? { countries: list(opts.country) } : {}),
         ...(opts.max ? { max: opts.max } : {}),
-        ...(opts.walkBack ? { walkBack: { days: opts.days, windowDays: opts.windowDays } } : {}),
+        ...(opts.walkBack ? { walkBack: { months: opts.months, windowCap: opts.windowCap } } : {}),
         days: opts.days,
         maxBytes: opts.maxGib * 1024 ** 3,
         onProgress: (m) => console.error(`… ${m}`),
@@ -99,6 +100,7 @@ export function registerLibraryCommands(program: Command): void {
     .option("--top <n>", "Shortlist size", int, 25)
     .option("--per-advertiser <n>", "At most this many ads per advertiser", int, 3)
     .option("--ids <ids>", "Comma-separated ad IDs to add as editor's picks even when they aren't ranked")
+    .option("--rank-by <how>", "evidence (most seen, then long running) or run (days run only, served months included)", "evidence")
     .option("--dry-run", "Print the ranking and the files it would write, without writing")
     .action(async (opts) => {
       // The newest observation of each ad wins when files overlap.
@@ -112,7 +114,8 @@ export function registerLibraryCommands(program: Command): void {
         }
       }
       const candidates = [...byKey.values()];
-      const report = rankCandidates(candidates, { top: opts.top, perAdvertiser: opts.perAdvertiser });
+      if (opts.rankBy !== "evidence" && opts.rankBy !== "run") throw new Error(`--rank-by takes evidence or run, not ${opts.rankBy}`);
+      const report = rankCandidates(candidates, { top: opts.top, perAdvertiser: opts.perAdvertiser, by: opts.rankBy });
 
       console.log(`\n${candidates.length} ads. ${report.shortlist.length} on the shortlist, ${report.leftOut} left out by the caps, ${report.ineligible.length} without ranking evidence.`);
       for (const g of report.groups) console.log(`  group ${g.group}: ${g.size}`);
@@ -123,7 +126,13 @@ export function registerLibraryCommands(program: Command): void {
         console.log(`    ${r.reason}`);
       });
 
-      const records: AdRecord[] = report.shortlist.map((r) => newRecord(r));
+      // A run known only from served months can be ranked, but the record format has no field for that evidence yet.
+      const fromMonths = report.shortlist.filter((r) => r.runFromMonths);
+      const records: AdRecord[] = report.shortlist.filter((r) => !r.runFromMonths).map((r) => newRecord(r));
+      if (fromMonths.length)
+        console.log(
+          `\n${fromMonths.length} ranked by served months only, not written: the website's record format has no field for served months yet (${fromMonths.map((r) => r.candidate.source.adId).join(", ")}).`,
+        );
       const picked = new Set(report.shortlist.map((r) => r.candidate.source.adId));
       for (const id of list(opts.ids) ?? []) {
         if (picked.has(id)) continue;

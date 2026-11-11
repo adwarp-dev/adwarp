@@ -194,3 +194,46 @@ test("record rules from the website: estimate needs a value, relative never gets
   assert.throws(() => lib.parseAdRecord(withMetric({ ...base, kind: "relative", value: 3 }), record.slug), /keeps its words in text/);
   assert.throws(() => lib.parseAdRecord({ ...record, statusNote: "A note — with a dash" }, record.slug), /em dash/);
 });
+
+test("served months give a minimum run: from the end of the first month to the start of the last", () => {
+  assert.equal(lib.servedMonthsMinDays(["2026-02", "2026-03", "2026-10"]), 216);
+  assert.equal(lib.servedMonthsMinDays(["2026-10", "2026-11"]), 2);
+  assert.equal(lib.servedMonthsMinDays(["2026-10"]), 1);
+  assert.equal(lib.servedMonthsMinDays(["2025-12", "2026-01"]), 2);
+  assert.equal(lib.servedMonthsMinDays([]), null);
+});
+
+test("--rank-by run ranks every ad by days run, served months included, and says where each run comes from", () => {
+  const months = (list, floor) => ({ ...candidate(list.join("|")), servedMonths: list, ...(floor ? { servedMonthsFloor: floor } : {}) });
+  const dated = candidate("dated", { advertiser: "B", metrics: [band(1000000, 2000000)], firstShown: "2026-08-01", lastShown: "2026-11-07" });
+  const usLong = { ...months(["2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09", "2026-10"], "lookback"), source: { ...candidate("us").source, adId: "us" } };
+  const usGaps = { ...months(["2026-02", "2026-03", "2026-10"]), advertiser: { name: "C", platformId: "1" }, source: { ...candidate("gaps").source, adId: "gaps" } };
+  const usShort = { ...months(["2026-10", "2026-11"]), advertiser: { name: "D", platformId: "1" }, source: { ...candidate("short").source, adId: "short" } };
+
+  const report = lib.rankCandidates([dated, usLong, usGaps, usShort], { by: "run" });
+  assert.deepEqual(report.shortlist.map((r) => [r.candidate.source.adId, r.strength, Boolean(r.runFromMonths)]), [
+    ["us", 275, true],
+    ["gaps", 216, true],
+    ["dated", 99, false],
+  ]);
+  assert.equal(
+    report.shortlist[0].reason,
+    "Ran at least 275 days: LinkedIn's date filter lists it as served in 11 months, Dec 2025 to Oct 2026, and Dec 2025 is a floor because the filter reaches back only 12 months, ranked 1 of 3 tracked LinkedIn ads by days run.",
+  );
+  assert.equal(
+    report.shortlist[1].reason,
+    "Ran at least 216 days: LinkedIn's date filter lists it as served in 3 of the 9 months from Feb 2026 to Oct 2026, ranked 2 of 3 tracked LinkedIn ads by days run.",
+  );
+  assert.match(report.shortlist[2].reason, /^Ran 99 days from Aug 1, 2026 to Nov 7, 2026, ranked 3 of 3/, "a dated ad ranks by its run, not its impressions");
+  assert.deepEqual(report.ineligible, [{ adId: "short", advertiser: "D", reason: "Ran at least 2 days, under 30" }]);
+  assert.ok(!report.shortlist.some((r) => /[–—]/.test(r.reason)));
+
+  // The default ranking leaves months-only ads out, and says how to rank them.
+  const evidence = lib.rankCandidates([dated, usGaps]);
+  assert.deepEqual(evidence.shortlist.map((r) => r.candidate.source.adId), ["dated"]);
+  assert.match(evidence.ineligible[0].reason, /served in 3 months by LinkedIn's date filter \(rank it with --rank-by run\)/);
+
+  // The record format has no field for served months yet, so such a run is never written as a record.
+  assert.throws(() => lib.newRecord(report.shortlist[0]), /no field for yet/);
+  assert.doesNotThrow(() => lib.parseAdRecord(lib.newRecord(report.shortlist[2]), lib.newRecord(report.shortlist[2]).slug));
+});

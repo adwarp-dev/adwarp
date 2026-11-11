@@ -25,6 +25,8 @@ export function recordSlug(c: Candidate): string {
 /** The record a collection run would write for a ranked candidate, before any merge. */
 export function newRecord(r: Ranked | { candidate: Candidate; collection: "editors-pick"; reason: string; family?: string }): AdRecord {
   const c = r.candidate;
+  if ("runFromMonths" in r && r.runFromMonths)
+    throw new Error(`${c.source.adId}: its run comes only from served months, which the record format has no field for yet.`);
   const family = r.family ?? creativeFamily(c);
   const evidence: AdEvidence = {
     ...evidenceOf(c),
@@ -92,6 +94,8 @@ const ORDER: (keyof AdRecord)[] = [
   "evidence",
   "selection",
   "writeup",
+  "offerType",
+  "offerDetail",
   "review",
 ];
 

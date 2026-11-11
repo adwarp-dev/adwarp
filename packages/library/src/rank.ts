@@ -18,9 +18,11 @@ import {
   type AdPlatform,
   exposureMetric,
   LONG_RUN_DAYS,
+  daysBetween,
   metricFloor,
   runDays,
 } from "./record.js";
+import { addDays } from "./parse.js";
 import type { Candidate } from "./types.js";
 
 export interface Ranked {
@@ -33,8 +35,13 @@ export interface Ranked {
   position: number;
   /** Other ads in the group whose bands overlap this one. */
   tiedWith: number;
-  /** The floor of the metric, or the days run. */
+  /** The floor of the metric, or the days run (a minimum when it comes from served months). */
   strength: number;
+  /**
+   * True when the run comes only from the months LinkedIn's date filter lists the ad as served in. The website's
+   * record format can't hold that evidence yet, so drafts ranks these ads but doesn't write them.
+   */
+  runFromMonths?: boolean;
   family?: string;
   reason: string;
 }
@@ -44,6 +51,11 @@ export interface RankOptions {
   top?: number;
   /** At most this many ads per advertiser. Default 3. */
   perAdvertiser?: number;
+  /**
+   * evidence (default): most seen first, then long running. run: every ad with run evidence ranked by days run,
+   * exposure numbers aside, including the run LinkedIn's served months give ads with no EU dates.
+   */
+  by?: "evidence" | "run";
 }
 
 export interface RankReport {
@@ -71,6 +83,44 @@ export function geographyPhrase(geography: string): string {
 }
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+/** "2026-02" reads "Feb 2026". */
+export function formatMonth(month: string): string {
+  const [y, m] = month.split("-").map(Number);
+  return `${MONTHS[(m ?? 1) - 1]} ${y}`;
+}
+
+const nextMonth = (month: string): string => {
+  const [y = 0, m = 1] = month.split("-").map(Number);
+  return m === 12 ? `${y + 1}-01` : `${y}-${String(m + 1).padStart(2, "0")}`;
+};
+const monthsSpanned = (first: string, last: string): number => {
+  const [y1 = 0, m1 = 1] = first.split("-").map(Number);
+  const [y2 = 0, m2 = 1] = last.split("-").map(Number);
+  return (y2 - y1) * 12 + (m2 - m1) + 1;
+};
+
+/**
+ * The fewest days an ad served in these months can have run: from the last day of the first month to the first day
+ * of the last. Served-during gives no day inside a month, so this is a floor. 1 for a single month.
+ */
+export function servedMonthsMinDays(months: string[]): number | null {
+  const first = months[0];
+  const last = months[months.length - 1];
+  if (!first || !last) return null;
+  if (first === last) return 1;
+  const endOfFirst = addDays(`${nextMonth(first)}-01`, -1);
+  return daysBetween(endOfFirst, `${last}-01`) + 1;
+}
+
+/** The run the evidence shows: exact from dates, a minimum from served months, or null. */
+export function candidateRun(c: Candidate): { days: number; from: "dates" } | { days: number; from: "months" } | null {
+  if (c.firstShown && c.lastShown) {
+    const days = runDays(evidenceOf(c));
+    return days === null ? null : { days, from: "dates" };
+  }
+  const days = servedMonthsMinDays(c.servedMonths ?? []);
+  return days === null ? null : { days, from: "months" };
+}
 export function formatDay(day: string): string {
   const [y, m, d] = day.split("-").map(Number);
   return `${MONTHS[(m ?? 1) - 1]} ${d}, ${y}`;
@@ -110,10 +160,35 @@ function mostSeenReason(metric: AdMetric, c: Candidate, position: number, size: 
 }
 
 function longRunReason(c: Candidate, days: number, position: number, size: number): string {
+  const rank = size > 1 ? `, ranked ${position} of ${size} tracked ${PLATFORM_LABEL[c.platform]} ads by days run` : "";
+  if (!(c.firstShown && c.lastShown) && c.servedMonths?.length) return servedMonthsReason(c, days, rank);
   const span = c.firstShown && c.lastShown ? ` from ${formatDay(c.firstShown)} to ${formatDay(c.lastShown)}` : "";
   const live = c.live ? ", still running when checked" : "";
-  const rank = size > 1 ? `, ranked ${position} of ${size} tracked ${PLATFORM_LABEL[c.platform]} ads by days run` : "";
   return `Ran ${days} days${span}${live}${rank}.`;
+}
+
+/**
+ * The run of an ad LinkedIn gives no dates for, in words: where it comes from (the months the date filter lists it
+ * as served in) and, when the first month is a floor, why.
+ */
+export function servedMonthsReason(c: Candidate, days: number, rank = ""): string {
+  const months = c.servedMonths ?? [];
+  const first = months[0] ?? "";
+  const last = months[months.length - 1] ?? "";
+  const spanned = monthsSpanned(first, last);
+  const which =
+    months.length === 1
+      ? `in ${formatMonth(first)}`
+      : months.length === spanned
+        ? `in ${months.length} months, ${formatMonth(first)} to ${formatMonth(last)}`
+        : `in ${months.length} of the ${spanned} months from ${formatMonth(first)} to ${formatMonth(last)}`;
+  const floor =
+    c.servedMonthsFloor === "lookback"
+      ? `, and ${formatMonth(first)} is a floor because the filter reaches back only 12 months`
+      : c.servedMonthsFloor === "unread"
+        ? `, and it may have started before ${formatMonth(first)} because an earlier month wasn't read in full`
+        : "";
+  return `Ran at least ${days} day${days === 1 ? "" : "s"}: LinkedIn's date filter lists it as served ${which}${floor}${rank}.`;
 }
 
 export function rankCandidates(candidates: Candidate[], opts: RankOptions = {}): RankReport {
@@ -121,10 +196,23 @@ export function rankCandidates(candidates: Candidate[], opts: RankOptions = {}):
   const perAdvertiser = opts.perAdvertiser ?? 3;
   const ineligible: RankReport["ineligible"] = [];
   const mostSeen = new Map<string, { c: Candidate; metric: AdMetric }[]>();
-  const longRun = new Map<string, { c: Candidate; days: number }[]>();
+  const longRun = new Map<string, { c: Candidate; days: number; fromMonths?: boolean }[]>();
 
   for (const c of candidates) {
     const evidence = evidenceOf(c);
+    if (opts.by === "run") {
+      const run = candidateRun(c);
+      if (run && run.days >= LONG_RUN_DAYS) {
+        const key = `${c.platform} run`;
+        longRun.set(key, [...(longRun.get(key) ?? []), { c, days: run.days, fromMonths: run.from === "months" }]);
+      } else
+        ineligible.push({
+          adId: c.source.adId,
+          advertiser: c.advertiser.name,
+          reason: run ? `Ran ${run.from === "months" ? "at least " : ""}${run.days} days, under ${LONG_RUN_DAYS}` : "No run dates and no served months",
+        });
+      continue;
+    }
     const metric = exposureMetric(evidence);
     if (metric) {
       const key = `${c.platform} ${metric.name} ${metric.geography} ${metric.period}`;
@@ -140,7 +228,12 @@ export function rankCandidates(candidates: Candidate[], opts: RankOptions = {}):
     ineligible.push({
       adId: c.source.adId,
       advertiser: c.advertiser.name,
-      reason: days === null ? "No exposure metric and no run dates" : `No exposure metric, and ran ${days} days, under ${LONG_RUN_DAYS}`,
+      reason:
+        days === null
+          ? c.servedMonths?.length
+            ? `No exposure metric or run dates; served in ${c.servedMonths.length} months by LinkedIn's date filter (rank it with --rank-by run)`
+            : "No exposure metric and no run dates"
+          : `No exposure metric, and ran ${days} days, under ${LONG_RUN_DAYS}`,
     });
   }
 
@@ -169,7 +262,7 @@ export function rankCandidates(candidates: Candidate[], opts: RankOptions = {}):
   }
   for (const [group, items] of longRun) {
     items.sort((a, b) => b.days - a.days);
-    for (const { c, days } of items) {
+    for (const { c, days, fromMonths } of items) {
       const position = items.filter((o) => o.days > days).length + 1;
       const tied = items.filter((o) => o.c !== c && o.days === days).length;
       const family = creativeFamily(c);
@@ -181,6 +274,7 @@ export function rankCandidates(candidates: Candidate[], opts: RankOptions = {}):
         position,
         tiedWith: tied,
         strength: days,
+        ...(fromMonths ? { runFromMonths: true } : {}),
         ...(family ? { family } : {}),
         reason: longRunReason(c, days, position, items.length),
       });

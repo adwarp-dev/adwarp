@@ -21,7 +21,7 @@ import { linkedinLibraryCredentials, type LibraryEnv } from "../credentials.js";
 import type { AdFormat, AdMetric } from "../record.js";
 import type { Candidate } from "../types.js";
 import type { WatchlistEntry } from "../watchlist.js";
-import { planWindows, walkLinkedIn } from "./linkedinWindows.js";
+import { planMonths, servedFloor, walkLinkedIn, type WalkResult } from "./linkedinWindows.js";
 
 export const LINKEDIN_SOURCE = "LinkedIn Ad Library API";
 const TOKEN_URL = "https://www.linkedin.com/oauth/v2/accessToken";
@@ -127,10 +127,10 @@ export interface LinkedInCollectOptions {
   countries?: string[];
   search: LinkedInSearch;
   /**
-   * Walk back in date windows to reach ads that started long ago (see linkedinWindows.ts). Unverified: stops with
-   * DateRangeUnverifiedError when LinkedIn's answers show the range isn't applied.
+   * Walk back 1 calendar month at a time (see linkedinWindows.ts) to reach ads that started long ago, and record the
+   * months each ad was served in. `months` is 1 to 12, LinkedIn's lookback.
    */
-  walkBack?: { days: number; windowDays: number };
+  walkBack?: { months: number; windowCap?: number };
   onProgress?: (message: string) => void;
 }
 
@@ -145,24 +145,25 @@ export async function collectLinkedIn(opts: LinkedInCollectOptions): Promise<{ c
   let own: AdLibraryApiAd[];
   let fetched: number;
   let note: string;
+  let walk: WalkResult | undefined;
   if (opts.walkBack) {
-    const windows = planWindows(opts.checkedAt, opts.walkBack.days, opts.walkBack.windowDays);
-    const walk = await walkLinkedIn({
+    walk = await walkLinkedIn({
       search: opts.search,
       advertiser,
       companyId,
-      windows,
+      windows: planMonths(opts.checkedAt, opts.walkBack.months),
+      checkedAt: opts.checkedAt,
       max: opts.max,
+      ...(opts.walkBack.windowCap ? { windowCap: opts.walkBack.windowCap } : {}),
       ...(opts.countries?.length ? { countries: opts.countries } : {}),
       ...(opts.onProgress ? { onProgress: opts.onProgress } : {}),
     });
     own = walk.ads;
     fetched = walk.fetched;
-    note = `Walked back ${opts.walkBack.days} days in ${walk.queries} queries: ${own.length} ads for company ${companyId} from ${walk.fetched} results.`;
-    if (walk.checked === 0) note += " No dated ads came back, so LinkedIn's handling of dateRange was never checked.";
-    else note += ` ${walk.checked} dated ads fell inside their windows.`;
-    if (walk.truncated.length) note += ` ${walk.truncated.length} single days returned the API's limit, so they may hold more ads.`;
-    if (walk.stoppedAtMax) note += ` Stopped at --max ${opts.max} before the oldest window.`;
+    note = `Walked back ${opts.walkBack.months} months in ${walk.queries} queries: ${own.length} ads for company ${companyId} from ${walk.fetched} results.`;
+    if (walk.checked) note += ` ${walk.checked} dated ads fell inside their windows.`;
+    if (walk.truncated.length) note += ` ${walk.truncated.length} single days came back full, so they may hold more ads.`;
+    if (walk.stoppedAtMax) note += ` Stopped at --max ${opts.max} before the oldest month.`;
   } else {
     const result = await opts.search({
       advertiser,
@@ -182,7 +183,13 @@ export async function collectLinkedIn(opts: LinkedInCollectOptions): Promise<{ c
     const impressions = linkedinImpressions(raw.details?.adStatistics?.totalImpressions, opts.checkedAt);
     const format = linkedinFormat(d?.format ?? ad.format);
     const notes = ["LinkedIn's API returns no copy or image. Open the Ad Library page to read the creative."];
+    const months = walk?.served[ad.detailId] ?? [];
+    const floor = walk ? servedFloor(months, walk) : undefined;
     if (!firstShown) notes.push("No run dates or impressions: LinkedIn reports them only for ads served in the EU.");
+    if (months.length)
+      notes.push(
+        `LinkedIn's date filter lists it as served in ${months.length} month${months.length === 1 ? "" : "s"}: ${months.join(", ")}${floor === "lookback" ? ". The first is a floor: the filter reaches back about 12 months" : floor === "unread" ? ". The first may be later than the true start: an earlier month wasn't read in full" : ""}.`,
+      );
     if (format === "other") notes.push(`Format code ${d?.format ?? ad.format ?? "missing"} isn't mapped; set the format after inspecting the ad.`);
     if (d?.targeting?.length) {
       const included = d.targeting.filter((t) => t.included.length).map((t) => t.facet);
@@ -204,6 +211,7 @@ export async function collectLinkedIn(opts: LinkedInCollectOptions): Promise<{ c
       firstShown,
       lastShown,
       live: liveFromLastShown(lastShown, opts.checkedAt),
+      ...(months.length ? { servedMonths: months, ...(floor ? { servedMonthsFloor: floor } : {}) } : {}),
       regions: (d?.impressionsByCountry ?? []).map((c) => c.country).filter(Boolean),
       metrics: impressions ? [impressions] : [],
       notes,

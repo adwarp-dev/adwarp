@@ -20,10 +20,10 @@ export interface CollectOptions {
   watchlistPath?: string;
   /** Replaces the watchlist's countries for this platform. */
   countries?: string[];
-  /** Ads per advertiser. Default 100, or 5000 with walkBack. */
+  /** Ads per advertiser. Default 100, or 20000 with walkBack. */
   max?: number;
-  /** LinkedIn only: walk back in date windows (unverified, see adapters/linkedinWindows.ts). */
-  walkBack?: { days: number; windowDays: number };
+  /** LinkedIn only: walk back 1 calendar month at a time (see adapters/linkedinWindows.ts). */
+  walkBack?: { months: number; windowCap?: number };
   /** Only ads shown within this many days (Google, Meta and TikTok). Default 365. */
   days?: number;
   /** Google only: the most bytes BigQuery may scan. */
@@ -54,7 +54,8 @@ const ID_HINT: Record<AdPlatform, string> = {
 export async function collect(opts: CollectOptions): Promise<CandidatesFile> {
   const { platform, watchlist } = opts;
   const checkedAt = opts.checkedAt ?? isoDay();
-  const max = opts.max ?? (opts.walkBack ? 5000 : 100);
+  // A walk reads every ad served in each month, long runners included: Ramp lists about 13,000 within the lookback.
+  const max = opts.max ?? (opts.walkBack ? 20000 : 100);
   if (opts.walkBack && platform !== "linkedin") throw new Error("--walk-back is for LinkedIn only; the other libraries already take a date range.");
   const env = opts.env ?? process.env;
   const countries = (opts.countries ?? watchlist.countries?.[platform] ?? []).map((c) => c.toUpperCase());

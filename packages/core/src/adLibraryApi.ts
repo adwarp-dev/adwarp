@@ -24,9 +24,8 @@
  *
  * Confirmed `criteria` params: `keyword`, `advertiser` (name), `countries`
  * (restli List of country URNs). There is no company-id param. `dateRange` is
- * NOT documented (Microsoft Learn has no Ad Library API page); third-party
- * clients send it in the reporting shape, so it is opt-in and unverified here:
- * see AdLibraryApiOptions.dateRange.
+ * not documented (Microsoft Learn has no Ad Library API page) but was verified
+ * live on 2026-11-11 in the reporting shape: see AdLibraryApiOptions.dateRange.
  *
  * ACCESS: vetted product. The app must be granted "LinkedIn Ad Library" in the
  * Developer Portal; until then the endpoint returns 403 ACCESS_DENIED.
@@ -43,10 +42,12 @@ export interface AdLibraryApiOptions {
   /** ISO-3166 country codes, e.g. ["US", "GB"] — converted to country URNs. */
   countries?: string[];
   /**
-   * UNVERIFIED: an undocumented `dateRange` in the reporting shape
+   * The undocumented `dateRange`, in the reporting shape
    * `(start:(year,month,day),end:(year,month,day))`, sent only when set (through
-   * rawQuery, so the structure stays literal). LinkedIn may reject or ignore it;
-   * callers must check the results fall inside the range before trusting it.
+   * rawQuery, so the structure stays literal). Verified live on 2026-11-11: it
+   * returns the ads SERVED during the range, reaches back about 12 months, works
+   * for ads with no EU statistics, and returns nothing for a range ending today
+   * or later, so the end must be yesterday at the latest.
    */
   dateRange?: DateRange;
   /** Max ads to collect across pages (default 50). */
