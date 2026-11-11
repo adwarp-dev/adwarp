@@ -16,6 +16,7 @@
   "dependencies": {
     "@adwarp/core": "workspace:*",
     "@adwarp/google": "workspace:*",
+    "@adwarp/library": "workspace:*",
     "@adwarp/mcp": "workspace:*",
     "@adwarp/shared": "workspace:*",
     "commander": "^13.0.0"

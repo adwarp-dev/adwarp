@@ -1,0 +1,12 @@
+{
+  "data": [
+    {
+      "id": "1200000000000002",
+      "page_id": "111",
+      "page_name": "Example Software",
+      "ad_delivery_start_time": "2026-10-20",
+      "ad_creative_bodies": ["Month-end, without the overtime"]
+    }
+  ],
+  "paging": { "cursors": { "after": "CURSOR2" } }
+}

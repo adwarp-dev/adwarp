@@ -109,3 +109,12 @@ adwarp google query "<GAQL>"              # raw read-only GAQL query
 ```
 
 Commands that read an account take `-c, --customer <id>`, which defaults to `defaultCustomerId` in `~/.adwarp/google.json`.
+
+## Ad library commands
+
+Public ad libraries for LinkedIn, Google, Meta and TikTok live under `adwarp library`. They read transparency data only, with their own `ADWARP_LIBRARY_*` credentials. See [Ad library collectors](./ad-library.md).
+
+```
+adwarp library collect <platform> -w <watchlist.json>   # 1 platform's ads for a watchlist, into a candidates file
+adwarp library drafts -i <candidates.json...> -t <dir>   # rank them and write the shortlist as records for review
+```

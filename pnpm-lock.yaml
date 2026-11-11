@@ -91,6 +91,9 @@ importers:
       '@adwarp/google':
         specifier: workspace:*
         version: link:../google
+      '@adwarp/library':
+        specifier: workspace:*
+        version: link:../library
       '@adwarp/mcp':
         specifier: workspace:*
         version: link:../mcp
@@ -127,6 +130,15 @@ importers:
       zod:
         specifier: ^3.24.1
         version: 3.25.76
+
+  packages/library:
+    dependencies:
+      '@adwarp/core':
+        specifier: workspace:*
+        version: link:../core
+      '@adwarp/shared':
+        specifier: workspace:*
+        version: link:../shared
 
   packages/mcp:
     dependencies:

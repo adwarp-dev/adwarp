@@ -1,0 +1,22 @@
+{
+  "data": {
+    "ads": [
+      {
+        "ad": { "id": 7412345678901234567, "first_shown_date": 20260801, "last_shown_date": 20261105, "status": "active", "videos": [{ "url": "https://v.example.com/video.mp4?sig=abc", "cover_image_url": "https://p.example.com/c.jpg?sig=x" }], "image_urls": [], "reach": { "unique_users_seen": "11K" } },
+        "advertiser": { "business_id": 7000000000000000001, "business_name": "Example Software", "paid_for_by": "Example Software Inc" }
+      },
+      {
+        "ad": { "id": 7412345678901234999, "first_shown_date": 20261001, "last_shown_date": 20261002, "status": "active", "videos": [], "image_urls": ["https://p.example.com/a.jpg?sig=1"], "reach": { "unique_user_seen": "0-1K" } },
+        "advertiser": { "buisness_id": 7000000000000000001, "business_name": "Example Software" }
+      },
+      {
+        "ad": { "id": 7412345678900000000, "first_shown_date": 20260901, "last_shown_date": 20261101, "reach": { "unique_users_seen": "1M+" } },
+        "advertiser": { "business_id": 7000000000000000002, "business_name": "Example Softwares Shop" }
+      }
+    ],
+    "has_more": false,
+    "search_id": "S1",
+    "cursor": 3
+  },
+  "error": { "code": "ok", "message": "", "log_id": "L1" }
+}

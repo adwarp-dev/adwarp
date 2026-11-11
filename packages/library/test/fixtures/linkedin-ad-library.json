@@ -1,0 +1,44 @@
+{
+  "_comment": "Shaped like GET /rest/adLibrary?q=criteria elements (packages/core/src/adLibraryApi.ts). Values are made up for tests.",
+  "paging": { "total": 3 },
+  "elements": [
+    {
+      "adUrl": "https://www.linkedin.com/ad-library/detail/1599585996",
+      "isRestricted": false,
+      "details": {
+        "type": "SPONSORED_STATUS_UPDATE",
+        "advertiser": { "advertiserName": "Example Software", "adPayer": "Example Software Inc", "advertiserUrl": "https://www.linkedin.com/company/30898036" },
+        "adStatistics": {
+          "firstImpressionAt": 1788912000000,
+          "latestImpressionAt": 1794009600000,
+          "totalImpressions": { "from": 100000, "to": 200000 },
+          "impressionsDistributionByCountry": [
+            { "country": "urn:li:country:de", "impressionPercentage": 61.5 },
+            { "country": "urn:li:country:us", "impressionPercentage": 38.5 }
+          ]
+        },
+        "adTargeting": [
+          { "facetName": "Job functions", "includedSegments": ["Marketing"], "excludedSegments": [], "isIncluded": true, "isExcluded": false },
+          { "facetName": "Company", "includedSegments": [], "excludedSegments": ["Example Software"], "isIncluded": false, "isExcluded": true }
+        ]
+      }
+    },
+    {
+      "adUrl": "https://www.linkedin.com/ad-library/detail/1600000001",
+      "isRestricted": false,
+      "details": {
+        "type": "SPONSORED_VIDEO_UPDATE",
+        "advertiser": { "advertiserName": "Example Software", "adPayer": "Example Software Inc", "advertiserUrl": "https://www.linkedin.com/company/30898036/" }
+      }
+    },
+    {
+      "adUrl": "https://www.linkedin.com/ad-library/detail/1600000002",
+      "isRestricted": false,
+      "details": {
+        "type": "SPONSORED_STATUS_UPDATE",
+        "advertiser": { "advertiserName": "Example Softwares Ltd", "adPayer": "Lookalike Ltd", "advertiserUrl": "https://www.linkedin.com/company/999" },
+        "adStatistics": { "firstImpressionAt": 1788912000000, "latestImpressionAt": 1794009600000, "totalImpressions": { "from": 1000000 } }
+      }
+    }
+  ]
+}

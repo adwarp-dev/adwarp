@@ -1,0 +1,13 @@
+{
+  "data": [
+    {
+      "id": "1200000000000003",
+      "page_id": "111",
+      "page_name": "Example Software",
+      "ad_delivery_start_time": "2026-05-01",
+      "ad_delivery_stop_time": "2026-07-15",
+      "ad_creative_link_titles": ["Book a demo"]
+    }
+  ],
+  "paging": { "cursors": { "after": "CURSOR3" } }
+}
