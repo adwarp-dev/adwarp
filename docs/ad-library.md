@@ -23,7 +23,7 @@ Each platform needs access of its own, set as environment variables. The collect
 
 | Platform | Source | Coverage | Ranking evidence | Copy and media |
 | --- | --- | --- | --- | --- |
-| LinkedIn | Ad Library API | Every ad since June 2023; dates and impressions only for ads served in the EU | Total impression band (`geography: "total"`), countries in `regions` | None. Read the ad on its Ad Library page |
+| LinkedIn | Ad Library API | Every ad since June 2023, newest first, 25 a page; dates and impressions only for ads served in the EU | Total impression band (`geography: "total"`), countries in `regions` | None. Read the ad on its Ad Library page |
 | Google | Ads Transparency Center, BigQuery public dataset | Ads served in the European Economic Area and Turkey | Times shown, a lower and upper bound per region | None. Read the ad on its Transparency Center page |
 | Meta | Ad Library API (`ads_archive`) | Commercial ads delivered in the EU or the UK in the last year | `eu_total_reach`, an estimate for the EU | The first version of the copy, word for word. No format or media |
 | TikTok | Commercial Content API | Ads shown in the EU | Unique users, per queried country | None kept: video and image links are signed and expire |
@@ -46,13 +46,114 @@ A JSON file of advertisers with each platform's own ID for them. An entry withou
 ## Commands
 
 ```
-adwarp library collect <platform> -w <watchlist.json> [-c <codes>] [-m <n>] [--days <n>] [--max-gib <n>] [-o <file>]
+adwarp library collect <platform> -w <watchlist.json> [-c <codes>] [-m <n>] [--days <n>] [--max-gib <n>] [-o <file>] [--previous <file>] [--walk-back] [--window-days <n>]
 adwarp library drafts -i <candidates.json...> -t <content/ads> [--top <n>] [--per-advertiser <n>] [--ids <ids>] [--dry-run]
 ```
 
 `collect` writes a candidates file: every ad it found, each number exactly as the source reported it, plus the advertisers it skipped and any that failed. 1 advertiser's failure never stops the others. `--max` is per advertiser (100), `--days` keeps Google and Meta ads shown in that many days, and TikTok ads published in them (365).
 
 `drafts` ranks 1 or more candidates files together, prints the ranking, and writes the shortlist into a directory of records, 1 JSON file per ad. `--ids` adds ads as editor's picks even when they aren't ranked. `--dry-run` prints what it would write.
+
+## Long runners on LinkedIn
+
+LinkedIn's Ad Library API returns an advertiser's newest ads first, 25 a page. Reaching an ad that started months ago and still runs means paging past every newer one: a pull of Ramp's newest 200 ads on November 11, 2026 returned 194, every one first shown between November 5 and 11. Adwarp's competitor tool stops at 500, and LinkedIn doesn't document how deep a search can page. With the default `--max` of 100, the long-running ranking only covers each advertiser's newest ads.
+
+There are 2 ways to reach further:
+
+- **A higher `--max`**, such as 3000, pages deeper with the documented API. It reads every newer ad on the way, 25 a page about 2 seconds apart, and LinkedIn may stop paging before the oldest ones.
+- **`--walk-back`** asks for 1 date window at a time instead, newest first, back to `--days`, so older ads come back in their own window. A window that returns 500 ads (the walk's own budget per window) is split in half until each part fits, and a single day that still returns 500 is reported, because it may hold more. Each ad is kept once, and `--max` rises to 5000.
+
+This depends on a `dateRange` parameter that LinkedIn doesn't document: Microsoft Learn has no page for the Ad Library API. Some third-party clients send it in the shape the reporting API uses, `(start:(year:2026,month:9,day:1),end:(year:2026,month:10,day:1))`, and so does Adwarp. Until a live run confirms it, treat `--walk-back` as unverified. The walk checks LinkedIn's answers instead of trusting them, and stops with an error naming the ad when:
+
+- an ad's run dates don't touch the window it was returned for, which means LinkedIn ignored or changed the range, or
+- LinkedIn rejects the first window with a 4xx.
+
+Only ads served in the EU carry dates, so an advertiser with none can't confirm the range either way, and the run says so. When the walk stops, run without `--walk-back` and use a higher `--max` instead.
+
+A walk takes 1 search per window and LinkedIn pages 25 ads at a time, so a year in monthly windows for a busy advertiser can take several minutes. Run it weekly or once, and the daily pull without it.
+
+## New ads and alerts
+
+`--previous <file>` compares the run with the last one and lists the ads that are new since then, per advertiser, with format, first shown date and link. It can be the same path as `--out`: the last run is read before the new one is written. With no file at that path, the run is the baseline.
+
+| An ad that wasn't in the last run | Counts as |
+| --- | --- |
+| From an advertiser the last run pulled, first shown on or after the day before it (or with no date) | New, in the alert |
+| First shown earlier, such as an older ad a bigger `--max` reached | Found late, listed only |
+| From an advertiser added to the watchlist since | The baseline for that advertiser, no alert |
+
+An advertiser that fails in a run keeps its ads from the last run, so a 1-day outage doesn't make all its ads new the day after. When every ad pulled for an advertiser is new and the pull hit `--max`, the alert says there may be more.
+
+The comparison is saved in the new file under `changes`, and printed. When `ADWARP_LIBRARY_ALERT_WEBHOOK` is set and something launched, the summary is also posted to it as `{"text": "..."}`, which is what a Slack incoming webhook takes. Nothing is posted when nothing is new. The message holds only advertiser names, formats, dates and public ad links, and an error never prints the webhook URL.
+
+```
+Adwarp ad library: 3 new LinkedIn ads from 2 advertisers since Nov 10, 2026.
+
+Ramp: 2 new
+- single image, first shown Nov 11, 2026: https://www.linkedin.com/ad-library/detail/1610000001
+- video, first shown Nov 10, 2026: https://www.linkedin.com/ad-library/detail/1610000002
+
+Rippling: 1 new
+- document, no first shown date: https://www.linkedin.com/ad-library/detail/1610000003
+```
+
+## Daily schedule
+
+The commands need a release of the `adwarp` package that includes `adwarp library`; until then, run them from a checkout (`pnpm -r build`, then `node packages/adwarp/dist/cli.js library ...`). The examples keep 1 state file per platform and pass it as both `--previous` and `--out`.
+
+With cron, from a folder that holds `watchlist.json` and a `library.env` file with the `ADWARP_LIBRARY_*` variables:
+
+```bash
+# Every day at 7:00
+0 7 * * * cd ~/ad-watch && set -a && . ./library.env && set +a && for p in linkedin meta; do npx -y adwarp library collect "$p" -w watchlist.json --previous "state-$p.json" -o "state-$p.json"; done >> watch.log 2>&1
+```
+
+With GitHub Actions, in a private repository that holds `watchlist.json`, with the variables saved as repository secrets. The cache carries the state files from 1 run to the next. This is an example to copy; the Adwarp repository doesn't run it.
+
+```yaml .github/workflows/ad-watch.yml
+name: Ad watch
+on:
+  schedule:
+    - cron: "0 7 * * *"
+  workflow_dispatch:
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Restore the last run
+        uses: actions/cache/restore@v4
+        with:
+          path: state
+          key: ad-watch-${{ github.run_id }}
+          restore-keys: ad-watch-
+      - name: Collect and alert
+        env:
+          ADWARP_LIBRARY_LINKEDIN_CLIENT_ID: ${{ secrets.ADWARP_LIBRARY_LINKEDIN_CLIENT_ID }}
+          ADWARP_LIBRARY_LINKEDIN_CLIENT_SECRET: ${{ secrets.ADWARP_LIBRARY_LINKEDIN_CLIENT_SECRET }}
+          ADWARP_LIBRARY_LINKEDIN_REFRESH_TOKEN: ${{ secrets.ADWARP_LIBRARY_LINKEDIN_REFRESH_TOKEN }}
+          ADWARP_LIBRARY_META_ACCESS_TOKEN: ${{ secrets.ADWARP_LIBRARY_META_ACCESS_TOKEN }}
+          ADWARP_LIBRARY_ALERT_WEBHOOK: ${{ secrets.ADWARP_LIBRARY_ALERT_WEBHOOK }}
+        run: |
+          mkdir -p state
+          status=0
+          for p in linkedin meta; do
+            npx -y adwarp library collect "$p" -w watchlist.json --previous "state/$p.json" -o "state/$p.json" || status=1
+          done
+          exit $status
+      - name: Save this run
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: state
+          key: ad-watch-${{ github.run_id }}
+```
+
+A step that fails still saves the state, and the next run picks up from it. LinkedIn refresh tokens and Meta tokens expire, so a run that starts failing on credentials needs new secrets.
 
 ## Ranking
 

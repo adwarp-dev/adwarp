@@ -23,13 +23,17 @@
  * is layered in separately by the scraper (see competitorAds.ts).
  *
  * Confirmed `criteria` params: `keyword`, `advertiser` (name), `countries`
- * (restli List of country URNs). There is no company-id or date-range param.
+ * (restli List of country URNs). There is no company-id param. `dateRange` is
+ * NOT documented (Microsoft Learn has no Ad Library API page); third-party
+ * clients send it in the reporting shape, so it is opt-in and unverified here:
+ * see AdLibraryApiOptions.dateRange.
  *
  * ACCESS: vetted product. The app must be granted "LinkedIn Ad Library" in the
  * Developer Portal; until then the endpoint returns 403 ACCESS_DENIED.
  */
 
 import type { LinkedInClient } from "./http.js";
+import { type DateRange, encDateRange } from "./resources/analytics.js";
 import type { AdLibraryAd, AdLibraryDetail } from "./adLibrary.js";
 
 export interface AdLibraryApiOptions {
@@ -38,6 +42,13 @@ export interface AdLibraryApiOptions {
   advertiser?: string;
   /** ISO-3166 country codes, e.g. ["US", "GB"] — converted to country URNs. */
   countries?: string[];
+  /**
+   * UNVERIFIED: an undocumented `dateRange` in the reporting shape
+   * `(start:(year,month,day),end:(year,month,day))`, sent only when set (through
+   * rawQuery, so the structure stays literal). LinkedIn may reject or ignore it;
+   * callers must check the results fall inside the range before trusting it.
+   */
+  dateRange?: DateRange;
   /** Max ads to collect across pages (default 50). */
   max?: number;
   /** Delay between pages to respect the per-minute rate limit (default 2200ms). */
@@ -173,6 +184,23 @@ export function normalizeApiElement(el: Record<string, unknown>): AdLibraryApiAd
 }
 
 /**
+ * The criteria query with a dateRange, as a raw restli string: values are
+ * percent-encoded, the List(...) and dateRange structure stays literal.
+ */
+export function adLibraryRawQuery(query: Record<string, string | number | undefined>, dateRange: DateRange): string {
+  const parts: string[] = [];
+  for (const [k, v] of Object.entries(query)) {
+    if (v === undefined) continue;
+    if (k === "countries") {
+      const urns = String(v).replace(/^List\(|\)$/g, "").split(",").filter(Boolean);
+      parts.push(`countries=List(${urns.map((u) => encodeURIComponent(u)).join(",")})`);
+    } else parts.push(`${k}=${encodeURIComponent(String(v))}`);
+  }
+  parts.push(`dateRange=${encDateRange(dateRange)}`);
+  return parts.join("&");
+}
+
+/**
  * Search the official Ad Library API, paging until `max` ads or exhaustion.
  * Throws AdLibraryAccessError on 403 so the caller can fall back to the scraper.
  */
@@ -209,7 +237,7 @@ export async function searchAdLibraryApi(
         res = await client.request<{
           elements?: Record<string, unknown>[];
           paging?: { total?: number };
-        }>({ path: "/adLibrary", query });
+        }>(opts.dateRange ? { path: "/adLibrary", rawQuery: adLibraryRawQuery(query, opts.dateRange) } : { path: "/adLibrary", query });
         break;
       } catch (e) {
         const err = e as { status?: number; message?: string };

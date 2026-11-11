@@ -7,6 +7,7 @@
  * and no image, so every candidate starts with copy null and an editor reads the creative on its Ad Library page.
  */
 import {
+  type AdLibraryApiAd,
   type AdLibraryApiOptions,
   type AdLibraryApiResult,
   type AppConfig,
@@ -20,6 +21,7 @@ import { linkedinLibraryCredentials, type LibraryEnv } from "../credentials.js";
 import type { AdFormat, AdMetric } from "../record.js";
 import type { Candidate } from "../types.js";
 import type { WatchlistEntry } from "../watchlist.js";
+import { planWindows, walkLinkedIn } from "./linkedinWindows.js";
 
 export const LINKEDIN_SOURCE = "LinkedIn Ad Library API";
 const TOKEN_URL = "https://www.linkedin.com/oauth/v2/accessToken";
@@ -124,6 +126,11 @@ export interface LinkedInCollectOptions {
   max: number;
   countries?: string[];
   search: LinkedInSearch;
+  /**
+   * Walk back in date windows to reach ads that started long ago (see linkedinWindows.ts). Unverified: stops with
+   * DateRangeUnverifiedError when LinkedIn's answers show the range isn't applied.
+   */
+  walkBack?: { days: number; windowDays: number };
   onProgress?: (message: string) => void;
 }
 
@@ -135,13 +142,38 @@ export async function collectLinkedIn(opts: LinkedInCollectOptions): Promise<{ c
   const companyId = opts.entry.linkedin?.companyId;
   if (!companyId) throw new Error(`${opts.entry.name} has no linkedin.companyId`);
   const advertiser = opts.entry.linkedin?.searchName ?? opts.entry.name;
-  const result = await opts.search({
-    advertiser,
-    max: opts.max,
-    ...(opts.countries?.length ? { countries: opts.countries } : {}),
-    ...(opts.onProgress ? { onProgress: opts.onProgress } : {}),
-  });
-  const own = result.ads.filter((ad) => isCompanyAd(ad, companyId));
+  let own: AdLibraryApiAd[];
+  let fetched: number;
+  let note: string;
+  if (opts.walkBack) {
+    const windows = planWindows(opts.checkedAt, opts.walkBack.days, opts.walkBack.windowDays);
+    const walk = await walkLinkedIn({
+      search: opts.search,
+      advertiser,
+      companyId,
+      windows,
+      max: opts.max,
+      ...(opts.countries?.length ? { countries: opts.countries } : {}),
+      ...(opts.onProgress ? { onProgress: opts.onProgress } : {}),
+    });
+    own = walk.ads;
+    fetched = walk.fetched;
+    note = `Walked back ${opts.walkBack.days} days in ${walk.queries} queries: ${own.length} ads for company ${companyId} from ${walk.fetched} results.`;
+    if (walk.checked === 0) note += " No dated ads came back, so LinkedIn's handling of dateRange was never checked.";
+    else note += ` ${walk.checked} dated ads fell inside their windows.`;
+    if (walk.truncated.length) note += ` ${walk.truncated.length} single days returned the API's limit, so they may hold more ads.`;
+    if (walk.stoppedAtMax) note += ` Stopped at --max ${opts.max} before the oldest window.`;
+  } else {
+    const result = await opts.search({
+      advertiser,
+      max: opts.max,
+      ...(opts.countries?.length ? { countries: opts.countries } : {}),
+      ...(opts.onProgress ? { onProgress: opts.onProgress } : {}),
+    });
+    own = result.ads.filter((ad) => isCompanyAd(ad, companyId));
+    fetched = result.fetched;
+    note = `Kept ${own.length} of ${result.fetched} results for company ${companyId}.`;
+  }
   const candidates = own.map((ad): Candidate => {
     const raw = (ad.raw ?? {}) as { details?: { adStatistics?: { totalImpressions?: unknown } } };
     const d = ad.detail;
@@ -178,9 +210,5 @@ export async function collectLinkedIn(opts: LinkedInCollectOptions): Promise<{ c
       checkedAt: opts.checkedAt,
     };
   });
-  return {
-    candidates: candidates.filter((c) => c.source.adId),
-    fetched: result.fetched,
-    note: `Kept ${own.length} of ${result.fetched} results for company ${companyId}.`,
-  };
+  return { candidates: candidates.filter((c) => c.source.adId), fetched, note };
 }

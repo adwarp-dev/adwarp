@@ -20,8 +20,10 @@ export interface CollectOptions {
   watchlistPath?: string;
   /** Replaces the watchlist's countries for this platform. */
   countries?: string[];
-  /** Ads per advertiser. Default 100. */
+  /** Ads per advertiser. Default 100, or 5000 with walkBack. */
   max?: number;
+  /** LinkedIn only: walk back in date windows (unverified, see adapters/linkedinWindows.ts). */
+  walkBack?: { days: number; windowDays: number };
   /** Only ads shown within this many days (Google, Meta and TikTok). Default 365. */
   days?: number;
   /** Google only: the most bytes BigQuery may scan. */
@@ -52,7 +54,8 @@ const ID_HINT: Record<AdPlatform, string> = {
 export async function collect(opts: CollectOptions): Promise<CandidatesFile> {
   const { platform, watchlist } = opts;
   const checkedAt = opts.checkedAt ?? isoDay();
-  const max = opts.max ?? 100;
+  const max = opts.max ?? (opts.walkBack ? 5000 : 100);
+  if (opts.walkBack && platform !== "linkedin") throw new Error("--walk-back is for LinkedIn only; the other libraries already take a date range.");
   const env = opts.env ?? process.env;
   const countries = (opts.countries ?? watchlist.countries?.[platform] ?? []).map((c) => c.toUpperCase());
   const progress = opts.onProgress ?? (() => {});
@@ -65,6 +68,7 @@ export async function collect(opts: CollectOptions): Promise<CandidatesFile> {
     .map((e) => ({ advertiser: e.name, reason: ID_HINT[platform] }));
   const candidates: Candidate[] = [];
   const errors: CandidatesFile["errors"] = [];
+  const tracked: string[] = [];
 
   if ((platform === "meta" || platform === "tiktok") && !countries.length)
     throw new Error(`${platform} needs countries: set countries.${platform} in the watchlist or pass --country, such as DE,FR`);
@@ -86,6 +90,7 @@ export async function collect(opts: CollectOptions): Promise<CandidatesFile> {
         ...delay,
       });
       candidates.push(...res.candidates);
+      tracked.push(...entries.map((e) => e.name));
       progress(`Google: ${res.candidates.length} ads from ${res.fetched} rows.`);
     } catch (err) {
       errors.push({ advertiser: "all (1 BigQuery query)", message: (err as Error).message });
@@ -96,7 +101,16 @@ export async function collect(opts: CollectOptions): Promise<CandidatesFile> {
     if (platform === "linkedin") {
       const search = opts.linkedinSearch ?? (await linkedinLibrarySearch(env));
       run = async (entry) => {
-        const res = await collectLinkedIn({ entry, category: watchlist.category, checkedAt, max, countries, search, onProgress: progress });
+        const res = await collectLinkedIn({
+          entry,
+          category: watchlist.category,
+          checkedAt,
+          max,
+          countries,
+          search,
+          ...(opts.walkBack ? { walkBack: opts.walkBack } : {}),
+          onProgress: progress,
+        });
         progress(`${entry.name}: ${res.note}`);
         return res.candidates;
       };
@@ -126,6 +140,7 @@ export async function collect(opts: CollectOptions): Promise<CandidatesFile> {
       try {
         const found = await run(entry);
         candidates.push(...found);
+        tracked.push(entry.name);
         progress(`${entry.name}: ${found.length} ads.`);
       } catch (err) {
         errors.push({ advertiser: entry.name, message: (err as Error).message });
@@ -138,7 +153,8 @@ export async function collect(opts: CollectOptions): Promise<CandidatesFile> {
     platform,
     collectedAt: checkedAt,
     ...(opts.watchlistPath ? { watchlist: opts.watchlistPath } : {}),
-    query: { ...(countries.length ? { countries } : {}), max },
+    query: { ...(countries.length ? { countries } : {}), max, ...(opts.walkBack ? { walkBack: opts.walkBack } : {}) },
+    tracked,
     candidates,
     skipped,
     errors,

@@ -1,3 +1,4 @@
+import type { NewAdsReport } from "./changes.js";
 import type { AdCopy, AdFormat, AdMetric, AdPlatform, AdRoute, AdSourceType } from "./record.js";
 
 /**
@@ -39,7 +40,11 @@ export interface CandidatesFile {
   platform: AdPlatform;
   collectedAt: string;
   watchlist?: string;
-  query: { countries?: string[]; max: number };
+  query: { countries?: string[]; max: number; walkBack?: { days: number; windowDays: number } };
+  /** Advertisers pulled without an error, including those with no ads. New-ad detection uses it. */
+  tracked?: string[];
+  /** What changed since the previous run, when collect ran with --previous. */
+  changes?: NewAdsReport;
   candidates: Candidate[];
   /** Watchlist entries with no ID or name for this platform. */
   skipped: { advertiser: string; reason: string }[];

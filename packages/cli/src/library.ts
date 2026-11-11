@@ -8,11 +8,15 @@ import {
   type AdPlatform,
   type AdRecord,
   type Candidate,
+  type CandidatesFile,
+  changesSummary,
   collect,
+  compareWithPrevious,
   newRecord,
   parseCandidatesFile,
   parseWatchlist,
   rankCandidates,
+  sendAlert,
   writeDrafts,
 } from "@adwarp/library";
 import type { Command } from "commander";
@@ -35,30 +39,56 @@ export function registerLibraryCommands(program: Command): void {
     .description(`Collect a watchlist's ads from 1 platform's public library (${AD_PLATFORMS.join(", ")}) into a candidates file`)
     .requiredOption("-w, --watchlist <file>", "Watchlist JSON: the advertisers and their IDs on each platform")
     .option("-c, --country <codes>", "Comma-separated country codes; replaces the watchlist's countries for this platform")
-    .option("-m, --max <n>", "Ads per advertiser", int, 100)
-    .option("--days <n>", "Only ads shown (Google, Meta) or published (TikTok) in the last n days", int, 365)
+    .option("-m, --max <n>", "Ads per advertiser (100, or 5000 with --walk-back)", int)
+    .option("--days <n>", "Only ads shown (Google, Meta) or published (TikTok) in the last n days; how far back --walk-back goes on LinkedIn", int, 365)
     .option("--max-gib <n>", "Google only: the most GiB BigQuery may scan (billed to your project)", int, 20)
     .option("-o, --out <file>", "Where to write the candidates file (default ad-library-<platform>-<date>.json)")
+    .option("--walk-back", "LinkedIn only, unverified: query 1 date window at a time back to --days, to reach ads that started long ago")
+    .option("--window-days <n>", "Window size for --walk-back", int, 30)
+    .option("--previous <file>", "The last run's candidates file: report the ads that are new since then (can be the same path as --out)")
     .action(async (platform: string, opts) => {
       if (!(AD_PLATFORMS as readonly string[]).includes(platform))
         throw new Error(`Unknown platform ${platform}. Use ${AD_PLATFORMS.join(", ")}.`);
       const watchlist = parseWatchlist(JSON.parse(await readFile(opts.watchlist, "utf8")));
-      const file = await collect({
+      // Read the previous run first: --previous and --out may be the same file.
+      let previous: CandidatesFile | undefined;
+      if (opts.previous) {
+        try {
+          previous = parseCandidatesFile(JSON.parse(await readFile(opts.previous, "utf8")));
+        } catch (err) {
+          if ((err as NodeJS.ErrnoException).code !== "ENOENT") throw err;
+          console.log(`No previous run at ${opts.previous}, so this run is the baseline.`);
+        }
+      }
+      const collected = await collect({
         platform: platform as AdPlatform,
         watchlist,
         watchlistPath: opts.watchlist,
         ...(opts.country ? { countries: list(opts.country) } : {}),
-        max: opts.max,
+        ...(opts.max ? { max: opts.max } : {}),
+        ...(opts.walkBack ? { walkBack: { days: opts.days, windowDays: opts.windowDays } } : {}),
         days: opts.days,
         maxBytes: opts.maxGib * 1024 ** 3,
         onProgress: (m) => console.error(`… ${m}`),
       });
+      const { file, report } = compareWithPrevious(previous, collected);
       const out = opts.out ?? `ad-library-${platform}-${file.collectedAt}.json`;
       await writeFile(out, `${JSON.stringify(file, null, 2)}\n`, "utf8");
       console.log(`\n${file.candidates.length} ads from ${watchlist.advertisers.length - file.skipped.length} advertisers on ${platform}. Wrote ${out}.`);
       for (const s of file.skipped) console.log(`  skipped ${s.advertiser}: ${s.reason}`);
       for (const e of file.errors) console.log(`  failed  ${e.advertiser}: ${e.message}`);
       if (file.errors.length) process.exitCode = 1;
+      if (report) {
+        console.log(`\n${changesSummary(report)}`);
+        try {
+          const sent = await sendAlert(report);
+          if (sent === "posted") console.log("\nAlert posted.");
+          if (sent === "printed") console.log("\nADWARP_LIBRARY_ALERT_WEBHOOK isn't set, so the alert was only printed.");
+        } catch (err) {
+          console.error(`\n${(err as Error).message}`);
+          process.exitCode = 1;
+        }
+      }
     });
 
   library

@@ -23,7 +23,9 @@ pnpm + TypeScript monorepo:
   `src/record.ts` is vendored from the website repo's `lib/ads/record.ts`: change it there
   first, then copy it, keeping the 2 identical below the header. Credentials come only from
   `ADWARP_LIBRARY_*` and must never fall back to the ad-account credentials
-  (`test/collect.test.mjs` pins this). See docs/ad-library.md.
+  (`test/collect.test.mjs` pins this). `adapters/linkedinWindows.ts` walks back in date
+  windows on LinkedIn's undocumented `dateRange` and checks every answer before trusting it;
+  `changes.ts` finds new ads between runs and posts the alert. See docs/ad-library.md.
 - `packages/mcp` — MCP server. `src/tools.ts` (LinkedIn) and `src/googleTools.ts`
   (`gads_*`) are shared by the stdio entry (`src/index.ts`) and the hosted Vercel route.
 - `packages/cli` — the `adwarp` CLI (commander), also installed as `liam` for existing users.

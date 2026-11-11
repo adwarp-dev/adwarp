@@ -116,5 +116,6 @@ Public ad libraries for LinkedIn, Google, Meta and TikTok live under `adwarp lib
 
 ```
 adwarp library collect <platform> -w <watchlist.json>   # 1 platform's ads for a watchlist, into a candidates file
+adwarp library collect <platform> -w <watchlist.json> --previous <state.json> -o <state.json>   # daily: new ads since the last run, alert by webhook
 adwarp library drafts -i <candidates.json...> -t <dir>   # rank them and write the shortlist as records for review
 ```
