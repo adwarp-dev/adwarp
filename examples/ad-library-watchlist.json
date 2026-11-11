@@ -10,6 +10,7 @@
   },
   "advertisers": [
     { "name": "Notion", "domain": "notion.so", "linkedin": { "companyId": "30898036" } },
-    { "name": "Ramp", "domain": "ramp.com", "linkedin": { "companyId": "1406226" } }
+    { "name": "Ramp", "domain": "ramp.com", "linkedin": { "companyId": "1406226" } },
+    { "name": "Rippling", "domain": "rippling.com", "linkedin": { "companyId": "17988315" } }
   ]
 }

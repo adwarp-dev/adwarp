@@ -1,6 +1,7 @@
 /** Official API discovery plus optional remote creative collection. Never opens a local browser. */
 import type { AdLibraryScanOptions, AdLibraryAd } from "./adLibrary.js";
-import { isCompanyAd, searchAdLibraryApi } from "./adLibraryApi.js";
+import { type AdLibraryApiResult, isCompanyAd, searchAdLibraryApi } from "./adLibraryApi.js";
+import { AdLibraryStopError, toolAdLibraryGuard } from "./adLibraryGuard.js";
 import { creativeWorkerConfig, getRemoteCreatives } from "./remoteCreatives.js";
 
 export type CompetitorAdsEngine = "auto" | "api" | "scraper";
@@ -22,11 +23,22 @@ export async function scanCompetitorAds(opts: CompetitorAdsOptions): Promise<Com
   if (opts.copyMax !== undefined && (!Number.isInteger(opts.copyMax) || opts.copyMax < 0 || opts.copyMax > 10)) throw new Error("copyMax must be an integer from 0 to 10.");
   const { createLinkedInAds } = await import("./client.js");
   const linkedinAds = await createLinkedInAds();
-  // API errors propagate. They must never trigger a browser fallback.
-  const result = await searchAdLibraryApi(linkedinAds.client, opts);
+  // Paced, budgeted (150 calls a day per app unless ADWARP_AD_LIBRARY_DAILY_CALLS says otherwise) and stopped on
+  // throttling: see adLibraryGuard.ts. API errors propagate. They must never trigger a browser fallback.
+  const guard = toolAdLibraryGuard(linkedinAds.clientId);
+  let result: AdLibraryApiResult;
+  let stopped: string | undefined;
+  try {
+    result = await searchAdLibraryApi(linkedinAds.client, { ...opts, guard });
+  } catch (e) {
+    // A stop with nothing collected is an error; with ads in hand, return them and say why it stopped.
+    if (!(e instanceof AdLibraryStopError) || !e.partial?.ads.length) throw e;
+    result = { fetched: e.partial.fetched, totalReported: e.partial.totalReported, ads: e.partial.ads };
+    stopped = e.message;
+  }
   const companyId = opts.companyId;
   const ads = companyId ? result.ads.filter((ad) => isCompanyAd(ad, companyId)) : result.ads;
-  const notes = [opts.companyId
+  const notes = [...(stopped ? [stopped] : []), opts.companyId
     ? `Filtered ${result.fetched} API results to ${ads.length} ads for company ${opts.companyId}. Total reported is the broad API query total, not the exact company total.`
     : "Advertiser name searches can include unrelated companies. Supply companyId to filter before collecting creatives."];
   if (opts.engine !== "api" && opts.deep !== false && ads.length) {
@@ -54,6 +66,10 @@ export async function scanCompetitorAds(opts: CompetitorAdsOptions): Promise<Com
       } catch (e) { notes.push(e instanceof Error ? e.message : "Remote worker unavailable; metadata only."); }
     }
   } else notes.push("API metadata only; no browser requests.");
+  if (guard.budget) {
+    const left = await guard.budget.remaining().catch(() => undefined);
+    if (left !== undefined) notes.push(`${guard.calls} Ad Library calls made; ${left} of ${guard.budget.limit} left today for this app (UTC).`);
+  }
   return { engine: "api", query: { advertiser: opts.advertiser, companyId: opts.companyId, keyword: opts.keyword, countries: opts.countries },
     totalReported: result.totalReported, fetched: ads.length, ads, note: notes.join(" ") };
 }

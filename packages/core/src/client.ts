@@ -8,6 +8,8 @@ export interface LinkedInAds {
   client: LinkedInClient;
   /** Returns a valid bearer token (used for image binary uploads). */
   getToken: TokenProvider;
+  /** The app's client ID (public, not a secret): keys per-app quotas such as the Ad Library's daily call budget. */
+  clientId: string;
 }
 
 /**
@@ -24,5 +26,5 @@ export async function createLinkedInAds(): Promise<LinkedInAds> {
     !activeRequestCredentials() && !env("ADWARP_LINKEDIN_REFRESH_TOKEN") && !env("ADWARP_NO_CHANGELOG");
   const onMutation: MutationHook | undefined = journaling ? recordMutation : undefined;
   const client = new LinkedInClient(config, getToken, onMutation);
-  return { client, getToken };
+  return { client, getToken, clientId: config.clientId };
 }

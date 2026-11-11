@@ -8,13 +8,13 @@
 
   Ownership, so a new collection run never overwrites an editor's work:
   - The collector owns `source`, `advertiser.platformId`, `evidence`, and fills `copy` only while it is null.
-  - The editor owns `status`, `selection`, `writeup`, `creative` and `review`. The collector writes them once, when
-    it creates the file, and never again.
+  - The editor owns `status`, `selection`, `writeup`, `creative`, `review`, `offerType` and `offerDetail`. The collector
+    writes the first 5 once, when it creates the file, and never again, and never writes the offer fields at all.
 
   Lifecycle: media_pending (evidence saved, creative not inspected yet) -> draft (write-up ready for review) ->
   published. unpublished keeps the file and its history but takes the page down; rejected never shows anywhere.
   Production renders published records only. Preview deployments and `next dev` also render media_pending and draft
-  records, under a Draft banner and with noindex, so a pull request's preview shows the exact page before it ships.
+  records, with noindex, so a pull request's preview shows the exact page before it ships.
 
   Every claim a page makes comes from `evidence`. parseAdRecord() enforces the rules below and the build fails on a
   record that breaks them, so a missing metric can never turn into a badge.
@@ -75,7 +75,8 @@ export type AdFormat = (typeof AD_FORMATS)[number];
   - most-seen: a source-reported exposure metric (impressions, reach, times shown, unique users seen) with a lower
     bound and a geography. Ranked only against records with the same platform, metric and geography.
   - long-running: first and last shown dates at least LONG_RUN_DAYS apart, or that many days of weekly observations
-    that all saw it live.
+    that all saw it live, or, for an ad with neither, served months whose minimum span (servedMonthsMinDays) is that
+    long.
   - top-ads: a TikTok Top Ads entry with the filters it was ranked under.
   - editors-pick: chosen for the creative alone. The page says it isn't ranked by a metric.
   Trending and "Popular on Adwarp" are left out until there are snapshots and traffic to support them.
@@ -84,6 +85,20 @@ export const AD_COLLECTIONS = ["most-seen", "long-running", "top-ads", "editors-
 export type AdCollection = (typeof AD_COLLECTIONS)[number];
 
 export const LONG_RUN_DAYS = 30;
+
+/*
+  What the ad offers in exchange for the click, read off the ad itself, so it needs `copy`,
+  review.inspectedCreativeAt, or evidence.keywordMatches (words the source's keyword search found in the ad's text).
+  Editor-owned and optional: a record without it just isn't on an offer page.
+  - lead-magnet: a report, guide, template, ebook or tool given for contact details
+  - gift: a gift card, AirPods or another item for booking or taking a meeting
+  - free-trial, demo, discount
+  - event: a webinar or an event
+  - other: an offer none of these fit
+  `offerDetail` names it in a few words, such as "AirPods Pro" or "$100 Amazon gift card".
+*/
+export const AD_OFFER_TYPES = ["lead-magnet", "gift", "free-trial", "demo", "event", "discount", "other"] as const;
+export type AdOfferType = (typeof AD_OFFER_TYPES)[number];
 
 /* Exposure metrics can rank a most-seen collection. The rest (likes, CTR, view rate) only ever describe. */
 export const EXPOSURE_METRICS = ["impressions", "reach", "times-shown", "unique-users-seen"] as const;
@@ -152,9 +167,20 @@ export type AdEvidence = {
   checkedAt: string; // when the collector last read the source, YYYY-MM-DD
   firstShown?: string | null;
   lastShown?: string | null;
+  /*
+    The months (YYYY-MM, oldest first) the source's date filter lists the ad as served in. LinkedIn's dateRange
+    returns the ads served during the range, so for an ad it gives no dates (one never served in the EU) these are
+    the run evidence: runDays falls back to their minimum span (servedMonthsMinDays). servedMonthsFloor says why the
+    first month may be later than the true start: lookback, the filter reaches back only about 12 months; unread, an
+    earlier month wasn't read in full.
+  */
+  servedMonths?: string[];
+  servedMonthsFloor?: "lookback" | "unread";
   live?: boolean | null; // still serving when checked; null when the source doesn't say
   regions?: string[]; // where the source says it ran
   metrics: AdMetric[];
+  keywordMatches?: string[]; // words the source's keyword search matched in the ad's text, which the source doesn't
+  // return, such as "gift card" on LinkedIn. Enough to set offerType before the copy is in.
   observations?: { at: string; live: boolean }[]; // repeated checks, oldest first
   topAds?: { region: string; industry: string; objective: string; period: string; sortedBy: string; rank: number };
   family?: string; // creative family fingerprint: near-identical ads share it, each keeps its own metrics
@@ -183,6 +209,8 @@ export type AdRecord = {
   advertiser: { name: string; platformId?: string; domain?: string };
   category: string; // "B2B SaaS" at launch
   format: AdFormat;
+  offerType?: AdOfferType;
+  offerDetail?: string;
   copy: AdCopy | null;
   creative: AdCreative;
   evidence: AdEvidence;
@@ -206,6 +234,7 @@ export class AdRecordError extends Error {
 
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
+const MONTH = /^\d{4}-(?:0[1-9]|1[0-2])$/;
 // Em and en dashes, and emoji: the site's copy rules (DESIGN.md) apply to records too.
 const BANNED_CHARACTERS = /[\u2013\u2014]|\p{Extended_Pictographic}/u;
 
@@ -220,14 +249,39 @@ export function daysBetween(from: string, to: string): number {
   return Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86_400_000);
 }
 
-/* Days the evidence shows the ad running: the dated span, or the span of consecutive live observations. */
-export function runDays(evidence: AdEvidence): number | null {
-  if (evidence.firstShown && evidence.lastShown) return daysBetween(evidence.firstShown, evidence.lastShown) + 1;
+/*
+  The fewest days an ad served in these months can have run: from the last day of the first month to the first day
+  of the last. Served-during gives no day inside a month, so this is a floor. 1 for a single month.
+*/
+export function servedMonthsMinDays(months: string[]): number | null {
+  const first = months[0];
+  const last = months[months.length - 1];
+  if (!first || !last) return null;
+  if (first === last) return 1;
+  const [year = 0, month = 1] = first.split("-").map(Number);
+  const endOfFirst = new Date(Date.UTC(year, month, 0)).toISOString().slice(0, 10);
+  return daysBetween(endOfFirst, `${last}-01`) + 1;
+}
+
+/*
+  The run the evidence shows and where it comes from: the dated span, the span of consecutive live observations, or,
+  with neither, the minimum span of the served months, which is a floor ("ran at least").
+*/
+export function adRun(evidence: AdEvidence): { days: number; from: "dates" | "observations" | "months" } | null {
+  if (evidence.firstShown && evidence.lastShown)
+    return { days: daysBetween(evidence.firstShown, evidence.lastShown) + 1, from: "dates" };
   const seen = evidence.observations ?? [];
   const first = seen[0];
   const last = seen[seen.length - 1];
-  if (seen.length >= 2 && first && last && seen.every((o) => o.live)) return daysBetween(first.at, last.at) + 1;
-  return null;
+  if (seen.length >= 2 && first && last && seen.every((o) => o.live))
+    return { days: daysBetween(first.at, last.at) + 1, from: "observations" };
+  const days = servedMonthsMinDays(evidence.servedMonths ?? []);
+  return days === null ? null : { days, from: "months" };
+}
+
+/* Days the evidence shows the ad running (adRun). */
+export function runDays(evidence: AdEvidence): number | null {
+  return adRun(evidence)?.days ?? null;
 }
 
 /* The number a metric ranks on: the value of an exact count or estimate, the lower bound of a range. */
@@ -258,7 +312,7 @@ export function collectionProblem(record: AdRecord): string | null {
       const days = runDays(evidence);
       return days !== null && days >= LONG_RUN_DAYS
         ? null
-        : `long-running needs first and last shown dates, or live observations, at least ${LONG_RUN_DAYS} days apart (has ${days ?? "none"})`;
+        : `long-running needs first and last shown dates, live observations or served months at least ${LONG_RUN_DAYS} days apart (has ${days ?? "none"})`;
     }
     case "top-ads":
       return record.source.type === "tiktok-top-ads" && evidence.topAds
@@ -344,6 +398,20 @@ export function parseAdRecord(raw: unknown, fileSlug: string): AdRecord {
   const hasCopy =
     isObject(copy) && ["intro", "headline", "body"].some((key) => typeof copy[key] === "string" && copy[key]);
 
+  if (r.offerType !== undefined) {
+    if (!oneOf(AD_OFFER_TYPES, r.offerType)) problems.push(`offerType must be one of ${AD_OFFER_TYPES.join(", ")}`);
+    const review = r.review;
+    const keywords = isObject(r.evidence) && Array.isArray(r.evidence.keywordMatches) && r.evidence.keywordMatches.length > 0;
+    if (!hasCopy && !(isObject(review) && isDate(review.inspectedCreativeAt)) && !keywords)
+      problems.push(
+        "offerType needs copy, review.inspectedCreativeAt or evidence.keywordMatches: an offer can only be read off the ad",
+      );
+  }
+  if (r.offerDetail !== undefined) {
+    if (typeof r.offerDetail !== "string" || !r.offerDetail.trim()) problems.push("offerDetail must be text");
+    if (r.offerType === undefined) problems.push("offerDetail needs offerType");
+  }
+
   const creative = r.creative;
   if (!isObject(creative) || !oneOf(AD_DISPLAYS, creative.display))
     problems.push(`creative.display must be one of ${AD_DISPLAYS.join(", ")}`);
@@ -388,6 +456,24 @@ export function parseAdRecord(raw: unknown, fileSlug: string): AdRecord {
           problems.push("evidence.observations must be oldest first");
       }
     }
+    const months = evidence.servedMonths;
+    if (months !== undefined) {
+      if (!Array.isArray(months) || months.length === 0 || !months.every((m) => typeof m === "string" && MONTH.test(m)))
+        problems.push("evidence.servedMonths must be a list of YYYY-MM months");
+      else if (months.some((m, i) => i > 0 && (m as string) <= (months[i - 1] as string)))
+        problems.push("evidence.servedMonths must be oldest first, each month once");
+    }
+    if (evidence.servedMonthsFloor !== undefined) {
+      if (!oneOf(["lookback", "unread"] as const, evidence.servedMonthsFloor))
+        problems.push("evidence.servedMonthsFloor must be lookback or unread");
+      if (months === undefined) problems.push("evidence.servedMonthsFloor needs servedMonths");
+    }
+    const keywords = evidence.keywordMatches;
+    if (
+      keywords !== undefined &&
+      !(Array.isArray(keywords) && keywords.length > 0 && keywords.every((k) => typeof k === "string" && k.trim()))
+    )
+      problems.push("evidence.keywordMatches must be a list of the words the keyword search matched");
   }
 
   const selection = r.selection;

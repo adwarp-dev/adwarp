@@ -23,7 +23,11 @@ pnpm + TypeScript monorepo:
   `src/record.ts` is vendored from the website repo's `lib/ads/record.ts`: change it there
   first, then copy it, keeping the 2 identical below the header. Credentials come only from
   `ADWARP_LIBRARY_*` and must never fall back to the ad-account credentials
-  (`test/collect.test.mjs` pins this). See docs/ad-library.md.
+  (`test/collect.test.mjs` pins this). `adapters/linkedinWindows.ts` walks back 1 calendar
+  month at a time on LinkedIn's `dateRange` (undocumented, verified live 2026-11-11: ads served
+  during the range, about 12 months back, the end yesterday at the latest) and records the
+  months each ad was served in;
+  `changes.ts` finds new ads between runs and posts the alert. See docs/ad-library.md.
 - `packages/mcp` — MCP server. `src/tools.ts` (LinkedIn) and `src/googleTools.ts`
   (`gads_*`) are shared by the stdio entry (`src/index.ts`) and the hosted Vercel route.
 - `packages/cli` — the `adwarp` CLI (commander), also installed as `liam` for existing users.
@@ -145,6 +149,13 @@ modules are thin typed wrappers over `LinkedInClient.request()`.
   `accounts|campaignGroups|campaigns|creatives=List(<encoded urns>)`. All restli-encoded, so it
   goes through the client's `rawQuery`. `costInUsd` is a string; metric field names are verified
   in `analytics.ts` DEFAULT_METRIC_FIELDS. Derived KPIs + flags live in `report.ts`.
+- **Ad Library calls are conservative, and must stay that way** (`core/src/adLibraryGuard.ts`). LinkedIn's
+  limits are per app, per endpoint, per day, unpublished, and reset at midnight UTC. Every call goes through an
+  `AdLibraryGuard`: paced at least 2.2s apart per process, counted against a daily budget per app (a hash of the
+  client ID, in `~/.local/state/adwarp/ad-library`; 300 for `adwarp library`, 150 for `inspect_competitor_ads`),
+  and sent with `noRetry`. A 429 is waited out once per run, only with a Retry-After of 2 minutes or less; any other
+  429, a 401 or a 403 stops the run and keeps what was collected. Never add retries or loops to this path.
+  `packages/core/test/adLibraryLimits.test.mjs` and `packages/library/test/limits.test.mjs` pin it.
 - **Non-transactional orchestrator:** `launchFromBrief` creates a campaign group before the
   campaign; a later failure can orphan the group. (Cleanup-on-failure is implemented for
   audience upload; campaign-group cleanup is a known TODO.)

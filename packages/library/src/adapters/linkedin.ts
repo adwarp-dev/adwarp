@@ -7,9 +7,13 @@
  * and no image, so every candidate starts with copy null and an editor reads the creative on its Ad Library page.
  */
 import {
+  type AdLibraryApiAd,
   type AdLibraryApiOptions,
   type AdLibraryApiResult,
+  AdLibraryGuard,
+  AdLibraryStopError,
   type AppConfig,
+  DailyCallBudget,
   impressionBounds,
   isCompanyAd,
   LinkedInClient,
@@ -20,6 +24,7 @@ import { linkedinLibraryCredentials, type LibraryEnv } from "../credentials.js";
 import type { AdFormat, AdMetric } from "../record.js";
 import type { Candidate } from "../types.js";
 import type { WatchlistEntry } from "../watchlist.js";
+import { type DayWindow, planMonths, servedFloor, walkLinkedIn, type WalkResult } from "./linkedinWindows.js";
 
 export const LINKEDIN_SOURCE = "LinkedIn Ad Library API";
 const TOKEN_URL = "https://www.linkedin.com/oauth/v2/accessToken";
@@ -87,9 +92,34 @@ export function liveFromLastShown(lastShown: string | null, checkedAt: string): 
 
 export type LinkedInSearch = (opts: AdLibraryApiOptions) => Promise<AdLibraryApiResult>;
 
-/** A search function bound to the library's own LinkedIn app. Reads only ADWARP_LIBRARY_LINKEDIN_*. */
-export async function linkedinLibrarySearch(env: LibraryEnv = process.env): Promise<LinkedInSearch> {
+/** The collector's daily Ad Library budget per app, unless --daily-calls or ADWARP_LIBRARY_LINKEDIN_DAILY_CALLS. */
+export const DEFAULT_LIBRARY_DAILY_CALLS = 300;
+
+/** The daily call budget from the option, then ADWARP_LIBRARY_LINKEDIN_DAILY_CALLS, then 300. */
+export function libraryDailyCalls(env: LibraryEnv, dailyCalls?: number): number {
+  if (dailyCalls !== undefined) return dailyCalls;
+  const set = Number(env.ADWARP_LIBRARY_LINKEDIN_DAILY_CALLS);
+  return Number.isInteger(set) && set > 0 ? set : DEFAULT_LIBRARY_DAILY_CALLS;
+}
+
+/**
+ * A search bound to the library's own LinkedIn app, plus the run's guard: every call paced at least 2.2s apart and
+ * counted against the app's daily budget (keyed on a hash of ADWARP_LIBRARY_LINKEDIN_CLIENT_ID; with an access token
+ * alone, on "unknown-app"). Reads only ADWARP_LIBRARY_LINKEDIN_*.
+ */
+export async function createLinkedInLibrarySearch(
+  env: LibraryEnv = process.env,
+  opts: { dailyCalls?: number; stateDir?: string } = {},
+): Promise<{ search: LinkedInSearch; guard: AdLibraryGuard }> {
   const creds = linkedinLibraryCredentials(env);
+  const clientId = creds.kind === "refresh-token" ? creds.clientId : env.ADWARP_LIBRARY_LINKEDIN_CLIENT_ID?.trim() || undefined;
+  const guard = new AdLibraryGuard({
+    budget: new DailyCallBudget({
+      limit: libraryDailyCalls(env, opts.dailyCalls),
+      ...(clientId ? { clientId } : {}),
+      ...(opts.stateDir ? { dir: opts.stateDir } : {}),
+    }),
+  });
   const config: AppConfig = {
     clientId: creds.kind === "refresh-token" ? creds.clientId : "",
     clientSecret: creds.kind === "refresh-token" ? creds.clientSecret : "",
@@ -114,7 +144,7 @@ export async function linkedinLibrarySearch(env: LibraryEnv = process.env): Prom
     });
   }
   const client = new LinkedInClient(config, getToken);
-  return (opts) => searchAdLibraryApi(client, opts);
+  return { search: (o) => searchAdLibraryApi(client, { ...o, guard }), guard };
 }
 
 export interface LinkedInCollectOptions {
@@ -124,24 +154,84 @@ export interface LinkedInCollectOptions {
   max: number;
   countries?: string[];
   search: LinkedInSearch;
+  /**
+   * Walk back 1 calendar month at a time (see linkedinWindows.ts) to reach ads that started long ago, and record the
+   * months each ad was served in. `months` is 1 to 12, LinkedIn's lookback.
+   */
+  walkBack?: { months: number; windowCap?: number; windows?: DayWindow[] };
+  /**
+   * Incremental: the advertiser's ad IDs from the last run. Paging stops at the first full page with none of the
+   * advertiser's ads missing from it, so a daily check costs about 1 or 2 calls.
+   */
+  known?: Set<string>;
   onProgress?: (message: string) => void;
+}
+
+export interface LinkedInCollectResult {
+  candidates: Candidate[];
+  fetched: number;
+  note: string;
+  /** The walk's months, unread windows and truncated days, for resuming. */
+  walk?: Pick<WalkResult, "months" | "remaining" | "truncated" | "incomplete">;
+  /** Throttled, access failed or the budget ran out: the run stops, and the candidates are what was read. */
+  stopped?: AdLibraryStopError;
 }
 
 /**
  * Searches 1 advertiser by name and keeps only the ads whose advertiser page is its company ID. An entry without
  * a company ID is the caller's to skip: a name search alone returns lookalike advertisers.
  */
-export async function collectLinkedIn(opts: LinkedInCollectOptions): Promise<{ candidates: Candidate[]; fetched: number; note: string }> {
+export async function collectLinkedIn(opts: LinkedInCollectOptions): Promise<LinkedInCollectResult> {
   const companyId = opts.entry.linkedin?.companyId;
   if (!companyId) throw new Error(`${opts.entry.name} has no linkedin.companyId`);
   const advertiser = opts.entry.linkedin?.searchName ?? opts.entry.name;
-  const result = await opts.search({
-    advertiser,
-    max: opts.max,
-    ...(opts.countries?.length ? { countries: opts.countries } : {}),
-    ...(opts.onProgress ? { onProgress: opts.onProgress } : {}),
-  });
-  const own = result.ads.filter((ad) => isCompanyAd(ad, companyId));
+  let own: AdLibraryApiAd[];
+  let fetched: number;
+  let note: string;
+  let walk: WalkResult | undefined;
+  let stopped: AdLibraryStopError | undefined;
+  if (opts.walkBack) {
+    walk = await walkLinkedIn({
+      search: opts.search,
+      advertiser,
+      companyId,
+      windows: opts.walkBack.windows ?? planMonths(opts.checkedAt, opts.walkBack.months),
+      checkedAt: opts.checkedAt,
+      max: opts.max,
+      ...(opts.walkBack.windowCap ? { windowCap: opts.walkBack.windowCap } : {}),
+      ...(opts.countries?.length ? { countries: opts.countries } : {}),
+      ...(opts.onProgress ? { onProgress: opts.onProgress } : {}),
+    });
+    own = walk.ads;
+    fetched = walk.fetched;
+    stopped = walk.stopped;
+    note = `Walked back in ${walk.queries} queries: ${own.length} ads for company ${companyId} from ${walk.fetched} results.`;
+    if (walk.remaining.length) note += ` ${walk.remaining.length} windows left to read; the next --walk-back run resumes there.`;
+    if (walk.checked) note += ` ${walk.checked} dated ads fell inside their windows.`;
+    if (walk.truncated.length) note += ` ${walk.truncated.length} single days came back full, so they may hold more ads.`;
+    if (walk.stoppedAtMax) note += ` Stopped at --max ${opts.max} before the oldest month.`;
+  } else {
+    const known = opts.known;
+    // Newest first: once a full page has none of the advertiser's ads that the last run didn't have, stop.
+    const stopAfterPage = known ? (page: AdLibraryApiAd[]) => !page.some((ad) => isCompanyAd(ad, companyId) && !known.has(ad.detailId)) : undefined;
+    let result: AdLibraryApiResult;
+    try {
+      result = await opts.search({
+        advertiser,
+        max: opts.max,
+        ...(opts.countries?.length ? { countries: opts.countries } : {}),
+        ...(stopAfterPage ? { stopAfterPage } : {}),
+        ...(opts.onProgress ? { onProgress: opts.onProgress } : {}),
+      });
+    } catch (e) {
+      if (!(e instanceof AdLibraryStopError)) throw e;
+      stopped = e;
+      result = { fetched: e.partial?.fetched ?? 0, ads: e.partial?.ads ?? [] };
+    }
+    own = result.ads.filter((ad) => isCompanyAd(ad, companyId));
+    fetched = result.fetched;
+    note = `Kept ${own.length} of ${result.fetched} results for company ${companyId}${known ? ", reading newest first until a page held nothing new" : ""}.`;
+  }
   const candidates = own.map((ad): Candidate => {
     const raw = (ad.raw ?? {}) as { details?: { adStatistics?: { totalImpressions?: unknown } } };
     const d = ad.detail;
@@ -150,7 +240,13 @@ export async function collectLinkedIn(opts: LinkedInCollectOptions): Promise<{ c
     const impressions = linkedinImpressions(raw.details?.adStatistics?.totalImpressions, opts.checkedAt);
     const format = linkedinFormat(d?.format ?? ad.format);
     const notes = ["LinkedIn's API returns no copy or image. Open the Ad Library page to read the creative."];
+    const months = walk?.served[ad.detailId] ?? [];
+    const floor = walk ? servedFloor(months, walk) : undefined;
     if (!firstShown) notes.push("No run dates or impressions: LinkedIn reports them only for ads served in the EU.");
+    if (months.length)
+      notes.push(
+        `LinkedIn's date filter lists it as served in ${months.length} month${months.length === 1 ? "" : "s"}: ${months.join(", ")}${floor === "lookback" ? ". The first is a floor: the filter reaches back about 12 months" : floor === "unread" ? ". The first may be later than the true start: an earlier month wasn't read in full" : ""}.`,
+      );
     if (format === "other") notes.push(`Format code ${d?.format ?? ad.format ?? "missing"} isn't mapped; set the format after inspecting the ad.`);
     if (d?.targeting?.length) {
       const included = d.targeting.filter((t) => t.included.length).map((t) => t.facet);
@@ -172,6 +268,7 @@ export async function collectLinkedIn(opts: LinkedInCollectOptions): Promise<{ c
       firstShown,
       lastShown,
       live: liveFromLastShown(lastShown, opts.checkedAt),
+      ...(months.length ? { servedMonths: months, ...(floor ? { servedMonthsFloor: floor } : {}) } : {}),
       regions: (d?.impressionsByCountry ?? []).map((c) => c.country).filter(Boolean),
       metrics: impressions ? [impressions] : [],
       notes,
@@ -180,7 +277,9 @@ export async function collectLinkedIn(opts: LinkedInCollectOptions): Promise<{ c
   });
   return {
     candidates: candidates.filter((c) => c.source.adId),
-    fetched: result.fetched,
-    note: `Kept ${own.length} of ${result.fetched} results for company ${companyId}.`,
+    fetched,
+    note,
+    ...(walk ? { walk: { months: walk.months, remaining: walk.remaining, truncated: walk.truncated, incomplete: walk.incomplete } } : {}),
+    ...(stopped ? { stopped } : {}),
   };
 }

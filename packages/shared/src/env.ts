@@ -24,7 +24,11 @@ export const LEGACY_ENV_NAMES = {
 } as const;
 
 /** Variables added after the rename. They have no older name to fall back to. */
-export const ENV_NAMES_SINCE_RENAME = ["ADWARP_HUBSPOT_TOKEN"] as const;
+export const ENV_NAMES_SINCE_RENAME = [
+  "ADWARP_HUBSPOT_TOKEN",
+  "ADWARP_AD_LIBRARY_DAILY_CALLS",
+  "ADWARP_AD_LIBRARY_STATE_DIR",
+] as const;
 
 export type EnvName = keyof typeof LEGACY_ENV_NAMES | (typeof ENV_NAMES_SINCE_RENAME)[number];
 

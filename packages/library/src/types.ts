@@ -1,3 +1,5 @@
+import type { DayWindow } from "./adapters/linkedinWindows.js";
+import type { NewAdsReport } from "./changes.js";
 import type { AdCopy, AdFormat, AdMetric, AdPlatform, AdRoute, AdSourceType } from "./record.js";
 
 /**
@@ -24,6 +26,13 @@ export interface Candidate {
   creativeRefs: string[];
   firstShown: string | null;
   lastShown: string | null;
+  /**
+   * LinkedIn walk-back only: the months (YYYY-MM, oldest first) LinkedIn's date filter lists the ad as served in. For
+   * ads never served in the EU these are the only run evidence. Not part of the website's record format yet.
+   */
+  servedMonths?: string[];
+  /** Why the first served month may be later than the true start: LinkedIn's 12-month lookback, or an unread month. */
+  servedMonthsFloor?: "lookback" | "unread";
   /** Still serving when checked. null when the source doesn't say. */
   live: boolean | null;
   regions: string[];
@@ -39,12 +48,35 @@ export interface CandidatesFile {
   platform: AdPlatform;
   collectedAt: string;
   watchlist?: string;
-  query: { countries?: string[]; max: number };
+  query: { countries?: string[]; max: number; walkBack?: { months: number; windowCap?: number } };
+  /** Advertisers pulled without an error, including those with no ads. New-ad detection uses it. */
+  tracked?: string[];
+  /** What changed since the previous run, when collect ran with --previous. */
+  changes?: NewAdsReport;
+  /** LinkedIn walk-backs per advertiser, carried from run to run: the 7-day guard and where to resume read them. */
+  walks?: Record<string, WalkRecord>;
+  /** Set when the run stopped early. Advertisers it didn't reach are in `errors` and keep their last ads. */
+  stopped?: { reason: "throttled" | "budget" | "access"; message: string };
+  /** LinkedIn: Ad Library calls this run made, and the app's daily budget left afterwards (UTC day). */
+  calls?: { made: number; leftToday?: number; dailyBudget?: number };
   candidates: Candidate[];
   /** Watchlist entries with no ID or name for this platform. */
   skipped: { advertiser: string; reason: string }[];
   /** Per-advertiser failures. 1 failure never stops the rest of the run. */
   errors: { advertiser: string; message: string }[];
+}
+
+/** 1 advertiser's LinkedIn walk-back: when it ran, whether it finished, and the windows still to read. */
+export interface WalkRecord {
+  startedAt: string;
+  updatedAt: string;
+  done: boolean;
+  /** The months it planned, oldest first. */
+  months: string[];
+  /** Windows not read yet, newest first. The next --walk-back run resumes with them. */
+  remaining: DayWindow[];
+  /** Months with a day that came back full even after splitting. */
+  truncated: string[];
 }
 
 /** Every adapter accepts an injected fetch, so tests run on fixtures and never touch the network. */

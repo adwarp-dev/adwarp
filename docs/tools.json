@@ -1223,7 +1223,7 @@
     "hosted": true,
     "hostedSupport": "limited",
     "hostedNote": "Returns Ad Library metadata only, unless the server is configured with the remote creative worker.",
-    "description": "Discover competitor ads through the official API. auto optionally queues up to 10 creatives on the remote worker; api returns metadata only. Always provide advertiser plus companyId to filter unrelated name matches before collection. No local browser or scraper fallback. Read pending results with get_competitor_creatives. Cached screenshots require worker authentication. Report sample coverage and collection dates; never retry a blocked worker or use another browser/client. Synthesize findings rather than dumping rows.",
+    "description": "Discover competitor ads through the official API. Calls are paced at least 2.2s apart, count against a daily budget per app (150 by default), and stop at once on throttling (a 429) or revoked access, returning what was collected. auto optionally queues up to 10 creatives on the remote worker; api returns metadata only. Always provide advertiser plus companyId to filter unrelated name matches before collection. No local browser or scraper fallback. Read pending results with get_competitor_creatives. Cached screenshots require worker authentication. Report sample coverage and collection dates; never retry a blocked worker or use another browser/client. Synthesize findings rather than dumping rows.",
     "inputSchema": {
       "type": "object",
       "properties": {
