@@ -11,18 +11,7 @@
  * family, and their metrics are never added together.
  */
 import { createHash } from "node:crypto";
-import {
-  type AdCollection,
-  type AdEvidence,
-  type AdMetric,
-  type AdPlatform,
-  exposureMetric,
-  LONG_RUN_DAYS,
-  daysBetween,
-  metricFloor,
-  runDays,
-} from "./record.js";
-import { addDays } from "./parse.js";
+import { type AdCollection, type AdEvidence, type AdMetric, type AdPlatform, exposureMetric, LONG_RUN_DAYS, daysBetween, metricFloor, runDays, servedMonthsMinDays } from "./record.js";
 import type { Candidate } from "./types.js";
 
 export interface Ranked {
@@ -89,28 +78,13 @@ export function formatMonth(month: string): string {
   return `${MONTHS[(m ?? 1) - 1]} ${y}`;
 }
 
-const nextMonth = (month: string): string => {
-  const [y = 0, m = 1] = month.split("-").map(Number);
-  return m === 12 ? `${y + 1}-01` : `${y}-${String(m + 1).padStart(2, "0")}`;
-};
 const monthsSpanned = (first: string, last: string): number => {
   const [y1 = 0, m1 = 1] = first.split("-").map(Number);
   const [y2 = 0, m2 = 1] = last.split("-").map(Number);
   return (y2 - y1) * 12 + (m2 - m1) + 1;
 };
 
-/**
- * The fewest days an ad served in these months can have run: from the last day of the first month to the first day
- * of the last. Served-during gives no day inside a month, so this is a floor. 1 for a single month.
- */
-export function servedMonthsMinDays(months: string[]): number | null {
-  const first = months[0];
-  const last = months[months.length - 1];
-  if (!first || !last) return null;
-  if (first === last) return 1;
-  const endOfFirst = addDays(`${nextMonth(first)}-01`, -1);
-  return daysBetween(endOfFirst, `${last}-01`) + 1;
-}
+// servedMonthsMinDays comes from ./record.js, so this package and adwarp.dev compute the same floor.
 
 /** The run the evidence shows: exact from dates, a minimum from served months, or null. */
 export function candidateRun(c: Candidate): { days: number; from: "dates" } | { days: number; from: "months" } | null {
